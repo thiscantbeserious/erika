@@ -49,33 +49,33 @@
   --accent-primary-dim: color-mix(in srgb, var(--accent-primary) 55%, var(--bg-page));
   --accent-primary-subtle: color-mix(in srgb, var(--accent-primary) 7%, transparent);
 
-  /* --- Secondary accent — warm orange H28 S100% L58% --- */
-  --accent-secondary: #ff8c2b;
-  --accent-secondary-hover: color-mix(in srgb, var(--accent-secondary) 80%, white);
-  --accent-secondary-dim: color-mix(in srgb, var(--accent-secondary) 55%, var(--bg-page));
+  /* --- Secondary accent — warm orange, WCAG AA on elevated --- */
+  --accent-secondary: #ffc48a;
+  --accent-secondary-hover: #ffd0a1;
+  --accent-secondary-dim: #ad8c70;
   --accent-secondary-subtle: color-mix(in srgb, var(--accent-secondary) 7%, transparent);
 
   /* --- Status — semantic colors --- */
-  --status-success: #34d399;
+  --status-success: #78e3bd;
   --status-success-subtle: color-mix(in srgb, var(--status-success) 7%, transparent);
   --status-warning: #ffcc00;
   --status-warning-subtle: color-mix(in srgb, var(--status-warning) 7%, transparent);
-  --status-error: #ff3b30;
+  --status-error: #ffc0bd;
   --status-error-subtle: color-mix(in srgb, var(--status-error) 7%, transparent);
-  --status-error-dim: color-mix(in srgb, var(--status-error) 55%, var(--bg-page));
-  --status-info: #5ac8fa;
+  --status-error-dim: #ad8a8c;
+  --status-info: #8fdafc;
   --status-info-subtle: color-mix(in srgb, var(--status-info) 7%, transparent);
 
   /* --- Text hierarchy --- */
   --text-primary: #f8f8f8;
   --text-secondary: #d5d9e0;
-  --text-muted: #adb2bb;
-  --text-disabled: #7e838a;
+  --text-muted: #ccd0d5;
+  --text-disabled: #a7abaf;
   --text-inverse: var(--bg-page);
 
   /* --- Borders --- */
-  --border-default: #606068;
-  --border-strong: #75757e;
+  --border-default: #aaaab0;
+  --border-strong: #adaeb4;
   --border-accent: var(--accent-primary);
 
   /* --- Terminal --- */
