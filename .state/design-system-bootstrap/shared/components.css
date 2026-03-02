@@ -736,6 +736,76 @@
   border-color: var(--accent-primary);
 }
 
+/* --- App Header: inline nav dropdown --- */
+.app-header__nav .dropdown {
+  width: auto;
+}
+
+.app-header__nav .dropdown__trigger {
+  background: transparent;
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.app-header__nav .dropdown__trigger:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: none;
+}
+
+.app-header__nav .dropdown__trigger--focused {
+  border: none;
+  box-shadow: none;
+}
+
+.app-header__nav .dropdown__menu {
+  min-width: 260px;
+  max-height: 70vh;
+  overflow-y: scroll;
+}
+
+.app-header__nav .dropdown__menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-header__nav .dropdown__menu::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  margin: var(--space-2) 0;
+}
+
+.app-header__nav .dropdown__menu::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: var(--radius-full);
+}
+
+.app-header__nav .dropdown__menu::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.app-header__nav .dropdown__option-group {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.app-header__nav .dropdown__option-group:not(:first-child) {
+  margin-top: var(--space-1);
+  border-top: var(--space-px) solid var(--border-default);
+  padding-top: var(--space-2);
+}
+
+.app-header__search {
+  width: var(--progress-width);
+  margin-left: var(--space-4);
+}
+
 /* ======================
    COMPONENT: SEARCH BAR
    ====================== */
@@ -1464,6 +1534,7 @@
 }
 
 .dropdown__menu {
+  display: none;
   position: absolute;
   top: calc(100% + var(--space-1));
   left: 0;
@@ -1474,6 +1545,39 @@
   box-shadow: var(--shadow-md);
   overflow: hidden;
   z-index: 10;
+
+}
+
+/* Custom scrollbar — persistent (not overlay) for Webkit/Blink */
+.dropdown__menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown__menu::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  margin: var(--space-2) 0;
+}
+
+.dropdown__menu::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: var(--radius-full);
+}
+
+.dropdown__menu::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Firefox fallback */
+@supports not selector(::-webkit-scrollbar) {
+  .dropdown__menu {
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) var(--bg-surface);
+  }
+}
+
+.dropdown--open > .dropdown__menu {
+  display: block;
 }
 
 .dropdown__option {
@@ -1483,6 +1587,7 @@
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-base);
   color: var(--text-secondary);
+  text-decoration: none;
   cursor: pointer;
   transition: all var(--duration-fast) var(--easing-default);
 }
