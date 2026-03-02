@@ -1001,7 +1001,26 @@
       <!-- ==================== 14. DROPDOWN / SELECT ==================== -->
       <section class="section">
         <h2 class="section__title">14. Dropdown / Select</h2>
-        <p class="section__description">Custom select with label, options list. Five states: default, open, focused, disabled, error.</p>
+        <p class="section__description">Custom select with label, options list. Five states: default, open, focused, disabled, error.
+          Options support optional icons via <code>.dropdown__icon</code> and group headings via <code>.dropdown__group-label</code>.</p>
+
+        <!-- USAGE:
+          Basic option (no icon):
+            <div class="dropdown__option">Option text</div>
+
+          Option with icon:
+            <div class="dropdown__option">
+              <span class="dropdown__icon"><svg viewBox="0 0 16 16" ...>...</svg></span>
+              Option text
+            </div>
+
+          Grouped options:
+            <div class="dropdown__group-label">Group Name</div>
+            <div class="dropdown__option">...</div>
+
+          Icons are optional — options with and without icons can be mixed freely.
+          The icon inherits text-muted color, turns text-primary on hover, and accent-primary when selected.
+        -->
 
         <div class="state-group">
           <div class="state-group__title">States</div>
@@ -1078,13 +1097,25 @@
                 </button>
                 <div class="dropdown__menu">
                   <div class="dropdown__group-label">Anthropic</div>
-                  <div class="dropdown__option dropdown__option--selected">Claude Code</div>
+                  <div class="dropdown__option dropdown__option--selected">
+                    <span class="dropdown__icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5"/><path d="M6 8h4M8 6v4"/></svg></span>
+                    Claude Code
+                  </div>
                   <div class="dropdown__group-label">Google</div>
-                  <div class="dropdown__option">Gemini CLI</div>
+                  <div class="dropdown__option">
+                    <span class="dropdown__icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M8 3v10"/></svg></span>
+                    Gemini CLI
+                  </div>
                   <div class="dropdown__group-label">OpenAI</div>
-                  <div class="dropdown__option">Codex</div>
+                  <div class="dropdown__option">
+                    <span class="dropdown__icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="10" height="10" rx="2"/></svg></span>
+                    Codex
+                  </div>
                   <div class="dropdown__group-label">Custom</div>
-                  <div class="dropdown__option">Other</div>
+                  <div class="dropdown__option">
+                    <span class="dropdown__icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z"/></svg></span>
+                    Other
+                  </div>
                 </div>
               </div>
             </div>

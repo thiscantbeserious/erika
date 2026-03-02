@@ -612,22 +612,22 @@
 }
 
 .toast--success {
-  border-left: var(--space-0\.5) solid var(--status-success);
+  border-left: var(--space-4) solid var(--status-success);
 }
 .toast--success .toast__icon { color: var(--status-success); }
 
 .toast--warning {
-  border-left: var(--space-0\.5) solid var(--status-warning);
+  border-left: var(--space-4) solid var(--status-warning);
 }
 .toast--warning .toast__icon { color: var(--status-warning); }
 
 .toast--error {
-  border-left: var(--space-0\.5) solid var(--status-error);
+  border-left: var(--space-4) solid var(--status-error);
 }
 .toast--error .toast__icon { color: var(--status-error); }
 
 .toast--info {
-  border-left: var(--space-0\.5) solid var(--status-info);
+  border-left: var(--space-4) solid var(--status-info);
 }
 .toast--info .toast__icon { color: var(--status-info); }
 
@@ -1043,11 +1043,11 @@
 }
 
 .section-header--detected {
-  border-left: var(--space-0\.5) solid var(--accent-primary);
+  border-left: var(--space-2) solid var(--accent-primary);
 }
 
 .section-header--marker {
-  border-left: var(--space-0\.5) solid var(--accent-secondary);
+  border-left: var(--space-2) solid var(--accent-secondary);
 }
 
 .section-header--collapsed {
@@ -1468,13 +1468,13 @@
   justify-content: space-between;
   gap: var(--space-2);
   width: 100%;
-  height: var(--input-height-md);
-  padding: var(--space-2) var(--space-4);
+  height: var(--input-height-sm);
+  padding: var(--space-1) var(--space-3);
   background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: var(--space-px) solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -1531,10 +1531,11 @@
 
 .dropdown__menu {
   display: none;
-  position: relative;
-  top: var(--space-2);
+  position: absolute;
+  top: 100%;
   left: 0;
   right: 0;
+  margin-top: var(--space-1);
   background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -1568,54 +1569,55 @@
   padding-top: var(--space-3);
 }
 
+.dropdown__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--easing-default);
+}
+
+.dropdown__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dropdown__option:hover .dropdown__icon {
+  color: var(--text-primary);
+}
+
+.dropdown__option--selected .dropdown__icon {
+  color: var(--accent-primary);
+}
+
 .dropdown__option {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
+  text-decoration: none;
   margin: 0 var(--space-1);
   border-radius: var(--radius-md);
+  border-left: 3px solid transparent;
   font-size: var(--text-base);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--duration-fast) var(--easing-default);
-  position: relative;
-}
-
-.dropdown__option::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: var(--space-1);
-  bottom: var(--space-1);
-  width: 2px;
-  background: var(--accent-primary);
-  border-radius: var(--radius-full);
-  opacity: 0;
-  transform: scaleY(0);
-  transition: all var(--duration-normal) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dropdown__option:hover {
   background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
   color: var(--text-primary);
-  padding-left: var(--space-5);
-}
-
-.dropdown__option:hover::before {
-  opacity: 1;
-  transform: scaleY(1);
+  border-left-color: var(--accent-primary);
 }
 
 .dropdown__option--selected {
   color: var(--accent-primary);
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  padding-left: var(--space-5);
-}
-
-.dropdown__option--selected::before {
-  opacity: 1;
-  transform: scaleY(1);
+  border-left-color: var(--accent-primary);
 }
 
 .dropdown__option--selected::after {
@@ -1969,6 +1971,9 @@
    ====================== */
 .dropdown--static .dropdown__menu {
   display: block;
+  position: relative;
+  top: auto;
+  margin-top: var(--space-2);
 }
 
 /* ======================
