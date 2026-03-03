@@ -1600,7 +1600,6 @@
   padding: var(--space-2) var(--space-4);
   text-decoration: none;
   margin: 0 var(--space-1);
-  border-radius: var(--radius-md);
   border-left: 3px solid transparent;
   font-size: var(--text-base);
   color: var(--text-secondary);
