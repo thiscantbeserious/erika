@@ -65,7 +65,7 @@
   color: var(--text-primary);
   margin-bottom: var(--space-2);
   padding-bottom: var(--space-2);
-  border-bottom: var(--space-px) solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .section__description {
@@ -88,7 +88,7 @@
    ================================================================ */
 .divider {
   border: none;
-  border-top: var(--space-px) solid var(--border-default);
+  border-top: 1px solid var(--border-default);
   margin: var(--space-12) 0;
 }
 

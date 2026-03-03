@@ -121,7 +121,6 @@
   /* ============================================================
      SPACING (4px base grid)
      ============================================================ */
-  --space-px: 1px;
   --space-0\.5: 2px;
   --space-1: 4px;
   --space-1\.5: 6px;
@@ -132,6 +131,7 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
+  --space-16: 64px;
 
   /* Named spacing shortcuts */
   --space-inline: var(--space-4);   /* default horizontal padding */
@@ -199,6 +199,8 @@
    RESET + BASE
    ================================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html { position: relative; width: 100%; height: 100%; }
+body { position: relative; width: 100%; min-height: 100%; }
 
 body {
   font-family: var(--font-body);
@@ -208,6 +210,7 @@ body {
   line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-shadow: 0 12px 100px rgba(0, 0, 0, 0.36) inset;
 }
 
 /* ================================================================
