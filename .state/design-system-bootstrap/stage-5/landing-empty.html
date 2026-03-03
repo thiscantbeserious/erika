@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landing Page - Empty State - RAGTS</title>
+<link rel="stylesheet" href="../shared/layout.css">
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/icons.css">
+<style>
+/* ================================================================
+   Landing Page — Empty State (first-run, no sessions)
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Full-height layout below header */
+.landing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-height));
+  padding: var(--space-8) var(--container-padding);
+  text-align: center;
+}
+
+/* Override upload zone max width for centered hero treatment */
+.landing-empty .upload-zone {
+  max-width: 520px;
+  width: 100%;
+}
+
+/* AGR link styling */
+.landing-empty__hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-4);
+}
+
+.landing-empty__hint a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--easing-default);
+}
+
+.landing-empty__hint a:hover {
+  text-decoration: underline;
+}
+
+/* Code inline styling */
+.landing-empty__code {
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--accent-primary-subtle);
+  padding: var(--space-0\.5) var(--space-1\.5);
+  border-radius: var(--radius-sm);
+}
+
+/* Personality tagline at bottom */
+.landing-empty__tagline {
+  margin-top: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-disabled);
+  max-width: 400px;
+  line-height: var(--leading-relaxed);
+  letter-spacing: var(--tracking-wide);
+}
+
+@media (max-width: 767px) {
+  .landing-empty {
+    padding: var(--space-6) var(--space-4);
+    min-height: calc(100vh - var(--header-height));
+  }
+
+  .landing-empty .upload-zone {
+    padding: var(--space-8) var(--space-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- App Header — first-run: no workspace switcher, upload button present but subtle -->
+<header class="app-header">
+  <div class="app-header__left">
+    <a href="#" class="app-header__brand">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+  </div>
+  <div class="app-header__right">
+    <button class="btn btn--primary btn--sm">
+      <span class="icon icon--sm icon-upload"></span>
+      Upload
+    </button>
+    <div class="app-header__avatar">S</div>
+  </div>
+</header>
+
+<!-- Main: centered empty state with upload zone -->
+<main class="landing-empty">
+  <div class="upload-zone">
+    <div class="upload-zone__icon">
+      <span class="icon icon--xl icon-upload" style="color: var(--text-muted);"></span>
+    </div>
+    <div class="upload-zone__title">No sessions yet. Fix that.</div>
+    <div class="upload-zone__subtitle">
+      Drop a <span class="landing-empty__code">.cast</span> file here and watch it unfold
+      into something you can actually read.
+    </div>
+    <span class="upload-zone__browse">Or click to browse files</span>
+  </div>
+
+  <p class="landing-empty__hint">
+    Recording sessions? Use
+    <a href="https://github.com/thiscantbeserious/agent-session-recorder" target="_blank" rel="noopener">AGR</a>
+    to capture them.
+  </p>
+
+  <p class="landing-empty__tagline">
+    // the subagent deleted half your codebase again.<br>
+    // at least now you can learn from it.
+  </p>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landing Page - Empty Search Results - RAGTS</title>
+<link rel="stylesheet" href="../shared/layout.css">
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/icons.css">
+<style>
+/* ================================================================
+   Landing Page — Empty Search Results
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Main content area */
+.landing {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--container-padding);
+}
+
+/* Compact upload strip */
+.landing__upload-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border: var(--space-0\.5) dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+  transition: all var(--duration-normal) var(--easing-default);
+  cursor: pointer;
+}
+
+.landing__upload-strip:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.landing__upload-strip:hover .landing__upload-strip-icon {
+  color: var(--accent-primary);
+}
+
+.landing__upload-strip-icon {
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--easing-default);
+}
+
+.landing__upload-strip-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.landing__upload-strip-text code {
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--accent-primary-subtle);
+  padding: var(--space-0\.5) var(--space-1\.5);
+  border-radius: var(--radius-sm);
+}
+
+/* Toolbar: search + filters row */
+.landing__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.landing__search {
+  flex: 1;
+}
+
+/* Empty search results — personality section */
+.landing__empty-search {
+  padding: var(--space-12) var(--space-8);
+}
+
+/* Search term highlight inside empty state description */
+.landing__search-term {
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--accent-primary-subtle);
+  padding: var(--space-0\.5) var(--space-1\.5);
+  border-radius: var(--radius-sm);
+}
+
+/* Personality quip below reset button */
+.landing__quip {
+  margin-top: var(--space-6);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-disabled);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Secondary filter pill — for showing the active agent type filter */
+.filter-pill--secondary {
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
+  background: var(--accent-secondary-subtle);
+}
+
+@media (max-width: 767px) {
+  .landing {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .landing__toolbar {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .landing__empty-search {
+    padding: var(--space-8) var(--space-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- App Header — full -->
+<header class="app-header">
+  <div class="app-header__left">
+    <a href="#" class="app-header__brand">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+    <nav class="app-header__nav">
+      <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+    </nav>
+  </div>
+  <div class="app-header__right">
+    <button class="btn btn--primary btn--sm">
+      <span class="icon icon--sm icon-upload"></span>
+      Upload
+    </button>
+    <div class="app-header__avatar">S</div>
+  </div>
+</header>
+
+<main class="landing">
+  <!-- Compact upload strip -->
+  <div class="landing__upload-strip">
+    <span class="landing__upload-strip-icon icon icon--md icon-upload"></span>
+    <span class="landing__upload-strip-text">
+      Drop <code>.cast</code> files here to upload, or use the button above
+    </span>
+  </div>
+
+  <!-- Toolbar: Search (active, with term) + Filter Pills (one active) -->
+  <div class="landing__toolbar">
+    <div class="landing__search search-bar">
+      <span class="search-bar__icon">
+        <span class="icon icon--sm icon-search"></span>
+      </span>
+      <input type="text" class="search-bar__input search-bar__input--focused" value="kubernetes deployment">
+      <button class="search-bar__clear" title="Clear search">
+        <span class="icon icon--xs icon-close"></span>
+      </button>
+    </div>
+    <div class="filter-pills">
+      <button class="filter-pill">All</button>
+      <button class="filter-pill filter-pill--secondary">Claude Code</button>
+      <button class="filter-pill">Gemini</button>
+      <button class="filter-pill">Codex</button>
+    </div>
+  </div>
+
+  <!-- Empty search results -->
+  <div class="landing__empty-search empty-state">
+    <div class="empty-state__icon">
+      <span class="icon icon--xl icon-search" style="opacity: 0.4;"></span>
+    </div>
+    <h2 class="empty-state__title">Nothing here.</h2>
+    <p class="empty-state__description">
+      No sessions match <span class="landing__search-term">kubernetes deployment</span>
+      with the <strong>Claude Code</strong> filter active. Either those sessions do not exist,
+      or your agents never touched Kubernetes. Both are valid outcomes.
+    </p>
+    <button class="btn btn--secondary">
+      <span class="icon icon--sm icon-close"></span>
+      Clear search &amp; filters
+    </button>
+    <p class="landing__quip">// grep returned empty. story of my life.</p>
+  </div>
+</main>
+
+</body>
+</html>

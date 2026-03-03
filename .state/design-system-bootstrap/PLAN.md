@@ -1,26 +1,26 @@
 # PLAN: Design System Bootstrap
 
 Branch: design-system-bootstrap
-Date: 2026-02-27
-Status: Approved
+Date: 2026-02-27 (updated 2026-03-03)
+Status: Approved — Stages 0-4 complete, Stages 5-11 in progress
 Depends on: ADR.md approval
 
 ## Stages Overview
 
-| Stage | Deliverable | Owner | Depends on |
-|-------|------------|-------|------------|
-| 0 | Current app audit + observation document | Frontend Designer | Nothing |
-| 1 | Three visual directions (DS-1) | Frontend Designer | Stage 0 |
-| 2 | User picks direction | User | Stage 1 |
-| 3 | Design tokens (DS-2) | Frontend Designer | Stage 2 |
-| 4 | Component library (DS-3) | Frontend Designer | Stage 3 |
-| 5 | Landing page mockups (DS-4) | Frontend Designer | Stage 4 |
-| 6 | Session detail page mockups (DS-5) | Frontend Designer | Stage 4 |
-| 7 | Auth screens (DS-6) | Frontend Designer | Stage 4 |
-| 8 | Upload modal (DS-7) | Frontend Designer | Stage 4 |
-| 9 | Session edit modal (DS-8) | Frontend Designer | Stage 4 |
-| 10 | Curation slide-over (DS-9) | Frontend Designer | Stage 6 |
-| 11 | 404 + error states (promoted from DS-13) | Frontend Designer | Stage 4 |
+| Stage | Deliverable | Owner | Depends on | Status |
+|-------|------------|-------|------------|--------|
+| 0 | Current app audit + observation document | Frontend Designer | Nothing | Done |
+| 1 | Three visual directions (DS-1) | Frontend Designer | Stage 0 | Done |
+| 2 | User picks direction | User | Stage 1 | Done — "B Refined" chosen |
+| 3 | Design tokens (DS-2) | Frontend Designer | Stage 2 | Done |
+| 4 | Component library (DS-3) | Frontend Designer | Stage 3 | Done |
+| 5 | Landing page mockups (DS-4) | Frontend Designer | Stage 4 | TODO |
+| 6 | Session detail page mockups (DS-5) | Frontend Designer | Stage 4 | TODO |
+| 7 | Auth screens (DS-6) | Frontend Designer | Stage 4 | TODO |
+| 8 | Upload modal (DS-7) | Frontend Designer | Stage 4 | TODO |
+| 9 | Session edit modal (DS-8) | Frontend Designer | Stage 4 | TODO |
+| 10 | Curation slide-over (DS-9) | Frontend Designer | Stage 6 | TODO |
+| 11 | 404 + error states (promoted from DS-13) | Frontend Designer | Stage 4 | TODO |
 
 Stages 5 through 9 are parallelizable (no file overlap, all depend on Stage 4 only).
 Stage 10 depends on Stage 6 because the curation panel coexists with the session detail layout.
@@ -28,305 +28,124 @@ Stage 11 can run in parallel with Stages 5-9.
 
 ---
 
-## Shared CSS Convention
+## Toolchain
 
-All stage HTML files import shared CSS via `<link>` tags:
+Stages 0-4 were started with Penpot but migrated to **HTML + CSS files** with **Playwright MCP** for screenshots and visual verification. All remaining stages use this workflow:
+
+- **Design in:** HTML files under `stage-N/`- **Verify with:** Playwright MCP screenshots (headless Chrome)
+- **Color science:** `node agents/scripts/color-science.mjs` (zero-dependency OKLCH tool)
+- **Reference server:** `npx http-server .state/design-system-bootstrap -p 8787`
+
+---
+
+## Shared CSS Architecture
+
+All stage HTML files import shared CSS in this order:
+
 ```html
 <link rel="stylesheet" href="../shared/layout.css">
-<link rel="stylesheet" href="../shared/components.css">  <!-- Stage 4+ -->
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/icons.css">
 ```
 
-**File structure:**
+### Source of Truth Files
 
-| File | Purpose | Contents |
-|------|---------|----------|
-| `shared/layout.css` | Foundation | Design tokens (`:root`), Google Fonts import, reset (`*`, `body`), grid/layout utility classes |
-| `shared/components.css` | Reusable UI | Component styles consumed by multiple stages (introduced in Stage 4, imported by Stages 5+) |
-| `stage-N/*.html` | Page-specific | Styles in `<style>` block — no `:root`, no grid class duplication |
+| File | Purpose | Source of Truth For |
+|------|---------|---------------------|
+| `shared/layout.css` | Foundation | All design tokens (`:root` custom properties), Google Fonts import, reset, grid/layout utility classes |
+| `shared/page.css` | Page scaffold | Page container, page header, sections, dividers, state showcase layout, showcase grids, inline utilities |
+| `shared/components.css` | Reusable UI | All component styles — buttons, inputs, cards, badges, toasts, modals, dropdowns, upload zones, etc. |
+| `shared/icons.css` | Icon utilities | Icon sizing scale and utility classes |
 
-**What lives where:**
+Each file has a complete table of contents in its header comment. **Read the file itself for the class catalog** — this plan does not duplicate class names or token values.
 
-| Category | File | Examples |
-|----------|------|----------|
-| Design tokens | `layout.css` | `--accent-primary`, `--text-base`, `--space-4`, `--radius-md` |
-| Reset + body base | `layout.css` | `* { box-sizing }`, `body { font-family }` |
-| Layout utilities | `layout.css` | `.container`, `.grid`, `.grid--2col`, `.grid--sidebar`, `.grid--holy-grail` |
-| Reusable components | `components.css` | Buttons, inputs, badges, cards, modals, toasts (Stage 4+) |
-| Page-specific styles | `stage-N/*.html` | Demo visualizations, section layouts, page-only presentation |
+### Rules
 
-**Available grid classes (from `layout.css`):**
-
-| Class | Columns | Use case |
-|-------|---------|----------|
-| `.grid` | — (base) | Sets `display: grid` + `gap: var(--grid-gap)` |
-| `.grid--auto-fill` | `repeat(auto-fill, minmax(200px, 1fr))` | Responsive card grids |
-| `.grid--2col` | `repeat(2, 1fr)` | Two equal columns |
-| `.grid--3col` | `repeat(3, 1fr)` | Three equal columns |
-| `.grid--sidebar` | `var(--progress-width) 1fr` | Sidebar + content |
-| `.grid--holy-grail` | `var(--progress-width) 1fr var(--progress-width)` | Sidebar + content + sidebar |
-
-All multi-column grids collapse to single column below 768px viewport.
-
-**Rules:**
 - No `:root` block in individual stage HTML files — all tokens live in `layout.css`
-- Use shared `.grid--*` classes for layout — don't redefine them in stage files
+- No class redefinition — use the shared classes, don't duplicate them in stage `<style>` blocks
 - `var()` cannot be used inside `repeat(auto-fill, ...)` — use raw px values with a comment
 - Component styles reused across stages go in `components.css`, not in stage HTML
 - Stage-specific presentation styles stay in the HTML file's `<style>` block
+- BEM naming convention throughout: `.block__element--modifier`
+
+### Naming Conventions
+
+- Tokens: `--category-name` (e.g. `--bg-page`, `--text-primary`, `--space-4`, `--radius-md`)
+- Components: `.component` with BEM modifiers (e.g. `.btn--primary`, `.card--compact`)
+- Page scaffold: `.page`, `.section`, `.state-group` etc.
+- Utilities: `.grid--2col`, `.text-muted`, `.flex-fill` etc.
 
 ---
 
-## Stage 0: Explore the Current Application
+## Visual Reference Standard
 
-**Owner:** Frontend Designer
-**Depends on:** Nothing
-**Output:** Observation document (text in Penpot or markdown) + screenshots
+**`stage-4/components.html`** is the canonical visual reference for the design system. It demonstrates every component in every state, using only shared CSS classes and tokens. All subsequent stages (5-11) must be visually consistent with this file.
 
-### Tasks
+### Deferred Variants
 
-- [ ] 0.1: Start the dev server (`npm run dev` from the project root)
-- [ ] 0.2: Browse the landing page at `http://localhost:5173`
-- [ ] 0.3: Upload the sample `.cast` file from `fixtures/sample.cast` via drag-and-drop
-- [ ] 0.4: Wait for processing to complete, then navigate to the session detail page
-- [ ] 0.5: Interact with fold/unfold on section headers
-- [ ] 0.6: Scroll through the terminal document, noting how terminal content renders
-- [ ] 0.7: Screenshot each of the following states:
-  - Landing page (empty, before any uploads)
-  - Landing page (populated, after upload)
-  - Session detail page (sections expanded)
-  - Session detail page (sections collapsed)
-  - Upload zone (dragging state if possible)
-  - AppHeader (the top bar)
-- [ ] 0.8: Document observations — what works, what feels rough, what is missing. Specifically note:
-  - Color usage (hardcoded hex values, no token system)
-  - Spacing inconsistencies
-  - Typography: where is monospace used vs system-ui?
-  - Interactive affordances: are buttons obvious? Is fold/unfold discoverable?
-  - Missing UI: no search, no filters, no agent badges, no edit, no auth
-  - Terminal rendering: readability, line density, scroll behavior
-  - Overall personality: does the current UI reflect the product's irreverent voice?
-
-### Exit Criteria
-
-Designer has screenshots and a written list of observations. This document is the baseline that all three visual directions react to — either preserving what works or deliberately replacing what does not.
+Warm-dark and high-contrast palette variants are archived in `stage-4/defered/` for future exploration. These are not part of the current standard.
 
 ---
 
-## Stage 1: Three Visual Directions (DS-1)
+## Completed Stages
 
-**Owner:** Frontend Designer
-**Depends on:** Stage 0
-**Output:** Three Penpot pages, each containing a complete direction with the artifacts listed below
+### Stage 0: Explore the Current Application — DONE
 
-### What Each Direction Must Include
+Screenshots and observations captured. Documented in `screenshots/OBSERVATIONS.md`.
 
-For each of the three directions, create a single Penpot page containing:
+### Stage 1: Three Visual Directions (DS-1) — DONE
 
-1. **Color palette** — Background layers (3-4 levels: page bg, card bg, elevated surface, overlay). Primary accent + secondary accent. Status colors (success, warning, error, info). Text hierarchy (primary, secondary, muted, disabled).
+Three HTML direction files produced:
+- `directions/direction-a-tui.html` — Terminal/TUI aesthetic
+- `directions/direction-b-devtool.html` — Developer tool aesthetic
+- `directions/direction-c-editorial.html` — Editorial/magazine aesthetic
 
-2. **Typography specimen** — Heading hierarchy (h1-h4), body text, small/meta text, monospace specimen. Font family choices with rationale. If proposing a web font, show the fallback stack too.
+### Stage 2: Direction Selection — DONE
 
-3. **Spacing and shape** — Spacing scale (4px, 8px, 12px, 16px, 24px, 32px, 48px or equivalent). Border radius philosophy (sharp, slightly rounded, or pill). Border/divider treatment.
+User chose **Direction B Refined** (Geist fonts, `#00ff9f` green, `#ff6b2b` orange). Documented in `directions/CHOSEN.md`. Visual reference: `directions/direction-b-refined-v1.html`.
 
-4. **Mood description** — 2-3 sentences describing how this direction feels. Is it austere and technical? Warm and approachable? Sharp and editorial? The description helps the user make an intuitive choice.
+### Stage 3: Design Tokens (DS-2) — DONE
 
-5. **Sample screen** — The landing page (populated state) rendered in this direction. This is the primary comparison artifact. Include: header with brand, session cards with metadata, search bar, upload zone (collapsed position), and at least one toast notification.
+All tokens extracted into `shared/layout.css` `:root` block. Categories: colors (backgrounds, accents, status, text, borders, terminal), typography (Geist family, minor third scale from 14px, line heights, tracking, weights), spacing (4px base grid), layout (960px container, grid utilities, breakpoints), component sizing, shape (radius scale), shadows/glows, animation (durations, easing).
 
-### Direction Guidance
+### Stage 4: Component Library (DS-3) — DONE
 
-The designer has full creative freedom. These are suggested starting points, not mandates:
+21 components built in `shared/components.css`, all demonstrated with full state coverage in `stage-4/components.html`. Components include interactive states (hover, active, disabled, error, loading) for all interactive elements.
 
-- **Direction A:** Could lean into the terminal aesthetic — monospace-heavy, minimal chrome, the UI feels like a well-designed TUI application running in a browser. High contrast, sharp edges, dense information.
+Additionally: `shared/page.css` (page scaffold classes) and `shared/icons.css` (icon sizing) were created.
 
-- **Direction B:** Could lean into the developer-tool aesthetic — think VS Code / GitHub Dark. Familiar surfaces, rounded cards, syntax-highlighting-inspired accents. Professional, polished, recognizable.
-
-- **Direction C:** Could break from both — an editorial or magazine-like reading experience. Serif or humanist sans headings, generous whitespace, the terminal content is framed as the "hero artifact" surrounded by elegant controls. Less typical for dev tools, more distinctive.
-
-The designer should push at least one direction into unexpected territory. If all three feel like minor variations on "dark theme with blue accent," the exploration is too conservative.
-
-### Hard Constraints (Apply to All Directions)
-
-- Terminal content areas: monospace, high-contrast, readable. This is the only non-negotiable visual constraint.
-- The RAGTS brand name must be visible and recognizable in the header
-- Web fonts are encouraged — they give the product uniqueness. Show fallback stacks for implementation.
-- Everything else is open: dark, light, mixed, color palette, layout density, typography personality. The designer owns these choices.
-
-### Exit Criteria
-
-- Three distinct directions, each on its own Penpot page
-- Each direction has all 5 artifacts listed above
-- Directions are visually distinguishable from each other (not three shades of the same idea)
-- Ready for user review and selection
+Mockup pages also completed during Stage 4:
+- `mockups/tokens.html` — Token reference page
+- `mockups/components.html` — Component catalog
+- `mockups/landing-empty.html` — Landing page empty state
+- `mockups/landing-populated.html` — Landing page with sessions
+- `mockups/landing-empty-search.html` — Empty search results
 
 ---
 
-## Stage 2: Direction Selection (User Gate)
+## Remaining Stages (5-11)
 
-**Owner:** User
-**Depends on:** Stage 1
+### General Instructions for All Remaining Stages
 
-The designer presents the three directions. The user selects one, requests a hybrid, or asks for revisions.
-
-### Exit Criteria
-
-- User has explicitly chosen a direction (or described a hybrid)
-- Designer has confirmed understanding of the choice
-- Any hybrid instructions are unambiguous
-
-**The designer MUST NOT proceed to Stage 3 without explicit user approval.**
+- **Output format:** HTML file in `stage-N/` directory
+- **Import all 4 shared CSS files** in the standard order
+- **Use only shared classes and tokens** — no raw hex values, no inline styles for things that have token equivalents
+- **Page-specific layout** goes in a `<style>` block in the HTML file
+- **Visual consistency:** Must match `stage-4/components.html` in look and feel
+- **Verify with Playwright** screenshots after completing each frame
 
 ---
 
-## Stage 3: Design Tokens (DS-2)
-
-**Owner:** Frontend Designer
-**Depends on:** Stage 2 (direction chosen)
-**Output:** One Penpot page: "Design Tokens"
-
-### Token Categories to Formalize
-
-Take the chosen direction and extract every visual value into named tokens:
-
-1. **Color Tokens**
-   - `color-bg-page`, `color-bg-surface`, `color-bg-elevated`, `color-bg-overlay`
-   - `color-accent-primary`, `color-accent-secondary`
-   - `color-status-success`, `color-status-warning`, `color-status-error`, `color-status-info`
-   - `color-text-primary`, `color-text-secondary`, `color-text-muted`, `color-text-disabled`
-   - `color-text-inverse` (for text on accent backgrounds)
-   - `color-border-default`, `color-border-strong`, `color-border-accent`
-   - `color-terminal-bg`, `color-terminal-text` (specific to terminal chrome areas)
-
-2. **Typography Tokens**
-   - Font families: `font-family-body`, `font-family-mono`, `font-family-heading` (if different)
-   - Size scale: `font-size-xs` through `font-size-2xl` (at least 6 steps)
-   - Weight scale: `font-weight-normal`, `font-weight-medium`, `font-weight-bold`
-   - Line height: `line-height-tight`, `line-height-normal`, `line-height-relaxed`
-
-3. **Spacing Tokens**
-   - Scale: `space-1` (4px) through `space-12` (48px) or equivalent
-   - Named shortcuts: `space-inline` (horizontal padding), `space-stack` (vertical margin between elements)
-
-4. **Shape Tokens**
-   - `radius-sm`, `radius-md`, `radius-lg`, `radius-full` (pill)
-   - `shadow-sm`, `shadow-md`, `shadow-lg` (elevation levels)
-
-5. **Animation Tokens**
-   - `duration-fast` (150ms), `duration-normal` (250ms), `duration-slow` (400ms)
-   - `easing-default` (ease-out or equivalent)
-
-### Penpot Organization
-
-- All tokens defined as Penpot color/typography library entries where the tool supports it
-- A reference page showing all tokens with their names and values
-- Annotation: which tokens map to CSS custom properties in implementation
-
-### Exit Criteria
-
-- Every visual value in the chosen direction is captured as a named token
-- No raw hex values, pixel sizes, or unnamed font choices remain
-- The token page is the single source of truth for all subsequent mockups
-
----
-
-## Stage 4: Component Library (DS-3)
-
-**Owner:** Frontend Designer
-**Depends on:** Stage 3
-**Output:** One or more Penpot pages: "Components"
-
-### Components to Design (All States)
-
-For each component, design every relevant state as a separate frame:
-
-**Button**
-- Variants: primary, secondary, ghost, destructive
-- States per variant: default, hover, active, disabled, loading (spinner)
-- Sizes: default, small (for inline/compact use)
-
-**Input**
-- Text input with label, with helper text, with error message
-- States: default, focused, filled, disabled, error
-- Password variant (with show/hide toggle)
-
-**Dropdown / Select**
-- Closed state, open state with option list, with search/filter, selected state
-- Multi-select variant (for tags)
-
-**Badge**
-- Agent type badges (Claude, Claude Code, Gemini CLI, Codex, custom)
-- Section type badges (Marker, Detected)
-- Status badges (processing, completed, failed)
-- Size: default (for cards), small (for section headers)
-
-**Card**
-- Session card: default, hover, with agent badge, with processing indicator
-- Show filename (monospace), agent type badge, marker count, section count, upload date, file size
-
-**Modal Shell**
-- Overlay + centered card
-- Header (title + close X), body (scrollable), footer (action buttons)
-- Backdrop: dark semi-transparent
-
-**Slide-Over Panel**
-- Right-side panel, same header/body/footer pattern as modal
-- Show the panel both in isolation and in context (alongside terminal content)
-
-**Toast**
-- Success, error, info variants
-- With dismiss button
-- Stacked (show how multiple toasts arrange)
-
-**Section Header**
-- Expanded state, collapsed state
-- Marker type vs Detected type (visually distinct)
-- Hover state showing "Curate" affordance
-- Show line range metadata
-
-**Terminal Chrome**
-- The container frame for terminal content
-- Top bar (optional faux traffic lights or minimal title bar)
-- Content area with monospace text
-- Show with section headers inside (sticky)
-
-**Search Bar**
-- Input with search icon, clear button
-- With adjacent filter pills (agent type filters)
-- Active filter state (pill highlighted)
-
-**Upload Zone**
-- Default state (dashed border, icon, text)
-- Drag-over state (highlighted border, background shift)
-- Uploading state (progress indicator)
-- Compact variant (for populated landing page, collapsed strip)
-
-**Navigation: Header**
-- Full header bar: brand, workspace switcher (placeholder), upload button, user avatar menu
-- User menu open state
-- Responsive: what collapses at narrow widths
-
-**Navigation: Breadcrumb**
-- Session detail breadcrumb: "Sessions > filename.cast"
-
-**Previous / Next Arrows**
-- Session-to-session navigation controls
-- Disabled state (first/last session)
-
-### Exit Criteria
-
-- Every component listed above has all its states as separate frames
-- All components use only tokens from Stage 3 (no raw values)
-- Components are organized as reusable Penpot components where the tool supports it
-- Interactive states (hover, active, disabled, error) documented for every interactive component
-
----
-
-## Stage 5: Landing Page Mockups (DS-4)
+### Stage 5: Landing Page Mockups (DS-4)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 4
-**Files:** Penpot page "Landing Page"
+**Output:** HTML files in `stage-5/`
 
-### Frames to Produce
+Note: Some landing page mockups were produced early during Stage 4 in `mockups/`. Review existing `mockups/landing-*.html` files for reference — rebuild in `stage-5/`.
+
+#### Frames to Produce
 
 1. **Empty state (first-run, no sessions)**
    - Upload zone centered and prominent (this is the ONLY action)
@@ -351,30 +170,30 @@ For each component, design every relevant state as a separate frame:
    - Skeleton placeholders for session cards (3-4 skeleton cards)
    - Search bar and filters visible but disabled/muted
 
-### Design Notes
+#### Design Notes
 
 - Session cards should show: filename (monospace), agent type badge, marker count, detected section count, upload date, file size
 - Card hover state should be visible on at least one card
-- The landing page max-width is currently 720px; the designer may adjust this if the card layout benefits from more width
+- The landing page max-width is currently 960px (per `--container-max`)
 
-### Exit Criteria
+#### Exit Criteria
 
-- [ ] All 4 frames produced
+- [ ] All 4 frames produced (or existing mockups updated to match current component standard)
 - [ ] Empty state has personality-driven copy
 - [ ] Populated state shows search + filters + diverse cards
 - [ ] Processing card state visible
 - [ ] Loading skeleton state visible
-- [ ] All components use DS-3 library components
+- [ ] All components use shared CSS classes only
 
 ---
 
-## Stage 6: Session Detail Page Mockups (DS-5)
+### Stage 6: Session Detail Page Mockups (DS-5)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 4
-**Files:** Penpot page "Session Detail"
+**Output:** HTML file(s) in `stage-6/`
 
-### Frames to Produce
+#### Frames to Produce
 
 1. **Full render (sections expanded)**
    - Page header: back/breadcrumb + filename (monospace) + agent badge + edit button + prev/next arrows
@@ -385,7 +204,6 @@ For each component, design every relevant state as a separate frame:
 
 2. **Collapsed sections**
    - Same layout, but 2 of the sections are collapsed
-   - Collapsed visual treatment: opacity reduction, chevron rotated, content hidden
    - One section expanded for contrast
 
 3. **Curation affordance on hover**
@@ -403,13 +221,12 @@ For each component, design every relevant state as a separate frame:
    - Personality-driven error message
    - Link back to session list
 
-### Design Notes
+#### Design Notes
 
-- Terminal content max-width is currently 960px; designer may adjust
-- Section header for "Marker" type should have a distinct visual treatment (e.g., left accent border in a different color) vs "Detected" type
-- Previous/next arrows should be subtle but discoverable -- integrated into the page header, not floating
+- Section header for "Marker" type should be visually distinct from "Detected" type — use existing badge and section-header component variants
+- Previous/next arrows should use the shared nav-arrow component
 
-### Exit Criteria
+#### Exit Criteria
 
 - [ ] All 5 frames produced
 - [ ] Marker vs Detected sections are visually distinct beyond badge text
@@ -420,53 +237,48 @@ For each component, design every relevant state as a separate frame:
 
 ---
 
-## Stage 7: Auth Screens (DS-6)
+### Stage 7: Auth Screens (DS-6)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 4
-**Files:** Penpot page "Auth"
-
-### Frames to Produce
+**Output:** HTML file(s) in `stage-7/`
+#### Frames to Produce
 
 1. **Login page (`/login`)**
-   - Centered card on dark page background
-   - RAGTS brand mark at top of card
-   - Email + password fields (using DS-3 input component)
+   - RAGTS brand mark
+   - Email + password fields
    - "Sign in" primary button
    - Divider: "or continue with"
-   - 1-2 generic OIDC provider buttons (e.g., "Continue with SSO" -- do not design for specific providers)
+   - 1-2 generic OIDC provider buttons (e.g., "Continue with SSO" — do not design for specific providers)
    - "Create an account" link below (conditionally visible when open registration is enabled)
    - "Forgot password?" link (placeholder, no target page needed)
 
-2. **Registration page (`/register`) -- open mode**
-   - Same centered card layout
+2. **Registration page (`/register`) — open mode**
    - Email, password, confirm password fields
    - "Create account" primary button
    - "Already have an account? Sign in" link
 
-3. **Registration page (`/register`) -- invite-only mode**
-   - Same centered card layout
+3. **Registration page (`/register`) — invite-only mode**
    - Invite code / token field (single field)
    - Explanatory text: "Registration requires an invite code from your workspace administrator"
    - "Continue" button
    - If valid code: reveal email + password fields (or navigate to a second step)
 
 4. **First-run bootstrap (`/setup`)**
-   - Same centered card layout but with different tone
    - Heading: "Set up RAGTS" or similar
    - Explanatory text: "Create the first administrator account to get started"
    - Email + password + confirm password fields
    - "Create admin account" primary button
    - No links to login/register (there are no accounts yet)
 
-### Design Notes
+#### Design Notes
 
-- Auth pages have no header/nav -- they are standalone centered cards
-- Background should reinforce brand identity (subtle gradient, pattern, or just solid dark)
+- Auth pages have no header/nav — they are standalone
+- Use shared card, input, and button components throughout
 - Forms should demonstrate the input component's error state (at least one field showing validation error in one frame)
 - The bootstrap page should feel like a welcome/setup experience, not a registration form
 
-### Exit Criteria
+#### Exit Criteria
 
 - [ ] All 4 frames produced
 - [ ] Login shows both email/password and OIDC patterns
@@ -476,68 +288,65 @@ For each component, design every relevant state as a separate frame:
 
 ---
 
-## Stage 8: Upload Modal (DS-7)
+### Stage 8: Upload Modal (DS-7)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 4
-**Files:** Penpot page "Upload Modal"
-
-### Frames to Produce
+**Output:** HTML file(s) in `stage-8/`
+#### Frames to Produce
 
 1. **Pre-drop state** — Modal open, empty drag-and-drop zone, agent type dropdown (default: Claude), "Browse files" button
 2. **File dropped state** — File selected, showing filename + file size preview, agent type confirmed, "Upload" primary button enabled
 3. **Uploading state** — Progress indicator (determinate or indeterminate), disabled controls
 4. **Success state** — Checkmark, "Session uploaded successfully" message, "Open session" link, modal auto-closes after delay or on click
 
-### Design Notes
+#### Design Notes
 
-- The modal uses the DS-3 modal shell component
+- The modal uses the shared modal shell component
 - Agent type dropdown options: Claude, Claude Code, Gemini CLI, Codex, Other (free text)
 - The drag-and-drop zone inside the modal should match the visual language of the landing page upload zone (compact variant)
 
-### Exit Criteria
+#### Exit Criteria
 
 - [ ] All 4 state frames produced
 - [ ] Agent type selection visible
 - [ ] File preview (name + size) visible in dropped state
-- [ ] Uses DS-3 modal and dropdown components
+- [ ] Uses shared modal and dropdown components
 
 ---
 
-## Stage 9: Session Edit Modal (DS-8)
+### Stage 9: Session Edit Modal (DS-8)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 4
-**Files:** Penpot page "Session Edit Modal"
-
-### Frames to Produce
+**Output:** HTML file(s) in `stage-9/`
+#### Frames to Produce
 
 1. **Editing state** — Modal with editable fields: filename (text input, monospace), agent type (dropdown). Read-only display: upload date, file size, section count. Save + Cancel buttons.
 2. **Save success** — Modal closes, toast appears ("Session updated")
 
-### Design Notes
+#### Design Notes
 
 - Triggered by pencil/edit icon on session detail page header
-- Simple and quick -- this is a lightweight interaction
+- Simple and quick — this is a lightweight interaction
 - Read-only fields should be visually distinct from editable fields (no border, muted text, or label-value layout)
 
-### Exit Criteria
+#### Exit Criteria
 
 - [ ] Both frames produced
 - [ ] Editable vs read-only fields are visually distinct
-- [ ] Uses DS-3 modal, input, dropdown, button, and toast components
+- [ ] Uses shared modal, input, dropdown, button, and toast components
 
 ---
 
-## Stage 10: Curation Slide-Over Panel (DS-9)
+### Stage 10: Curation Slide-Over Panel (DS-9)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 6 (session detail layout)
-**Files:** Penpot page "Curation Panel"
+**Output:** HTML file(s) in `stage-10/`
+#### Frames to Produce
 
-### Frames to Produce
-
-1. **Panel open, in context** — The session detail page with the curation panel slid in from the right. Terminal content shrinks to ~65% width. Panel shows:
+1. **Panel open, in context** — The session detail page with the curation panel visible alongside terminal content. Panel shows:
    - Section label (from the curated section)
    - Compact preview: first 3 lines of terminal content from the section (monospace, muted)
    - Title field: text input (override auto-detected label)
@@ -550,15 +359,15 @@ For each component, design every relevant state as a separate frame:
 
 3. **Panel standalone (for component reference)** — The panel isolated from the page context, showing full height and all fields. This is the reference for implementation.
 
-### Design Notes
+#### Design Notes
 
-- The curation panel is the product's differentiating feature. It should feel intentional and purposeful -- not an afterthought or a tacked-on form
+- The curation panel is the product's differentiating feature. It should feel intentional and purposeful — not an afterthought or a tacked-on form
 - The section preview (3 terminal lines in monospace) connects the annotation to the content. It reminds the user what they are curating
 - Tags should look like pills/chips with an "add" affordance
 - The retrieval intent field explains to the user WHY they are curating: this annotation will be used by agents. Copy/microcopy should reinforce this
-- Below 1024px viewport width: panel becomes full-screen overlay
+- Responsive behavior: panel should adapt at narrow viewports
 
-### Exit Criteria
+#### Exit Criteria
 
 - [ ] All 3 frames produced
 - [ ] Panel coexists with terminal content in the in-context frame
@@ -569,13 +378,12 @@ For each component, design every relevant state as a separate frame:
 
 ---
 
-## Stage 11: 404 and Error States (Promoted from DS-13)
+### Stage 11: 404 and Error States (Promoted from DS-13)
 
 **Owner:** Frontend Designer
 **Depends on:** Stage 4
-**Files:** Penpot page "Error States"
-
-### Frames to Produce
+**Output:** HTML file(s) in `stage-11/`
+#### Frames to Produce
 
 1. **404 Not Found page** — Full page with header. Personality-driven message (not "Page not found"). Link back to session list. The copy should match the product's irreverent voice.
 
@@ -587,13 +395,13 @@ For each component, design every relevant state as a separate frame:
 
 5. **Session failed state** — What the session detail page shows when processing failed. Error message, "Retry" button, link back to session list.
 
-### Design Notes
+#### Design Notes
 
-- Skeleton placeholders should be subtle (low-contrast shimmer, not bright flashing)
+- Use shared skeleton component for all loading placeholders
 - Error states should provide actionable next steps, not just "something went wrong"
 - The 404 page is an opportunity for product personality
 
-### Exit Criteria
+#### Exit Criteria
 
 - [ ] All 5 frames produced
 - [ ] 404 has personality-driven copy
@@ -604,18 +412,18 @@ For each component, design every relevant state as a separate frame:
 
 ## Summary: Full Deliverable Checklist
 
-| Stage | DS Item | Frames | Status |
+| Stage | DS Item | Output | Status |
 |-------|---------|--------|--------|
-| 0 | Exploration | Screenshots + observations | [ ] |
-| 1 | DS-1: Directions | 3 pages (5 artifacts each) | [ ] |
-| 2 | User choice | Explicit approval | [ ] |
-| 3 | DS-2: Tokens | 1 page (all token categories) | [ ] |
-| 4 | DS-3: Components | 1-2 pages (all components, all states) | [ ] |
-| 5 | DS-4: Landing | 4 frames | [ ] |
+| 0 | Exploration | `screenshots/OBSERVATIONS.md` | [x] Done |
+| 1 | DS-1: Directions | `directions/direction-{a,b,c}-*.html` | [x] Done |
+| 2 | User choice | `directions/CHOSEN.md` — "B Refined" | [x] Done |
+| 3 | DS-2: Tokens | `shared/layout.css` `:root` block | [x] Done |
+| 4 | DS-3: Components | `shared/components.css` + `stage-4/components.html` | [x] Done |
+| 5 | DS-4: Landing | 4 frames in `stage-5/` | [ ] |
 | 6 | DS-5: Session detail | 5 frames | [ ] |
 | 7 | DS-6: Auth | 4 frames | [ ] |
 | 8 | DS-7: Upload modal | 4 frames | [ ] |
 | 9 | DS-8: Session edit modal | 2 frames | [ ] |
 | 10 | DS-9: Curation panel | 3 frames | [ ] |
 | 11 | Error states | 5 frames | [ ] |
-| **Total** | | **~35 frames + 3 direction pages** | |
+| **Total** | | **~27 remaining frames** | |
