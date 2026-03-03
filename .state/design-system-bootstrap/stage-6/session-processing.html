@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Detail - Processing State - RAGTS</title>
+<link rel="stylesheet" href="../shared/layout.css">
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/icons.css">
+<style>
+/* ================================================================
+   Session Detail Page — Processing State
+   Session uploaded but detection not yet complete.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.detail-header {
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-5) var(--container-padding);
+}
+
+.detail-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.detail-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-header__filename {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.detail-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-viewer {
+  flex: 1;
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--container-padding) var(--space-8);
+}
+
+.detail-viewer .terminal-chrome {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 180px);
+}
+
+.detail-viewer .terminal-chrome__body {
+  flex: 1;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Processing info banner at top of terminal body */
+.processing-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--status-info-subtle);
+  border-bottom: 1px solid color-mix(in srgb, var(--status-info) 20%, transparent);
+}
+
+.processing-banner__icon {
+  flex-shrink: 0;
+  color: var(--status-info);
+}
+
+.processing-banner__text {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.processing-banner__text strong {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+/* Processing progress bar below banner */
+.processing-banner__progress {
+  padding: 0 var(--space-5) var(--space-3);
+  background: var(--status-info-subtle);
+}
+
+/* Partial content area with muted styling */
+.processing-content {
+  flex: 1;
+  padding: var(--space-4) var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-mono);
+  color: var(--terminal-text);
+  background: var(--terminal-bg);
+}
+
+/* Pulsing skeleton placeholder for unprocessed content */
+.processing-skeleton {
+  padding: var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+  background: var(--terminal-bg);
+}
+
+.processing-skeleton__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.processing-skeleton__line {
+  height: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.processing-skeleton__line--short {
+  width: 45%;
+}
+
+.processing-skeleton__line--medium {
+  width: 70%;
+}
+
+.processing-skeleton__line--long {
+  width: 90%;
+}
+
+.processing-skeleton__line--full {
+  width: 100%;
+}
+
+.processing-skeleton__header {
+  height: var(--space-8);
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@media (max-width: 767px) {
+  .detail-header {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .detail-header__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .detail-header__filename {
+    font-size: var(--text-lg);
+  }
+
+  .detail-viewer {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="detail-page">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="#" class="app-header__brand">
+        <div class="app-header__logo">R</div>
+        <span class="app-header__name">RAGTS</span>
+      </a>
+      <nav class="app-header__nav">
+        <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+      </nav>
+    </div>
+    <div class="app-header__right">
+      <button class="btn btn--primary btn--sm">
+        <span class="icon icon--sm icon-upload"></span>
+        Upload
+      </button>
+      <div class="app-header__avatar">S</div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="detail-header">
+    <nav class="breadcrumb" style="margin-bottom: var(--space-3);">
+      <a href="#" class="breadcrumb__link">Sessions</a>
+      <span class="breadcrumb__separator">
+        <span class="icon icon--xs icon-chevron-right"></span>
+      </span>
+      <span class="breadcrumb__current">setup-ci-pipeline.cast</span>
+    </nav>
+
+    <div class="detail-header__top">
+      <div class="detail-header__title-row">
+        <span class="detail-header__filename">setup-ci-pipeline.cast</span>
+        <span class="badge badge--warning">
+          <span class="spinner spinner--sm spinner--secondary"></span>
+          Processing
+        </span>
+        <button class="btn btn--ghost btn--sm" style="opacity: 0.5; pointer-events: none;">
+          <span class="icon icon--sm icon-edit"></span>
+          Edit
+        </button>
+      </div>
+
+      <div class="detail-header__actions">
+        <div class="nav-arrows">
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-left"></span>
+          </button>
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-right"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal viewer in processing state -->
+  <div class="detail-viewer">
+    <div class="terminal-chrome">
+      <div class="terminal-chrome__titlebar">
+        <div class="terminal-chrome__dots">
+          <span class="terminal-chrome__dot"></span>
+          <span class="terminal-chrome__dot"></span>
+          <span class="terminal-chrome__dot"></span>
+        </div>
+        <span class="terminal-chrome__title">setup-ci-pipeline.cast</span>
+        <div class="session-viewer__meta">
+          <span>89 KB</span>
+          <span>
+            <span class="dot-spinner dot-spinner--muted" style="vertical-align: middle;">
+              <span class="dot-spinner__dot"></span>
+              <span class="dot-spinner__dot"></span>
+              <span class="dot-spinner__dot"></span>
+            </span>
+            detecting
+          </span>
+        </div>
+      </div>
+
+      <div class="terminal-chrome__body">
+
+        <!-- Processing info banner -->
+        <div class="processing-banner">
+          <span class="processing-banner__icon">
+            <span class="icon icon--md icon-info-circle"></span>
+          </span>
+          <span class="processing-banner__text">
+            <strong>Sections are being detected.</strong> This page will update automatically when processing completes.
+          </span>
+          <span class="spinner spinner--sm"></span>
+        </div>
+
+        <!-- Indeterminate progress -->
+        <div class="processing-banner__progress">
+          <div class="bar-loader">
+            <div class="bar-loader__track"></div>
+          </div>
+        </div>
+
+        <!-- Partial terminal content (raw, not yet sectioned) -->
+        <div class="processing-content">
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">1</span>
+            <span class="session-viewer__line-text"><span class="terminal-chrome__prompt">$</span> cat .github/workflows/ci.yml</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">2</span>
+            <span class="session-viewer__line-text">name: CI Pipeline</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">3</span>
+            <span class="session-viewer__line-text">on:</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">4</span>
+            <span class="session-viewer__line-text">  push:</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">5</span>
+            <span class="session-viewer__line-text">    branches: [main, develop]</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">6</span>
+            <span class="session-viewer__line-text">  pull_request:</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">7</span>
+            <span class="session-viewer__line-text">    branches: [main]</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">8</span>
+            <span class="session-viewer__line-text"></span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">9</span>
+            <span class="session-viewer__line-text">jobs:</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">10</span>
+            <span class="session-viewer__line-text">  lint-and-test:</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">11</span>
+            <span class="session-viewer__line-text">    runs-on: ubuntu-latest</span>
+          </div>
+          <div class="session-viewer__line">
+            <span class="session-viewer__line-no">12</span>
+            <span class="session-viewer__line-text">    steps:</span>
+          </div>
+        </div>
+
+        <!-- Skeleton placeholders for remaining unprocessed content -->
+        <div class="processing-skeleton">
+          <!-- Placeholder for a section header -->
+          <div class="processing-skeleton__header"></div>
+          <div class="processing-skeleton__group">
+            <div class="processing-skeleton__line processing-skeleton__line--long"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--full"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--medium"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--long"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--short"></div>
+          </div>
+
+          <div class="processing-skeleton__header"></div>
+          <div class="processing-skeleton__group">
+            <div class="processing-skeleton__line processing-skeleton__line--full"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--long"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--medium"></div>
+          </div>
+
+          <div class="processing-skeleton__header"></div>
+          <div class="processing-skeleton__group">
+            <div class="processing-skeleton__line processing-skeleton__line--medium"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--long"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--short"></div>
+            <div class="processing-skeleton__line processing-skeleton__line--full"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

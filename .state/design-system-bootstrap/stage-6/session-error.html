@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Detail - Error State - RAGTS</title>
+<link rel="stylesheet" href="../shared/layout.css">
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/icons.css">
+<style>
+/* ================================================================
+   Session Detail Page — Error / Not Found State
+   Session ID does not exist or loading failed.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Error container — centered in viewport below header */
+.detail-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-12) var(--container-padding);
+}
+
+.detail-error__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 480px;
+}
+
+/* Mini terminal showing the error — uses actual design system components */
+.detail-error__terminal {
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: var(--space-8);
+}
+
+.detail-error__terminal .terminal-chrome__body {
+  padding: var(--space-4) var(--space-5);
+  min-height: auto;
+}
+
+.detail-error__line {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-mono);
+  color: var(--terminal-text);
+  white-space: pre;
+}
+
+.detail-error__line--prompt {
+  color: var(--accent-primary);
+}
+
+.detail-error__line--error {
+  color: var(--status-error);
+}
+
+.detail-error__line--muted {
+  color: var(--text-disabled);
+}
+
+.detail-error__cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  background: var(--accent-primary);
+  vertical-align: text-bottom;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.detail-error__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+}
+
+.detail-error__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--status-error);
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-4);
+}
+
+.detail-error__description {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-8);
+}
+
+.detail-error__description code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: var(--space-0\.5) var(--space-1\.5);
+  border-radius: var(--radius-sm);
+}
+
+.detail-error__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .detail-error {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .detail-error__title {
+    font-size: var(--text-xl);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="detail-page">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="#" class="app-header__brand">
+        <div class="app-header__logo">R</div>
+        <span class="app-header__name">RAGTS</span>
+      </a>
+      <nav class="app-header__nav">
+        <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+      </nav>
+    </div>
+    <div class="app-header__right">
+      <button class="btn btn--primary btn--sm">
+        <span class="icon icon--sm icon-upload"></span>
+        Upload
+      </button>
+      <div class="app-header__avatar">S</div>
+    </div>
+  </header>
+
+  <!-- Error state — personality-driven -->
+  <div class="detail-error">
+    <div class="detail-error__content">
+
+      <div class="detail-error__terminal">
+        <div class="terminal-chrome">
+          <div class="terminal-chrome__titlebar">
+            <div class="terminal-chrome__dots">
+              <span class="terminal-chrome__dot terminal-chrome__dot--red"></span>
+              <span class="terminal-chrome__dot terminal-chrome__dot--yellow"></span>
+              <span class="terminal-chrome__dot terminal-chrome__dot--green"></span>
+            </div>
+            <span class="terminal-chrome__title">session — bash</span>
+          </div>
+          <div class="terminal-chrome__body">
+            <div class="detail-error__line"><span class="detail-error__line--prompt">$</span> ragts show a1b2c3d4</div>
+            <div class="detail-error__line detail-error__line--error">error: session not found</div>
+            <div class="detail-error__line detail-error__line--muted">  id "a1b2c3d4-e5f6-7890" does not exist</div>
+            <div class="detail-error__line detail-error__line--muted">  or has been deleted</div>
+            <div class="detail-error__line">&nbsp;</div>
+            <div class="detail-error__line"><span class="detail-error__line--prompt">$</span> <span class="detail-error__cursor"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="detail-error__title">This session ghosted you.</h1>
+
+      <p class="detail-error__code">SESSION_NOT_FOUND</p>
+
+      <p class="detail-error__description">
+        Either <code>a1b2c3d4-e5f6-7890</code> never existed, someone deleted it while you were looking, or the universe is just being difficult today. It happens.
+      </p>
+
+      <div class="detail-error__actions">
+        <a href="#" class="btn btn--primary">
+          <span class="icon icon--sm icon-arrow-left"></span>
+          Back to sessions
+        </a>
+        <button class="btn btn--ghost">
+          <span class="icon icon--sm icon-refresh"></span>
+          Try again
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - RAGTS</title>
+<link rel="stylesheet" href="../shared/layout.css">
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/icons.css">
+<style>
+/* ================================================================
+   Auth: Login Page (/login)
+   Standalone auth page — no header/nav.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-card__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.auth-card__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  text-decoration: none;
+}
+
+.auth-card__logo {
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.auth-card__brand-name {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.auth-card__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-1);
+}
+
+.auth-card__subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+/* Form layout */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.auth-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth-form__forgot {
+  align-self: flex-end;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--easing-default);
+}
+
+.auth-form__forgot:hover {
+  color: var(--accent-primary);
+}
+
+.auth-form__submit .btn {
+  width: 100%;
+}
+
+/* Divider with text */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+.auth-divider__line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
+
+.auth-divider__text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* SSO / OIDC buttons */
+.auth-sso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.auth-sso__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--btn-height-md);
+  padding: 0 var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-default);
+  text-decoration: none;
+}
+
+.auth-sso__btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.auth-sso__icon {
+  width: var(--space-5);
+  height: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+/* Footer links */
+.auth-footer {
+  text-align: center;
+  margin-top: var(--space-8);
+}
+
+.auth-footer__text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.auth-footer__link {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+  transition: color var(--duration-fast) var(--easing-default);
+}
+
+.auth-footer__link:hover {
+  color: var(--accent-primary-hover);
+}
+
+/* --- Responsive --- */
+@media (max-width: 767px) {
+  .auth-page {
+    padding: var(--space-4);
+    align-items: flex-start;
+    padding-top: var(--space-12);
+  }
+
+  .auth-card__title {
+    font-size: var(--text-xl);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Brand + heading -->
+    <div class="auth-card__header">
+      <div class="auth-card__brand">
+        <div class="auth-card__logo">R</div>
+        <span class="auth-card__brand-name">RAGTS</span>
+      </div>
+      <h1 class="auth-card__title">Welcome back</h1>
+      <p class="auth-card__subtitle">Sign in to your account to continue</p>
+    </div>
+
+    <!-- Login form -->
+    <form class="auth-form" onsubmit="return false">
+      <div class="auth-form__fields">
+
+        <div class="input-group">
+          <label class="input-group__label">Email</label>
+          <input class="input" type="email" placeholder="you@company.com" value="simon@envelio.com">
+        </div>
+
+        <div class="input-group">
+          <label class="input-group__label">Password</label>
+          <input class="input input--error" type="password" placeholder="Enter your password" value="short">
+          <span class="input-group__error">Password must be at least 8 characters</span>
+        </div>
+
+        <a href="#" class="auth-form__forgot">Forgot password?</a>
+      </div>
+
+      <div class="auth-form__submit">
+        <button class="btn btn--primary" type="submit">Sign in</button>
+      </div>
+
+      <!-- Divider -->
+      <div class="auth-divider">
+        <div class="auth-divider__line"></div>
+        <span class="auth-divider__text">or continue with</span>
+        <div class="auth-divider__line"></div>
+      </div>
+
+      <!-- OIDC / SSO providers -->
+      <div class="auth-sso">
+        <button class="auth-sso__btn" type="button">
+          <span class="auth-sso__icon">
+            <span class="icon icon--md icon-external-link"></span>
+          </span>
+          Continue with SSO
+        </button>
+        <button class="auth-sso__btn" type="button">
+          <span class="auth-sso__icon">
+            <span class="icon icon--md icon-link"></span>
+          </span>
+          Continue with OIDC Provider
+        </button>
+      </div>
+    </form>
+
+    <!-- Footer: create account link -->
+    <div class="auth-footer">
+      <p class="auth-footer__text">
+        No account yet?
+        <a href="register.html" class="auth-footer__link">Create one</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
