@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Detail - Collapsed Sections - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Session Detail Page — Collapsed Sections Variant
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.detail-header {
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-5) var(--container-padding);
+}
+
+.detail-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.detail-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-header__filename {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.detail-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-viewer {
+  flex: 1;
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--container-padding) var(--space-8);
+}
+
+.detail-viewer .terminal-chrome {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 180px);
+}
+
+.detail-viewer .terminal-chrome__body {
+  flex: 1;
+  padding: 0;
+}
+
+.detail-viewer .session-viewer__sections .section-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.section-header__curate {
+  display: none;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0\.5) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-default);
+  white-space: nowrap;
+}
+
+.section-header:hover .section-header__curate {
+  display: inline-flex;
+}
+
+.section-header__curate:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+@media (max-width: 767px) {
+  .detail-header {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .detail-header__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .detail-header__filename {
+    font-size: var(--text-lg);
+  }
+
+  .detail-viewer {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="detail-page">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="#" class="app-header__brand">
+        <div class="app-header__logo">R</div>
+        <span class="app-header__name">RAGTS</span>
+      </a>
+      <nav class="app-header__nav">
+        <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+      </nav>
+    </div>
+    <div class="app-header__right">
+      <button class="btn btn--primary btn--sm">
+        <span class="icon icon--sm icon-upload"></span>
+        Upload
+      </button>
+      <div class="app-header__avatar">S</div>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <div class="detail-header">
+    <nav class="breadcrumb" style="margin-bottom: var(--space-3);">
+      <a href="#" class="breadcrumb__link">Sessions</a>
+      <span class="breadcrumb__separator">
+        <span class="icon icon--xs icon-chevron-right"></span>
+      </span>
+      <span class="breadcrumb__current">refactor-auth-middleware.cast</span>
+    </nav>
+
+    <div class="detail-header__top">
+      <div class="detail-header__title-row">
+        <span class="detail-header__filename">refactor-auth-middleware.cast</span>
+        <span class="badge badge--secondary">
+          <span class="badge__dot"></span>
+          Claude Code
+        </span>
+        <button class="btn btn--ghost btn--sm">
+          <span class="icon icon--sm icon-edit"></span>
+          Edit
+        </button>
+      </div>
+
+      <div class="detail-header__actions">
+        <div class="nav-arrows">
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-left"></span>
+          </button>
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-right"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal viewer with mixed collapsed/expanded sections -->
+  <div class="detail-viewer">
+    <div class="terminal-chrome">
+      <div class="terminal-chrome__titlebar">
+        <div class="terminal-chrome__dots">
+          <span class="terminal-chrome__dot"></span>
+          <span class="terminal-chrome__dot"></span>
+          <span class="terminal-chrome__dot"></span>
+        </div>
+        <span class="terminal-chrome__title">refactor-auth-middleware.cast</span>
+        <div class="session-viewer__meta">
+          <span>342 KB</span>
+          <span>7 markers</span>
+          <span>23 sections</span>
+        </div>
+      </div>
+
+      <div class="terminal-chrome__body">
+        <div class="session-viewer__sections">
+
+          <!-- Section 1: Marker — COLLAPSED -->
+          <div class="section-header section-header--marker section-header--collapsed">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Initial Setup & Dependency Analysis</span>
+            <span class="badge badge--sm badge--secondary">Marker</span>
+            <span class="section-header__range">L1-42</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <!-- No content block — collapsed -->
+
+          <!-- Section 2: Detected — EXPANDED -->
+          <div class="section-header section-header--detected">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Reading & Analyzing auth.ts</span>
+            <span class="badge badge--sm badge--accent">Detected</span>
+            <span class="section-header__range">L43-128</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <div class="session-viewer__content">
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">43</span>
+              <span class="session-viewer__line-text"><span class="session-viewer__tool-call">Tool: </span><span class="session-viewer__tool-name">read_file</span> <span class="session-viewer__tool-call">src/middleware/auth.ts</span></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">44</span>
+              <span class="session-viewer__line-text"><span class="terminal-chrome__comment">// Current auth middleware — passport-jwt strategy</span></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">45</span>
+              <span class="session-viewer__line-text">import passport from 'passport';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">46</span>
+              <span class="session-viewer__line-text">import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">47</span>
+              <span class="session-viewer__line-text">import { UserRepository } from '../repositories/user';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">48</span>
+              <span class="session-viewer__line-text"></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">49</span>
+              <span class="session-viewer__line-text">const opts = {</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">50</span>
+              <span class="session-viewer__line-text">  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">51</span>
+              <span class="session-viewer__line-text">  secretOrKey: process.env.JWT_SECRET,</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">52</span>
+              <span class="session-viewer__line-text">};</span>
+            </div>
+          </div>
+
+          <!-- Section 3: Marker — COLLAPSED -->
+          <div class="section-header section-header--marker section-header--collapsed">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Refactoring to Token Refresh Pattern</span>
+            <span class="badge badge--sm badge--secondary">Marker</span>
+            <span class="section-header__range">L129-247</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <!-- No content block — collapsed -->
+
+          <!-- Section 4: Detected — COLLAPSED (more collapsed for variety) -->
+          <div class="section-header section-header--detected section-header--collapsed">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Running Test Suite</span>
+            <span class="badge badge--sm badge--accent">Detected</span>
+            <span class="section-header__range">L248-312</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <!-- No content block — collapsed -->
+
+          <!-- Section 5: Detected — COLLAPSED -->
+          <div class="section-header section-header--detected section-header--collapsed">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Error Recovery: Token Validation Edge Case</span>
+            <span class="badge badge--sm badge--accent">Detected</span>
+            <span class="section-header__range">L313-378</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <!-- No content block — collapsed -->
+
+          <!-- Section 6: Marker — COLLAPSED -->
+          <div class="section-header section-header--marker section-header--collapsed">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Adding RBAC Middleware</span>
+            <span class="badge badge--sm badge--secondary">Marker</span>
+            <span class="section-header__range">L379-456</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <!-- No content block — collapsed -->
+
+          <!-- Section 7: Detected — COLLAPSED -->
+          <div class="section-header section-header--detected section-header--collapsed">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Final Integration Test Pass</span>
+            <span class="badge badge--sm badge--accent">Detected</span>
+            <span class="section-header__range">L457-512</span>
+            <button class="section-header__curate">
+              <span class="icon icon--xs icon-bookmark"></span>
+              Curate
+            </button>
+          </div>
+          <!-- No content block — collapsed -->
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

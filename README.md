@@ -97,6 +97,25 @@ npx vitest run --coverage  # With coverage report
 
 A sample `.cast` file is included at `fixtures/sample.cast` for testing and demo purposes.
 
+## Design Guide
+
+Browse the live design system at **[thiscantbeserious.github.io/ragts-learning-platform](https://thiscantbeserious.github.io/ragts-learning-platform/)** — tokens, components, and page mockups rendered as static HTML+CSS.
+
 ## License
 
-AGPL-3.0 - see [LICENSE](LICENSE)
+This project uses **dual licensing**:
+
+| Scope | License | File |
+|-------|---------|------|
+| Application code | **AGPL-3.0** | [LICENSE](LICENSE) |
+| RAGTS Design System | **Elastic License 2.0 (ELv2)** | see individual LICENSE files |
+
+### RAGTS Design System (ELv2)
+
+The visual design, composition, layout patterns, token values, and individual styles that make up the **RAGTS Design System** are protected creative work. This includes — but is not limited to — color palettes, typography scales, spacing systems, component designs, icon definitions, and page scaffolding.
+
+Protected files carry a copyright header pointing to their accompanying LICENSE file. The ELv2 permits free use in your own deployments but **prohibits offering the design system as part of a hosted or managed service**.
+
+### Application Code (AGPL-3.0)
+
+The application source code is copyleft open-source. You can use, modify, and distribute it, but network use requires sharing your source.

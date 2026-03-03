@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Edit Modal - Editing State - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Session Edit Modal -- Editing State (Frame 1)
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Full-viewport layout for realistic modal context */
+.edit-modal-page {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Dimmed background layer -- simulates the session detail page behind the modal */
+.edit-modal-page__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+/* Faded session detail content behind the overlay */
+.edit-modal-page__bg {
+  pointer-events: none;
+  filter: blur(1px);
+  opacity: 0.5;
+}
+
+.edit-modal-page__bg-header {
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-5) var(--container-padding);
+}
+
+.edit-modal-page__bg-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.edit-modal-page__bg-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.edit-modal-page__bg-filename {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.edit-modal-page__bg-viewer {
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--container-padding) var(--space-8);
+}
+
+.edit-modal-page__bg-terminal {
+  background: var(--terminal-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-default);
+  min-height: 300px;
+}
+
+.edit-modal-page__bg-titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.edit-modal-page__bg-dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+  opacity: 0.5;
+}
+
+.edit-modal-page__bg-terminal-body {
+  padding: var(--space-4);
+}
+
+.edit-modal-page__bg-terminal-line {
+  height: var(--space-4);
+  background: var(--border-default);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+  opacity: 0.4;
+}
+
+.edit-modal-page__bg-terminal-line--short {
+  width: 60%;
+}
+
+.edit-modal-page__bg-terminal-line--medium {
+  width: 80%;
+}
+
+/* Modal positioning within the overlay */
+.edit-modal-page__backdrop .modal {
+  z-index: 101;
+}
+
+/* Read-only field styling -- distinct from editable inputs */
+.edit-modal__readonly {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.edit-modal__readonly-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+}
+
+.edit-modal__readonly-value {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  padding: var(--space-1) 0;
+}
+
+.edit-modal__readonly-value--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+/* Read-only fields group -- visually separated from editable fields */
+.edit-modal__readonly-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-default);
+}
+
+/* Monospace input override for filename field */
+.edit-modal__input--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-normal);
+}
+
+@media (max-width: 767px) {
+  .edit-modal-page__backdrop {
+    padding: var(--space-4);
+    align-items: flex-end;
+  }
+
+  .edit-modal-page__backdrop .modal {
+    max-width: 100%;
+  }
+
+  .edit-modal__readonly-group {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Faded background content: session detail page behind modal -->
+<header class="app-header">
+  <div class="app-header__left">
+    <a href="#" class="app-header__brand">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+    <nav class="app-header__nav">
+      <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+    </nav>
+  </div>
+  <div class="app-header__right">
+    <button class="btn btn--primary btn--sm">
+      <span class="icon icon--sm icon-upload"></span>
+      Upload
+    </button>
+    <div class="app-header__avatar">S</div>
+  </div>
+</header>
+
+<div class="edit-modal-page__bg">
+  <div class="edit-modal-page__bg-header">
+    <div class="edit-modal-page__bg-breadcrumb">
+      <span>Sessions</span>
+      <span class="icon icon--xs icon-chevron-right"></span>
+      <span>refactor-auth-middleware.cast</span>
+    </div>
+    <div class="edit-modal-page__bg-title-row">
+      <span class="edit-modal-page__bg-filename">refactor-auth-middleware.cast</span>
+      <span class="badge badge--secondary">
+        <span class="badge__dot"></span>
+        Claude Code
+      </span>
+    </div>
+  </div>
+
+  <div class="edit-modal-page__bg-viewer">
+    <div class="edit-modal-page__bg-terminal">
+      <div class="edit-modal-page__bg-titlebar">
+        <span class="edit-modal-page__bg-dot"></span>
+        <span class="edit-modal-page__bg-dot"></span>
+        <span class="edit-modal-page__bg-dot"></span>
+      </div>
+      <div class="edit-modal-page__bg-terminal-body">
+        <div class="edit-modal-page__bg-terminal-line"></div>
+        <div class="edit-modal-page__bg-terminal-line edit-modal-page__bg-terminal-line--medium"></div>
+        <div class="edit-modal-page__bg-terminal-line edit-modal-page__bg-terminal-line--short"></div>
+        <div class="edit-modal-page__bg-terminal-line"></div>
+        <div class="edit-modal-page__bg-terminal-line edit-modal-page__bg-terminal-line--medium"></div>
+        <div class="edit-modal-page__bg-terminal-line edit-modal-page__bg-terminal-line--short"></div>
+        <div class="edit-modal-page__bg-terminal-line"></div>
+        <div class="edit-modal-page__bg-terminal-line edit-modal-page__bg-terminal-line--medium"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal overlay -->
+<div class="edit-modal-page__backdrop">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 class="modal__title">Edit Session</h3>
+      <button class="modal__close">
+        <span class="icon icon--md icon-close"></span>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="modal__body-stack">
+
+        <!-- Editable: Filename -->
+        <div class="input-group">
+          <label class="input-group__label">Filename</label>
+          <input type="text" class="input edit-modal__input--mono" value="refactor-auth-middleware.cast">
+        </div>
+
+        <!-- Editable: Agent Type -->
+        <div class="input-group">
+          <label class="input-group__label">Agent Type</label>
+          <div class="dropdown">
+            <button class="dropdown__trigger" type="button">
+              <span>Claude Code</span>
+              <span class="dropdown__chevron"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Read-only fields group -->
+        <div class="edit-modal__readonly-group">
+          <div class="edit-modal__readonly">
+            <span class="edit-modal__readonly-label">Uploaded</span>
+            <span class="edit-modal__readonly-value">Mar 1, 2026</span>
+          </div>
+          <div class="edit-modal__readonly">
+            <span class="edit-modal__readonly-label">File Size</span>
+            <span class="edit-modal__readonly-value edit-modal__readonly-value--mono">342 KB</span>
+          </div>
+          <div class="edit-modal__readonly">
+            <span class="edit-modal__readonly-label">Sections</span>
+            <span class="edit-modal__readonly-value edit-modal__readonly-value--mono">23</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary">Cancel</button>
+      <button class="btn btn--primary">Save</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

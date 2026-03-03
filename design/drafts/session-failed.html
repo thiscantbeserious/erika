@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Detail - Processing Failed - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Session Detail Page — Processing Failed State
+   Full page layout showing error within the terminal chrome.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Page header */
+.detail-header {
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-5) var(--container-padding);
+}
+
+.detail-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.detail-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-header__filename {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.detail-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Terminal viewer */
+.detail-viewer {
+  flex: 1;
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--container-padding) var(--space-8);
+}
+
+.detail-viewer .terminal-chrome {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 220px);
+}
+
+.detail-viewer .terminal-chrome__body {
+  flex: 1;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Error banner at top of terminal */
+.failed-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--status-error-subtle);
+  border-bottom: 1px solid color-mix(in srgb, var(--status-error) 25%, transparent);
+}
+
+.failed-banner__icon {
+  color: var(--status-error);
+  flex-shrink: 0;
+}
+
+.failed-banner__text {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.failed-banner__text strong {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+/* Error content — centered in the terminal body */
+.failed-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+}
+
+.failed-content__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 400px;
+}
+
+/* Mini terminal showing the error trace */
+.failed-content__mini-terminal {
+  width: 100%;
+  margin-bottom: var(--space-6);
+  background: var(--terminal-bg);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+}
+
+.failed-content__line {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-mono);
+  color: var(--terminal-text);
+  white-space: pre;
+}
+
+.failed-content__line--prompt {
+  color: var(--accent-primary);
+}
+
+.failed-content__line--error {
+  color: var(--status-error);
+}
+
+.failed-content__line--muted {
+  color: var(--text-disabled);
+}
+
+.failed-content__line--warning {
+  color: var(--status-warning);
+}
+
+.failed-content__cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  background: var(--accent-primary);
+  vertical-align: text-bottom;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.failed-content__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+}
+
+.failed-content__description {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-6);
+}
+
+.failed-content__description code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: var(--space-0\.5) var(--space-1\.5);
+  border-radius: var(--radius-sm);
+}
+
+.failed-content__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .detail-header {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .detail-header__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .detail-header__filename {
+    font-size: var(--text-lg);
+  }
+
+  .detail-viewer {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .failed-content {
+    padding: var(--space-8) var(--space-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="detail-page">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="#" class="app-header__brand">
+        <div class="app-header__logo">R</div>
+        <span class="app-header__name">RAGTS</span>
+      </a>
+      <nav class="app-header__nav">
+        <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+      </nav>
+    </div>
+    <div class="app-header__right">
+      <button class="btn btn--primary btn--sm">
+        <span class="icon icon--sm icon-upload"></span>
+        Upload
+      </button>
+      <div class="app-header__avatar">S</div>
+    </div>
+  </header>
+
+  <!-- Page Header: breadcrumb + filename + badge -->
+  <div class="detail-header">
+    <nav class="breadcrumb" style="margin-bottom: var(--space-3);">
+      <a href="#" class="breadcrumb__link">Sessions</a>
+      <span class="breadcrumb__separator">
+        <span class="icon icon--xs icon-chevron-right"></span>
+      </span>
+      <span class="breadcrumb__current">setup-ci-pipeline.cast</span>
+    </nav>
+
+    <div class="detail-header__top">
+      <div class="detail-header__title-row">
+        <span class="detail-header__filename">setup-ci-pipeline.cast</span>
+        <span class="badge badge--error">
+          <span class="icon icon--xs icon-error-circle"></span>
+          Failed
+        </span>
+      </div>
+
+      <div class="detail-header__actions">
+        <div class="nav-arrows">
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-left"></span>
+          </button>
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-right"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal viewer with failed state -->
+  <div class="detail-viewer">
+    <div class="terminal-chrome">
+      <div class="terminal-chrome__titlebar">
+        <div class="terminal-chrome__dots">
+          <span class="terminal-chrome__dot terminal-chrome__dot--red"></span>
+          <span class="terminal-chrome__dot terminal-chrome__dot--yellow"></span>
+          <span class="terminal-chrome__dot terminal-chrome__dot--green"></span>
+        </div>
+        <span class="terminal-chrome__title">setup-ci-pipeline.cast</span>
+        <div class="session-viewer__meta">
+          <span>89 KB</span>
+          <span style="color: var(--status-error);">processing failed</span>
+        </div>
+      </div>
+
+      <div class="terminal-chrome__body">
+        <!-- Error banner -->
+        <div class="failed-banner">
+          <span class="failed-banner__icon icon icon--md icon-error-circle"></span>
+          <span class="failed-banner__text">
+            <strong>Processing failed.</strong> Section detection encountered an error and could not complete. The raw recording is still available.
+          </span>
+        </div>
+
+        <!-- Error content centered in terminal -->
+        <div class="failed-content">
+          <div class="failed-content__inner">
+
+            <!-- Mini terminal trace -->
+            <div class="failed-content__mini-terminal">
+              <div class="failed-content__line"><span class="failed-content__line--prompt">$</span> ragts process setup-ci-pipeline.cast</div>
+              <div class="failed-content__line failed-content__line--muted">  parsing recording... ok (89 KB)</div>
+              <div class="failed-content__line failed-content__line--muted">  detecting sections... 2/? found</div>
+              <div class="failed-content__line failed-content__line--error">error: section detection failed</div>
+              <div class="failed-content__line failed-content__line--muted">  TIMEOUT after 30s at line 247</div>
+              <div class="failed-content__line failed-content__line--muted">  partial results discarded</div>
+              <div class="failed-content__line">&nbsp;</div>
+              <div class="failed-content__line failed-content__line--warning">hint: retry or re-upload the recording</div>
+              <div class="failed-content__line">&nbsp;</div>
+              <div class="failed-content__line"><span class="failed-content__line--prompt">$</span> <span class="failed-content__cursor"></span></div>
+            </div>
+
+            <h2 class="failed-content__title">The processor tripped over itself.</h2>
+
+            <p class="failed-content__description">
+              Section detection timed out while parsing <code>setup-ci-pipeline.cast</code>. This can happen with unusually large recordings or unexpected content formats. Retrying usually fixes it.
+            </p>
+
+            <div class="failed-content__actions">
+              <button class="btn btn--primary">
+                <span class="icon icon--sm icon-refresh"></span>
+                Retry Processing
+              </button>
+              <a href="#" class="btn btn--ghost">
+                <span class="icon icon--sm icon-arrow-left"></span>
+                Back to sessions
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

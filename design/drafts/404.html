@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 Not Found - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   404 Not Found Page
+   Full page with terminal-chrome personality error.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.error-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.error-page__body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-12) var(--container-padding);
+}
+
+.error-page__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 480px;
+}
+
+/* Mini terminal showing the 404 */
+.error-page__terminal {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: var(--space-8);
+}
+
+.error-page__terminal .terminal-chrome__body {
+  padding: var(--space-4) var(--space-5);
+  min-height: auto;
+}
+
+.error-page__line {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-mono);
+  color: var(--terminal-text);
+  white-space: pre;
+}
+
+.error-page__line--prompt {
+  color: var(--accent-primary);
+}
+
+.error-page__line--error {
+  color: var(--status-error);
+}
+
+.error-page__line--muted {
+  color: var(--text-disabled);
+}
+
+.error-page__line--warning {
+  color: var(--status-warning);
+}
+
+.error-page__cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  background: var(--accent-primary);
+  vertical-align: text-bottom;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.error-page__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+}
+
+.error-page__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--status-error);
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-4);
+}
+
+.error-page__description {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-8);
+}
+
+.error-page__description code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: var(--space-0\.5) var(--space-1\.5);
+  border-radius: var(--radius-sm);
+}
+
+.error-page__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .error-page__body {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .error-page__title {
+    font-size: var(--text-xl);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="error-page">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="#" class="app-header__brand">
+        <div class="app-header__logo">R</div>
+        <span class="app-header__name">RAGTS</span>
+      </a>
+      <nav class="app-header__nav">
+        <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+      </nav>
+    </div>
+    <div class="app-header__right">
+      <button class="btn btn--primary btn--sm">
+        <span class="icon icon--sm icon-upload"></span>
+        Upload
+      </button>
+      <div class="app-header__avatar">S</div>
+    </div>
+  </header>
+
+  <!-- 404 Error State -->
+  <div class="error-page__body">
+    <div class="error-page__content">
+
+      <div class="error-page__terminal">
+        <div class="terminal-chrome">
+          <div class="terminal-chrome__titlebar">
+            <div class="terminal-chrome__dots">
+              <span class="terminal-chrome__dot terminal-chrome__dot--red"></span>
+              <span class="terminal-chrome__dot terminal-chrome__dot--yellow"></span>
+              <span class="terminal-chrome__dot terminal-chrome__dot--green"></span>
+            </div>
+            <span class="terminal-chrome__title">ragts -- bash</span>
+          </div>
+          <div class="terminal-chrome__body">
+            <div class="error-page__line"><span class="error-page__line--prompt">$</span> ragts navigate /unknown-path</div>
+            <div class="error-page__line error-page__line--error">error: route not found (404)</div>
+            <div class="error-page__line error-page__line--muted">  path "/unknown-path" does not match any route</div>
+            <div class="error-page__line error-page__line--muted">  checked 42 routes in 0.003s</div>
+            <div class="error-page__line">&nbsp;</div>
+            <div class="error-page__line error-page__line--warning">hint: try `ragts list` to see available sessions</div>
+            <div class="error-page__line">&nbsp;</div>
+            <div class="error-page__line"><span class="error-page__line--prompt">$</span> <span class="error-page__cursor"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="error-page__title">You've wandered off-script.</h1>
+
+      <p class="error-page__code">404 / ROUTE_NOT_FOUND</p>
+
+      <p class="error-page__description">
+        There's nothing at <code>/unknown-path</code>. Maybe the link was wrong, maybe the page moved, or maybe someone is testing your error handling skills. Either way, the sessions list is a safe bet.
+      </p>
+
+      <div class="error-page__actions">
+        <a href="#" class="btn btn--primary">
+          <span class="icon icon--sm icon-arrow-left"></span>
+          Back to sessions
+        </a>
+        <button class="btn btn--ghost">
+          <span class="icon icon--sm icon-refresh"></span>
+          Try again
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
