@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Auth: First-Run Bootstrap (/setup)
+   Welcome / setup experience — no header, no login/register links.
+   Creates the first administrator account.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.setup-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+}
+
+.setup-card {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Hero section with terminal-style welcome */
+.setup-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.setup-hero__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  text-decoration: none;
+}
+
+.setup-hero__logo {
+  width: 40px;
+  height: 40px;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.setup-hero__brand-name {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Mini terminal greeting */
+.setup-terminal {
+  width: 100%;
+  margin-bottom: var(--space-6);
+}
+
+.setup-terminal .terminal-chrome__body {
+  padding: var(--space-3) var(--space-4);
+  min-height: auto;
+}
+
+.setup-terminal__line {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-mono);
+  color: var(--terminal-text);
+  white-space: pre;
+}
+
+.setup-terminal__line--prompt {
+  color: var(--accent-primary);
+}
+
+.setup-terminal__line--muted {
+  color: var(--text-disabled);
+}
+
+.setup-terminal__line--success {
+  color: var(--status-success);
+}
+
+.setup-terminal__cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.15em;
+  background: var(--accent-primary);
+  vertical-align: text-bottom;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.setup-hero__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-2);
+}
+
+.setup-hero__description {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  max-width: 360px;
+}
+
+/* Form layout */
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.setup-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.setup-form__submit .btn {
+  width: 100%;
+}
+
+/* Info cards at bottom */
+.setup-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.setup-info__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.setup-info__icon {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+  margin-top: var(--space-0\.5);
+}
+
+.setup-info__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0\.5);
+}
+
+.setup-info__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.setup-info__text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
+
+/* --- Responsive --- */
+@media (max-width: 767px) {
+  .setup-page {
+    padding: var(--space-4);
+    align-items: flex-start;
+    padding-top: var(--space-8);
+  }
+
+  .setup-hero__title {
+    font-size: var(--text-xl);
+  }
+
+  .setup-hero__logo {
+    width: var(--space-8);
+    height: var(--space-8);
+    font-size: var(--text-lg);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="setup-page">
+  <div class="setup-card">
+
+    <!-- Hero: brand + terminal greeting -->
+    <div class="setup-hero">
+      <div class="setup-hero__brand">
+        <div class="setup-hero__logo">R</div>
+        <span class="setup-hero__brand-name">RAGTS</span>
+      </div>
+
+      <!-- Mini terminal greeting -->
+      <div class="setup-terminal">
+        <div class="terminal-chrome">
+          <div class="terminal-chrome__titlebar">
+            <div class="terminal-chrome__dots">
+              <span class="terminal-chrome__dot terminal-chrome__dot--red"></span>
+              <span class="terminal-chrome__dot terminal-chrome__dot--yellow"></span>
+              <span class="terminal-chrome__dot terminal-chrome__dot--green"></span>
+            </div>
+            <span class="terminal-chrome__title">ragts — setup</span>
+          </div>
+          <div class="terminal-chrome__body">
+            <div class="setup-terminal__line"><span class="setup-terminal__line--prompt">$</span> ragts init</div>
+            <div class="setup-terminal__line setup-terminal__line--success">  fresh install detected</div>
+            <div class="setup-terminal__line setup-terminal__line--muted">  no admin account found</div>
+            <div class="setup-terminal__line setup-terminal__line--muted">  create one to get started</div>
+            <div class="setup-terminal__line">&nbsp;</div>
+            <div class="setup-terminal__line"><span class="setup-terminal__line--prompt">$</span> <span class="setup-terminal__cursor"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="setup-hero__title">Set up RAGTS</h1>
+      <p class="setup-hero__description">
+        Create the first administrator account. You'll be able to invite others once you're in.
+      </p>
+    </div>
+
+    <!-- Setup form -->
+    <form class="setup-form" onsubmit="return false">
+      <div class="setup-form__fields">
+
+        <div class="input-group">
+          <label class="input-group__label">Admin email</label>
+          <input class="input" type="email" placeholder="admin@yourorg.com">
+        </div>
+
+        <div class="input-group">
+          <label class="input-group__label">Password</label>
+          <input class="input" type="password" placeholder="Make it a good one">
+          <span class="input-group__helper">Minimum 8 characters. This is the keys to the kingdom.</span>
+        </div>
+
+        <div class="input-group">
+          <label class="input-group__label">Confirm password</label>
+          <input class="input" type="password" placeholder="Prove you remember it">
+        </div>
+
+      </div>
+
+      <div class="setup-form__submit">
+        <button class="btn btn--primary btn--lg" type="submit">
+          <span class="icon icon--md icon-check-circle"></span>
+          Create admin account
+        </button>
+      </div>
+    </form>
+
+    <!-- Helpful context cards -->
+    <div class="setup-info">
+      <div class="setup-info__item">
+        <span class="setup-info__icon">
+          <span class="icon icon--sm icon-user"></span>
+        </span>
+        <div class="setup-info__content">
+          <span class="setup-info__title">You'll be the first admin</span>
+          <span class="setup-info__text">Full control over users, sessions, and settings. More admins can be added later.</span>
+        </div>
+      </div>
+      <div class="setup-info__item">
+        <span class="setup-info__icon">
+          <span class="icon icon--sm icon-upload"></span>
+        </span>
+        <div class="setup-info__content">
+          <span class="setup-info__title">Upload sessions right away</span>
+          <span class="setup-info__text">Record agent terminal sessions with AGR, then upload them here to explore and curate.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

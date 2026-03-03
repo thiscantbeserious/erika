@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Auth: Registration Page (/register) — Open Mode
+   Standalone auth page — no header/nav.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-card__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.auth-card__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  text-decoration: none;
+}
+
+.auth-card__logo {
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.auth-card__brand-name {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.auth-card__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-1);
+}
+
+.auth-card__subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+/* Form layout */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.auth-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth-form__submit .btn {
+  width: 100%;
+}
+
+.auth-form__hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  text-align: center;
+}
+
+/* Footer links */
+.auth-footer {
+  text-align: center;
+  margin-top: var(--space-8);
+}
+
+.auth-footer__text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.auth-footer__link {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+  transition: color var(--duration-fast) var(--easing-default);
+}
+
+.auth-footer__link:hover {
+  color: var(--accent-primary-hover);
+}
+
+/* --- Responsive --- */
+@media (max-width: 767px) {
+  .auth-page {
+    padding: var(--space-4);
+    align-items: flex-start;
+    padding-top: var(--space-12);
+  }
+
+  .auth-card__title {
+    font-size: var(--text-xl);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Brand + heading -->
+    <div class="auth-card__header">
+      <div class="auth-card__brand">
+        <div class="auth-card__logo">R</div>
+        <span class="auth-card__brand-name">RAGTS</span>
+      </div>
+      <h1 class="auth-card__title">Create your account</h1>
+      <p class="auth-card__subtitle">Start exploring agent terminal sessions</p>
+    </div>
+
+    <!-- Registration form -->
+    <form class="auth-form" onsubmit="return false">
+      <div class="auth-form__fields">
+
+        <div class="input-group">
+          <label class="input-group__label">Email</label>
+          <input class="input" type="email" placeholder="you@company.com">
+        </div>
+
+        <div class="input-group">
+          <label class="input-group__label">Password</label>
+          <input class="input" type="password" placeholder="At least 8 characters">
+          <span class="input-group__helper">Use 8+ characters with a mix of letters and numbers</span>
+        </div>
+
+        <div class="input-group">
+          <label class="input-group__label">Confirm password</label>
+          <input class="input" type="password" placeholder="Type it again, we trust you">
+        </div>
+
+      </div>
+
+      <div class="auth-form__submit">
+        <button class="btn btn--primary" type="submit">Create account</button>
+      </div>
+
+      <p class="auth-form__hint">
+        By creating an account you agree to be excellent to each other.
+      </p>
+    </form>
+
+    <!-- Footer: sign in link -->
+    <div class="auth-footer">
+      <p class="auth-footer__text">
+        Already have an account?
+        <a href="login.html" class="auth-footer__link">Sign in</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

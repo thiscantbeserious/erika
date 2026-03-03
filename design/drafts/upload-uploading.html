@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Modal - Uploading State - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Upload Modal — Uploading State (Frame 3)
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Full-viewport overlay for realistic modal context */
+.upload-modal-page {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Dimmed background layer */
+.upload-modal-page__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+/* Faded landing page content behind the overlay */
+.upload-modal-page__bg {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--container-padding);
+  pointer-events: none;
+  filter: blur(1px);
+  opacity: 0.5;
+}
+
+.upload-modal-page__bg-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border: var(--space-0\.5) dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+}
+
+.upload-modal-page__bg-strip-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.upload-modal-page__bg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.upload-modal-page__bg-card {
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-2);
+  height: 56px;
+}
+
+/* File preview card — disabled appearance during upload */
+.upload-modal__file-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--accent-primary-subtle);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  border-radius: var(--radius-lg);
+  opacity: 0.6;
+}
+
+.upload-modal__file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.upload-modal__file-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0\.5);
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-modal__file-name {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-modal__file-size {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Upload progress section */
+.upload-modal__progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.upload-modal__progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upload-modal__progress-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.upload-modal__progress-pct {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--accent-primary);
+  letter-spacing: var(--tracking-wide);
+}
+
+@media (max-width: 767px) {
+  .upload-modal-page__backdrop {
+    padding: var(--space-4);
+    align-items: flex-end;
+  }
+
+  .upload-modal-page__backdrop .modal {
+    max-width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Faded background content to simulate landing page behind modal -->
+<header class="app-header">
+  <div class="app-header__left">
+    <a href="#" class="app-header__brand">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+    <nav class="app-header__nav">
+      <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+    </nav>
+  </div>
+  <div class="app-header__right">
+    <button class="btn btn--primary btn--sm">
+      <span class="icon icon--sm icon-upload"></span>
+      Upload
+    </button>
+    <div class="app-header__avatar">S</div>
+  </div>
+</header>
+
+<main class="upload-modal-page__bg">
+  <div class="upload-modal-page__bg-strip">
+    <span class="icon icon--md icon-upload" style="color: var(--text-muted)"></span>
+    <span class="upload-modal-page__bg-strip-text">Drop .cast files here to upload</span>
+  </div>
+  <div class="upload-modal-page__bg-toolbar">
+    <div class="skeleton skeleton--text" style="flex: 1; height: 32px; border-radius: var(--radius-lg);"></div>
+    <div class="skeleton skeleton--badge" style="width: 200px; height: 28px;"></div>
+  </div>
+  <div class="upload-modal-page__bg-card"></div>
+  <div class="upload-modal-page__bg-card"></div>
+  <div class="upload-modal-page__bg-card"></div>
+</main>
+
+<!-- Modal overlay -->
+<div class="upload-modal-page__backdrop">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 class="modal__title">Upload Session</h3>
+      <button class="modal__close" disabled style="opacity: 0.35; cursor: not-allowed;">
+        <span class="icon icon--md icon-close"></span>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="modal__body-stack">
+        <!-- File preview — dimmed/disabled during upload -->
+        <div class="upload-modal__file-preview">
+          <div class="upload-modal__file-icon">
+            <span class="icon icon--lg icon-document"></span>
+          </div>
+          <div class="upload-modal__file-info">
+            <span class="upload-modal__file-name">refactor-auth-middleware.cast</span>
+            <span class="upload-modal__file-size">342 KB</span>
+          </div>
+        </div>
+
+        <!-- Agent type dropdown — disabled during upload -->
+        <div class="input-group">
+          <label class="input-group__label">Agent Type</label>
+          <div class="dropdown">
+            <button class="dropdown__trigger dropdown__trigger--disabled" type="button">
+              <span>Claude Code</span>
+              <span class="dropdown__chevron"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress indicator -->
+        <div class="upload-modal__progress-section">
+          <div class="upload-modal__progress-header">
+            <span class="upload-modal__progress-label">
+              <span class="spinner spinner--sm"></span>
+              Uploading...
+            </span>
+            <span class="upload-modal__progress-pct">67%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-bar__fill" style="width: 67%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary btn--secondary-disabled">Cancel</button>
+      <button class="btn btn--primary btn--primary-loading">
+        <span class="btn__spinner"></span>
+        Uploading...
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Modal - Pre-drop State - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Upload Modal — Pre-drop State (Frame 1)
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Full-viewport overlay for realistic modal context */
+.upload-modal-page {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Dimmed background layer — simulates the landing page behind the modal */
+.upload-modal-page__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+/* Faded landing page content behind the overlay */
+.upload-modal-page__bg {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--container-padding);
+  pointer-events: none;
+  filter: blur(1px);
+  opacity: 0.5;
+}
+
+.upload-modal-page__bg-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border: var(--space-0\.5) dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+}
+
+.upload-modal-page__bg-strip-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.upload-modal-page__bg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.upload-modal-page__bg-card {
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-2);
+  height: 56px;
+}
+
+/* Modal positioning within the overlay */
+.upload-modal-page__backdrop .modal {
+  z-index: 101;
+}
+
+/* Input group label spacing within modal body */
+.upload-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.upload-modal__field-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 767px) {
+  .upload-modal-page__backdrop {
+    padding: var(--space-4);
+    align-items: flex-end;
+  }
+
+  .upload-modal-page__backdrop .modal {
+    max-width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Faded background content to simulate landing page behind modal -->
+<header class="app-header">
+  <div class="app-header__left">
+    <a href="#" class="app-header__brand">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+    <nav class="app-header__nav">
+      <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+    </nav>
+  </div>
+  <div class="app-header__right">
+    <button class="btn btn--primary btn--sm">
+      <span class="icon icon--sm icon-upload"></span>
+      Upload
+    </button>
+    <div class="app-header__avatar">S</div>
+  </div>
+</header>
+
+<main class="upload-modal-page__bg">
+  <div class="upload-modal-page__bg-strip">
+    <span class="icon icon--md icon-upload" style="color: var(--text-muted)"></span>
+    <span class="upload-modal-page__bg-strip-text">Drop .cast files here to upload</span>
+  </div>
+  <div class="upload-modal-page__bg-toolbar">
+    <div class="skeleton skeleton--text" style="flex: 1; height: 32px; border-radius: var(--radius-lg);"></div>
+    <div class="skeleton skeleton--badge" style="width: 200px; height: 28px;"></div>
+  </div>
+  <div class="upload-modal-page__bg-card"></div>
+  <div class="upload-modal-page__bg-card"></div>
+  <div class="upload-modal-page__bg-card"></div>
+</main>
+
+<!-- Modal overlay -->
+<div class="upload-modal-page__backdrop">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 class="modal__title">Upload Session</h3>
+      <button class="modal__close">
+        <span class="icon icon--md icon-close"></span>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="modal__body-stack">
+        <!-- Drag-and-drop zone (compact variant for modal context) -->
+        <div class="upload-zone upload-zone--compact">
+          <div class="upload-zone__icon">
+            <span class="icon icon--xl icon-upload"></span>
+          </div>
+          <div class="upload-zone__title">Drop .cast file here</div>
+          <div class="upload-zone__subtitle">or <span class="upload-zone__browse">browse files</span></div>
+        </div>
+
+        <!-- Agent type dropdown -->
+        <div class="input-group">
+          <label class="input-group__label">Agent Type</label>
+          <div class="dropdown">
+            <button class="dropdown__trigger" type="button">
+              <span>Claude</span>
+              <span class="dropdown__chevron"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary">Cancel</button>
+      <button class="btn btn--primary btn--primary-disabled">Upload</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landing Page - Loading State - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Landing Page — Loading State (skeleton placeholders)
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Main content area */
+.landing {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--container-padding);
+}
+
+/* Compact upload strip — muted/disabled while loading */
+.landing__upload-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border: var(--space-0\.5) dashed var(--border-default);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.landing__upload-strip-icon {
+  color: var(--text-disabled);
+}
+
+.landing__upload-strip-text {
+  font-size: var(--text-sm);
+  color: var(--text-disabled);
+}
+
+/* Toolbar: search + filters row — disabled during loading */
+.landing__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.landing__search {
+  flex: 1;
+}
+
+/* Session list — vertical stack */
+.landing__session-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Skeleton card internal layout — matches populated card structure */
+.landing__skeleton-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.landing__skeleton-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.landing__skeleton-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.landing__skeleton-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.landing__skeleton-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Skeleton bar widths — varied for visual interest */
+.skeleton--filename {
+  width: 220px;
+  height: var(--space-4);
+}
+
+.skeleton--filename-short {
+  width: 160px;
+  height: var(--space-4);
+}
+
+.skeleton--filename-long {
+  width: 280px;
+  height: var(--space-4);
+}
+
+.skeleton--meta-item {
+  width: 80px;
+  height: var(--space-3);
+}
+
+.skeleton--date {
+  width: 72px;
+  height: var(--space-3);
+}
+
+.skeleton--size {
+  width: 48px;
+  height: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .landing {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .landing__toolbar {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .landing__skeleton-layout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .landing__skeleton-right {
+    flex-direction: row;
+    gap: var(--space-3);
+    align-items: center;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- App Header — full -->
+<header class="app-header">
+  <div class="app-header__left">
+    <a href="#" class="app-header__brand">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+    <nav class="app-header__nav">
+      <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+    </nav>
+  </div>
+  <div class="app-header__right">
+    <button class="btn btn--primary btn--sm" disabled>
+      <span class="icon icon--sm icon-upload"></span>
+      Upload
+    </button>
+    <div class="app-header__avatar">S</div>
+  </div>
+</header>
+
+<main class="landing">
+  <!-- Compact upload strip — disabled while loading -->
+  <div class="landing__upload-strip">
+    <span class="landing__upload-strip-icon icon icon--md icon-upload"></span>
+    <span class="landing__upload-strip-text">
+      Drop .cast files here to upload
+    </span>
+  </div>
+
+  <!-- Toolbar: search + filters — disabled while loading -->
+  <div class="landing__toolbar">
+    <div class="landing__search search-bar">
+      <span class="search-bar__icon">
+        <span class="icon icon--sm icon-search"></span>
+      </span>
+      <input type="text" class="search-bar__input" placeholder="Search sessions..." disabled>
+    </div>
+    <div class="filter-pills">
+      <button class="filter-pill" disabled>All</button>
+      <button class="filter-pill" disabled>Claude</button>
+      <button class="filter-pill" disabled>Claude Code</button>
+      <button class="filter-pill" disabled>Gemini</button>
+    </div>
+  </div>
+
+  <!-- Skeleton session cards -->
+  <div class="landing__session-list">
+
+    <!-- Skeleton Card 1 -->
+    <div class="skeleton--card">
+      <div class="landing__skeleton-layout">
+        <div class="landing__skeleton-main">
+          <div class="landing__skeleton-top">
+            <div class="skeleton skeleton--filename"></div>
+            <div class="skeleton skeleton--badge"></div>
+          </div>
+          <div class="landing__skeleton-meta">
+            <div class="skeleton skeleton--meta-item"></div>
+            <div class="skeleton skeleton--meta-item"></div>
+          </div>
+        </div>
+        <div class="landing__skeleton-right">
+          <div class="skeleton skeleton--date"></div>
+          <div class="skeleton skeleton--size"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skeleton Card 2 -->
+    <div class="skeleton--card">
+      <div class="landing__skeleton-layout">
+        <div class="landing__skeleton-main">
+          <div class="landing__skeleton-top">
+            <div class="skeleton skeleton--filename-long"></div>
+            <div class="skeleton skeleton--badge"></div>
+          </div>
+          <div class="landing__skeleton-meta">
+            <div class="skeleton skeleton--meta-item"></div>
+            <div class="skeleton skeleton--meta-item"></div>
+          </div>
+        </div>
+        <div class="landing__skeleton-right">
+          <div class="skeleton skeleton--date"></div>
+          <div class="skeleton skeleton--size"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skeleton Card 3 -->
+    <div class="skeleton--card">
+      <div class="landing__skeleton-layout">
+        <div class="landing__skeleton-main">
+          <div class="landing__skeleton-top">
+            <div class="skeleton skeleton--filename-short"></div>
+            <div class="skeleton skeleton--badge"></div>
+          </div>
+          <div class="landing__skeleton-meta">
+            <div class="skeleton skeleton--meta-item"></div>
+            <div class="skeleton skeleton--meta-item"></div>
+          </div>
+        </div>
+        <div class="landing__skeleton-right">
+          <div class="skeleton skeleton--date"></div>
+          <div class="skeleton skeleton--size"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skeleton Card 4 -->
+    <div class="skeleton--card">
+      <div class="landing__skeleton-layout">
+        <div class="landing__skeleton-main">
+          <div class="landing__skeleton-top">
+            <div class="skeleton skeleton--filename"></div>
+            <div class="skeleton skeleton--badge"></div>
+          </div>
+          <div class="landing__skeleton-meta">
+            <div class="skeleton skeleton--meta-item"></div>
+            <div class="skeleton skeleton--meta-item"></div>
+          </div>
+        </div>
+        <div class="landing__skeleton-right">
+          <div class="skeleton skeleton--date"></div>
+          <div class="skeleton skeleton--size"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

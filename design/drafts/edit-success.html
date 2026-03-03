@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Edit Modal - Save Success - RAGTS</title>
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/page.css">
+<link rel="stylesheet" href="../styles/components.css">
+<link rel="stylesheet" href="../styles/icons.css">
+<style>
+/* ================================================================
+   Session Edit Modal -- Save Success (Frame 2)
+   Modal closed, session detail page visible, success toast shown.
+   Page-specific layout styles only. No token redefinitions.
+   ================================================================ */
+
+/* Full-height page layout */
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Page header row */
+.detail-header {
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-5) var(--container-padding);
+}
+
+.detail-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.detail-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-header__filename {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.detail-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Terminal viewer fills remaining space */
+.detail-viewer {
+  flex: 1;
+  max-width: var(--container-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--container-padding) var(--space-8);
+}
+
+.detail-viewer .terminal-chrome {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 180px);
+}
+
+.detail-viewer .terminal-chrome__body {
+  flex: 1;
+  padding: 0;
+}
+
+/* Sticky section headers inside terminal */
+.detail-viewer .session-viewer__sections .section-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* Toast positioning -- fixed top-right corner */
+.edit-success__toast-container {
+  position: fixed;
+  top: calc(var(--header-height) + var(--space-4));
+  right: var(--space-6);
+  z-index: 200;
+}
+
+@media (max-width: 767px) {
+  .detail-header {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .detail-header__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .detail-header__filename {
+    font-size: var(--text-lg);
+  }
+
+  .detail-viewer {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .edit-success__toast-container {
+    right: var(--space-4);
+    left: var(--space-4);
+  }
+
+  .edit-success__toast-container .toast {
+    min-width: auto;
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="detail-page">
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="#" class="app-header__brand">
+        <div class="app-header__logo">R</div>
+        <span class="app-header__name">RAGTS</span>
+      </a>
+      <nav class="app-header__nav">
+        <a href="#" class="app-header__nav-link app-header__nav-link--active">Sessions</a>
+      </nav>
+    </div>
+    <div class="app-header__right">
+      <button class="btn btn--primary btn--sm">
+        <span class="icon icon--sm icon-upload"></span>
+        Upload
+      </button>
+      <div class="app-header__avatar">S</div>
+    </div>
+  </header>
+
+  <!-- Page Header: breadcrumb + filename + badge + edit + prev/next -->
+  <div class="detail-header">
+    <nav class="breadcrumb" style="margin-bottom: var(--space-3);">
+      <a href="#" class="breadcrumb__link">Sessions</a>
+      <span class="breadcrumb__separator">
+        <span class="icon icon--xs icon-chevron-right"></span>
+      </span>
+      <span class="breadcrumb__current">refactor-auth-middleware.cast</span>
+    </nav>
+
+    <div class="detail-header__top">
+      <div class="detail-header__title-row">
+        <span class="detail-header__filename">refactor-auth-middleware.cast</span>
+        <span class="badge badge--secondary">
+          <span class="badge__dot"></span>
+          Claude Code
+        </span>
+        <button class="btn btn--ghost btn--sm">
+          <span class="icon icon--sm icon-edit"></span>
+          Edit
+        </button>
+      </div>
+
+      <div class="detail-header__actions">
+        <div class="nav-arrows">
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-left"></span>
+          </button>
+          <button class="nav-arrow">
+            <span class="icon icon--sm icon-chevron-right"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal viewer with sections -->
+  <div class="detail-viewer">
+    <div class="terminal-chrome">
+      <div class="terminal-chrome__titlebar">
+        <div class="terminal-chrome__dots">
+          <span class="terminal-chrome__dot"></span>
+          <span class="terminal-chrome__dot"></span>
+          <span class="terminal-chrome__dot"></span>
+        </div>
+        <span class="terminal-chrome__title">refactor-auth-middleware.cast</span>
+        <div class="session-viewer__meta">
+          <span>342 KB</span>
+          <span>7 markers</span>
+          <span>23 sections</span>
+        </div>
+      </div>
+
+      <div class="terminal-chrome__body">
+        <div class="session-viewer__sections">
+
+          <!-- Section 1: Marker -- Expanded -->
+          <div class="section-header section-header--marker">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Initial Setup & Dependency Analysis</span>
+            <span class="badge badge--sm badge--secondary">Marker</span>
+            <span class="section-header__range">L1-42</span>
+          </div>
+          <div class="session-viewer__content">
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">1</span>
+              <span class="session-viewer__line-text"><span class="terminal-chrome__prompt">$</span> cd /home/user/projects/ragts && cat package.json | jq '.dependencies'</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">2</span>
+              <span class="session-viewer__line-text">{</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">3</span>
+              <span class="session-viewer__line-text">  "express": "^4.18.2",</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">4</span>
+              <span class="session-viewer__line-text">  "jsonwebtoken": "^9.0.2",</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">5</span>
+              <span class="session-viewer__line-text">  "passport": "^0.7.0",</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">6</span>
+              <span class="session-viewer__line-text">  "passport-jwt": "^4.0.1",</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">7</span>
+              <span class="session-viewer__line-text">  "bcryptjs": "^2.4.3"</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">8</span>
+              <span class="session-viewer__line-text">}</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">9</span>
+              <span class="session-viewer__line-text"><span class="terminal-chrome__prompt">$</span> find src/middleware -name "*.ts" -type f</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">10</span>
+              <span class="session-viewer__line-text">src/middleware/auth.ts</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">11</span>
+              <span class="session-viewer__line-text">src/middleware/validate.ts</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">12</span>
+              <span class="session-viewer__line-text">src/middleware/rate-limit.ts</span>
+            </div>
+          </div>
+
+          <!-- Section 2: Detected -- Expanded -->
+          <div class="section-header section-header--detected">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Reading & Analyzing auth.ts</span>
+            <span class="badge badge--sm badge--accent">Detected</span>
+            <span class="section-header__range">L43-128</span>
+          </div>
+          <div class="session-viewer__content">
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">43</span>
+              <span class="session-viewer__line-text"><span class="session-viewer__tool-call">Tool: </span><span class="session-viewer__tool-name">read_file</span> <span class="session-viewer__tool-call">src/middleware/auth.ts</span></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">44</span>
+              <span class="session-viewer__line-text"><span class="terminal-chrome__comment">// Current auth middleware -- passport-jwt strategy</span></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">45</span>
+              <span class="session-viewer__line-text">import passport from 'passport';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">46</span>
+              <span class="session-viewer__line-text">import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">47</span>
+              <span class="session-viewer__line-text">import { UserRepository } from '../repositories/user';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">48</span>
+              <span class="session-viewer__line-text"></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">49</span>
+              <span class="session-viewer__line-text">const opts = {</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">50</span>
+              <span class="session-viewer__line-text">  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">51</span>
+              <span class="session-viewer__line-text">  secretOrKey: process.env.JWT_SECRET,</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">52</span>
+              <span class="session-viewer__line-text">};</span>
+            </div>
+          </div>
+
+          <!-- Section 3: Marker -- Expanded -->
+          <div class="section-header section-header--marker">
+            <div class="section-header__chevron">
+              <span class="icon icon--sm icon-chevron-right"></span>
+            </div>
+            <span class="section-header__label">Refactoring to Token Refresh Pattern</span>
+            <span class="badge badge--sm badge--secondary">Marker</span>
+            <span class="section-header__range">L129-247</span>
+          </div>
+          <div class="session-viewer__content">
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">129</span>
+              <span class="session-viewer__line-text"><span class="session-viewer__tool-call">Tool: </span><span class="session-viewer__tool-name">write_file</span> <span class="session-viewer__tool-call">src/middleware/auth.ts</span></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">130</span>
+              <span class="session-viewer__line-text"><span class="terminal-chrome__comment">// Refactored auth middleware with refresh token rotation</span></span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">131</span>
+              <span class="session-viewer__line-text">import { SignJWT, jwtVerify, type JWTPayload } from 'jose';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">132</span>
+              <span class="session-viewer__line-text">import { type Context, type Next } from 'hono';</span>
+            </div>
+            <div class="session-viewer__line">
+              <span class="session-viewer__line-no">133</span>
+              <span class="session-viewer__line-text">import { HTTPException } from 'hono/http-exception';</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Success toast -- fixed position, top-right -->
+<div class="edit-success__toast-container">
+  <div class="toast toast--success">
+    <div class="toast__icon">
+      <span class="icon icon--md icon-check-circle"></span>
+    </div>
+    <div class="toast__content">
+      <div class="toast__title">Session updated</div>
+      <div class="toast__message">Changes saved successfully.</div>
+    </div>
+    <button class="toast__close">
+      <span class="icon icon--sm icon-close"></span>
+    </button>
+  </div>
+</div>
+
+</body>
+</html>

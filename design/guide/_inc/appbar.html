@@ -1,0 +1,31 @@
+<!-- RAGTS Design Guide — App Bar Fragment
+     Canonical markup for the fixed app header.
+     Rendered by appbar.js into each guide page. -->
+<header class="app-header" style="position: fixed; top: 0; left: 0; right: 0; z-index: 100;">
+  <div class="app-header__left">
+    <a class="app-header__brand" href="index.html">
+      <div class="app-header__logo">R</div>
+      <span class="app-header__name">RAGTS</span>
+    </a>
+    <nav class="app-header__nav">
+      <div class="dropdown" id="guide-dropdown">
+        <button class="dropdown__trigger" type="button">
+          <span id="guide-dropdown-label">Design Guide</span>
+          <span class="dropdown__chevron"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg></span>
+        </button>
+        <div class="dropdown__menu" id="guide-menu"></div>
+      </div>
+    </nav>
+    <div class="search-bar app-header__search">
+      <span class="search-bar__icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4"/></svg></span>
+      <input class="search-bar__input" id="guide-search" type="text" placeholder="Search this page…">
+    </div>
+  </div>
+  <div class="app-header__right">
+    <div class="nav-arrows">
+      <button class="nav-arrow" id="nav-prev" title="Previous page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3L5 8l5 5"/></svg></button>
+      <button class="nav-arrow" id="nav-next" title="Next page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3l5 5-5 5"/></svg></button>
+    </div>
+    <div class="app-header__avatar">SM</div>
+  </div>
+</header>
