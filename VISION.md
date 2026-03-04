@@ -9,9 +9,12 @@ How learning works — from first principles to the asynchronous refinement loop
 Humans learn through failure and repetition. The critical ingredient isn't the failure — it's the reflection between attempts. Without understanding *why* something failed, repetition is just noise.
 
 ```mermaid
+%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
 graph TD
     Try([Try]) --> Fail([Fail])
     Fail --> Reflect([Reflect])
+    Fail -->|repeat without learning| Try
+    Fail --> GiveUp([Move on])
     Reflect --> Adjust([Adjust])
     Adjust --> Try
     Try --> Success([Success])
@@ -26,7 +29,9 @@ This loop is slow, expensive, and irreplaceable. It's how we build intuition.
 AI compresses the same cycle — millions of attempts, no reflection needed. Audiovisual models, reinforcement learning, massive training corpora. Fast, tireless, increasingly autonomous.
 
 ```mermaid
+%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
 graph TD
+    Training[(Training · RLHF · Data)] -.->|pre-trained| T
     T([Try]) --> F([Fail])
     F --> T
     T --> S([Success])
