@@ -9,15 +9,15 @@ How learning works — from first principles to the asynchronous refinement loop
 Humans learn through failure and repetition. The critical ingredient isn't the failure — it's the reflection between attempts. Without understanding *why* something failed, repetition is just noise.
 
 ```mermaid
-%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
-graph TD
-    Try([Try]) --> Fail([Fail])
-    Fail --> Reflect([Reflect])
+%%{ init: { 'flowchart': { 'curve': 'basis', 'nodeSpacing': 40, 'rankSpacing': 60 } } }%%
+flowchart TD
+    Try([Try]) --> Success([Success])
+    Try --> Fail([Fail])
     Fail -->|repeat without learning| Try
+    Fail --> Reflect([Reflect])
     Fail --> GiveUp([Move on])
     Reflect --> Adjust([Adjust])
     Adjust --> Try
-    Try --> Success([Success])
 ```
 
 This loop is slow, expensive, and irreplaceable. It's how we build intuition.
