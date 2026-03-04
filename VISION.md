@@ -98,19 +98,44 @@ Instead of requiring humans to supervise agents in real-time, Erika captures eve
 Those curated insights feed back to agents as structured context for future sessions. Not raw logs. Not auto-retrieved snippets. Human-validated, intent-aware context that tells agents not just what happened, but what *should* have happened.
 
 ```mermaid
-graph TD
-    A([Agent works]) --> R([Session recorded])
-    R --> H([Human reviews<br/>async, on their time])
-    H --> C([Curate & annotate])
-    C --> S[(Structured context)]
-    S -->|next session| A
+%%{ init: { 'flowchart': { 'nodeSpacing': 50, 'rankSpacing': 50 } } }%%
+flowchart TD
+    subgraph Session["Synchronous · Sessions"]
+        Human(["👤 Human"]) -->|prompt| Agent([Agent])
+        Agent -->|works| Human([Human])
+    end
 
-    S -.->|shared with team| H2([Other humans])
-    H2 -.-> C
+    Session-->Logs
+    Logs[(Full Session Logs)] --> Platform
+
+    subgraph Platform["Erika Platform"]
+        direction LR
+        Store([Store]) --> Curate([Curate]) --> Share([Share])
+    end
+
+    subgraph Team["Asynchronous Learning"]
+        H1(["👤 Human 1"])
+        H2(["👤 Human 2"])
+        H3(["👤 Human 3"])
+    end
+
+    S1@{ shape: brace, label: '"Wrong pattern here"' }
+    S2@{ shape: brace, label: '"Ah I understand now"' }
+    S3@{ shape: brace, label: '"Not a good choice"' }
+    H1 -.- S1
+    H2 -.- S2
+    H3 -.- S3
+
+    Platform --> Team
+    Team --> Platform
+
+    RAG[(RAG)]
+    Platform -->|writes curated| RAG
+    RAG -.->|curated| Agent
 ```
 
-Each cycle sharpens both sides. Humans build deeper understanding of what their agents actually do. Agents get better signal about what their humans actually want.
+Each cycle sharpens both sides. Humans browse sessions, curate what matters, share with the team — on their own time, not blocking the agent. Curated insights flow back as structured context, replacing the uncurated noise from Step 4.
 
-Unlike the synchronous loop, this compounds — across sessions, across team members, across time.
+The loop is **asynchronous** — humans refine at their own pace. It's **compounding** — every curation pass improves the next session. And it's **collaborative** — the whole team contributes, not just whoever happened to be watching.
 
 The loop doesn't replace human judgment. It scales it.
