@@ -1,0 +1,122 @@
+# Vision
+
+How learning works — from first principles to the asynchronous refinement loop that Erika builds.
+
+---
+
+## Step 1: The Human Loop
+
+Humans learn through failure and repetition. The critical ingredient isn't the failure — it's the reflection between attempts. Without understanding *why* something failed, repetition is just noise.
+
+```mermaid
+graph LR
+    Try([Try]) --> Fail([Fail])
+    Fail --> Reflect([Reflect])
+    Reflect --> Adjust([Adjust])
+    Adjust --> Try
+```
+
+This loop is slow, expensive, and irreplaceable. It's how we build intuition.
+
+---
+
+## Step 2: How Machines Compress This
+
+AI compresses the same cycle — millions of attempts, no reflection needed. Audiovisual models, reinforcement learning, massive training corpora. Fast, tireless, increasingly autonomous.
+
+```mermaid
+graph LR
+    T([Try]) --> F([Fail])
+    F --> T
+```
+
+The reflection step disappears. **Speed replaces understanding.**
+
+---
+
+## Step 3: The Context Problem
+
+To compensate, the industry adds retrieval layers — RAG, memory files, auto-injected snippets. More context, **but not better context**.
+
+```mermaid
+graph TD
+    Agent([Agent]) --> Action([Act])
+    Action --> Result([Result])
+
+    RAG[(RAG)] -.-> Agent
+    Docs[(Docs)] -.-> Agent
+    Memory[(Memory)] -.-> Agent
+    Logs[(Logs)] -.-> Agent
+
+    Result --> Agent
+```
+
+Every source is another fork in the road. The agent gets more directions, not better ones.
+
+---
+
+## Step 4: The Current State of Things
+
+This is how agentic coding works today. The human writes a prompt. The agent grabs whatever context it can find — memory files it wrote itself, retrieval snippets matched by keyword similarity, instruction files. None of this is curated by a human. The agent decides what to load, and it decides the way a search engine does: by surface-level relevance, without understanding what actually mattered last time.
+
+Then it works — sometimes with the human watching and approving, sometimes on full auto-accept. Either way, the human is either blocked waiting, or absent entirely.
+
+```mermaid
+graph TD
+    Human([Human]) -->|writes prompt| Agent
+
+    subgraph Session["Synchronous · Blocking"]
+        Agent([Agent]) --> Work([Works])
+        Work -->|approve?| Human2([Human waits])
+        Human2 -->|correct| Agent
+        Work --> Done([Session ends])
+    end
+
+    subgraph Static["Always Injected · No Choice"]
+        Memory[(Memory files)]
+        Instructions[(Instructions / Rules)]
+    end
+
+    subgraph Runtime["Runtime · Agent Decides"]
+        Grep([Grep / Glob codebase])
+        Embeddings([Embedding search])
+    end
+
+    Static -.->|dumped into prompt| Agent
+    Agent -.->|searches when it wants| Runtime
+    Done -.->|sometimes overwrites| Memory
+```
+
+The context the agent works with comes from two places — neither chosen by the human. **Static files** (memory, instructions, rules) are dumped into the prompt wholesale at session start, every time, regardless of relevance. **Runtime search** (grep, embeddings) happens when the agent decides to look — matching by keywords or token similarity, not by intent. A critical architectural decision gets the same weight as a stale TODO.
+
+The session itself is a **synchronous, blocking loop**. If the human is involved, they sit and wait. If they're not, the agent runs unsupervised. Either way, corrections stay trapped in the session. Next time, the agent loads the same unchosen context, maybe overwrites its own memory, and the cycle repeats.
+
+Nothing the human learned carries over. And if you're on a team, none of it helps your colleagues either.
+
+---
+
+## Step 5: The Asynchronous Refinement Loop
+
+This is what Erika builds.
+
+Instead of requiring humans to supervise agents in real-time, Erika captures every session and makes it reviewable after the fact. Humans browse what happened, understand why, mark what mattered, and annotate what should have gone differently — on their own time, at their own pace.
+
+Those curated insights feed back to agents as structured context for future sessions. Not raw logs. Not auto-retrieved snippets. Human-validated, intent-aware context that tells agents not just what happened, but what *should* have happened.
+
+```mermaid
+graph TD
+    A([Agent works]) --> R([Session recorded])
+    R --> H([Human reviews<br/>async, on their time])
+    H --> C([Curate & annotate])
+    C --> S[(Structured context)]
+    S -->|next session| A
+
+    S -.->|shared with team| H2([Other humans])
+    H2 -.-> C
+```
+
+Each cycle sharpens both sides. Humans build deeper understanding of what their agents actually do. Agents get better signal about what their humans actually want.
+
+Unlike the synchronous loop, this compounds — across sessions, across team members, across time.
+
+The loop doesn't replace human judgment. It scales it.
