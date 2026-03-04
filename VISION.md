@@ -84,7 +84,7 @@ graph TD
         Instructions[(AGENTS.md)] ~~~ FS[(Filesystem)]
     end
 
-    Static -.->|uncurated| Agent
+    Static -.->|largely uncurated| Agent
     Done -.->|sometimes stores| Memory
 ```
 
