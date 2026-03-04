@@ -2,7 +2,7 @@
 
 > Loop and Loop - round and round until you understand, both the human and the agent, burning with intent.
 
-- Self-Hosted, Whitelable Platform for Indidivuals, Teams and Companies
+- Self-Hosted, Whitelable Platform for Individuals, Teams and Companies
 - Retroactive Learning of what Agents did in Detail (not just looking at a Wall of Text)
 - Adding Context as to what they could do better next time (not just relying on `auto-repl` loops)
 - Share that with your Colleagues for Training (not just Agents)
