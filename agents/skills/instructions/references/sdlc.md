@@ -1,12 +1,12 @@
 # SDLC Process
 
-The Software Development Life Cycle using orchestrated roles. Each cycle delivers incremental value. Product Owner may trigger new cycles for split-out work.
+The Software Development Life Cycle using orchestrated agents. Each cycle delivers incremental value. Product Owner may trigger new cycles for split-out work.
 
-## Roles
+## Agents
 
-| Role | Phase | Responsibility |
-|------|-------|----------------|
-| Coordinator | Orchestration | Assesses tasks, spawns roles dynamically, gates transitions |
+| Agent | Phase | Responsibility |
+|-------|-------|----------------|
+| Coordinator | Orchestration | Assesses tasks, spawns agents dynamically, gates transitions |
 | Product Owner | Requirements | Gathers requirements, validates final result |
 | Architect | Design | Creates ADR + PLAN, proposes options |
 | Frontend Designer | Visual Design | Creates HTML + CSS mockups, iterates with user |
@@ -16,11 +16,11 @@ The Software Development Life Cycle using orchestrated roles. Each cycle deliver
 | Reviewer | Validation | Validates against plan (pair, internal, coderabbit phases) |
 | Maintainer | Deploy | Merges PR, handles releases |
 
-## Dynamic Role Selection
+## Dynamic Agent Selection
 
-The Coordinator assesses each task and spawns only the roles needed. Not every cycle uses every role.
+The Coordinator assesses each task and spawns only the agents needed. Not every cycle uses every agent.
 
-| Task Type | Typical Roles |
+| Task Type | Typical Agents |
 |-----------|--------------|
 | UI feature | PO → Architect → Designer → Frontend Engineer → Reviewer → Maintainer |
 | API/backend feature | PO → Architect → Backend Engineer → Reviewer → Maintainer |
