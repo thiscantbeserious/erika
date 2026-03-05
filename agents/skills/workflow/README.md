@@ -1,10 +1,24 @@
-# Roles
+# Workflow
 
-Agent roles for orchestrated software development.
+SDLC workflow variants and shared agent protocols.
 
 ## Purpose
 
 Roles separate concerns across the SDLC. Each role has a distinct responsibility and fresh context, preventing one agent from doing everything and accumulating bias.
+
+## Architecture
+
+Each role is defined as a single agent file in `agents/agents/`. The agent file contains:
+
+1. **YAML frontmatter** — configuration (model, tools, permissions, skills, maxTurns)
+2. **Markdown body** — role-specific behavioral instructions, workflow, and output format
+
+The Coordinator spawns agents by name via `Task(agent-name, "prompt with context")`. Each spawned agent:
+- Starts with its behavioral instructions from its agent file body
+- Preloads shared protocols via the `skills: [workflow, instructions]` field
+- Has independent model/tool/permission configuration
+
+Shared protocols (blocked request protocol, cross-consultation, verification, phases) are defined in `SKILL.md` and loaded by all agents via the `skills` field.
 
 ## Flow
 
@@ -89,20 +103,6 @@ User Request
                 │   Maintainer    │  Merges, updates ADR Status
                 └─────────────────┘
 ```
-
-## Agent-Based Architecture
-
-Roles are implemented as agent files in `agents/agents/`. Each agent file contains:
-
-1. **YAML frontmatter** - configuration (model, tools, permissions, skills, maxTurns)
-2. **Markdown body** - role-specific behavioral instructions, workflow, and output format
-
-The Coordinator spawns agents by name via `Task(agent-name, "prompt with context")`. Each spawned agent:
-- Starts with its behavioral instructions from its agent file body
-- Preloads shared protocols via the `skills: [roles, instructions]` field
-- Has independent model/tool/permission configuration
-
-The Coordinator agent body is the authoritative source for the SDLC flow. This README provides an overview.
 
 ## Design Documents
 
@@ -193,6 +193,20 @@ Modified by: Implementer/Engineer (progress), Architect (scope changes via ADR l
 - Updates ADR Status to Accepted
 - Handles releases
 - Monitors CI and manages PR lifecycle
+
+## Git Contract Enforcement
+
+Each workflow variant in `variants/*.md` defines a git contract with allowed commit scopes. The `.husky/commit-msg` hook enforces this at commit time by dynamically parsing the `| Commit scopes |` row from every variant file.
+
+**Adding a scope:** Add it to the relevant variant's git contract table — the hook picks it up automatically, no hardcoded lists to maintain.
+
+**How it works:** The hook extracts backtick-wrapped scopes from the `Commit scopes` row of each variant, deduplicates them, and validates any `type(scope): message` commit against the union. Commits without a scope (e.g. `chore: description`) are allowed.
+
+To see current scopes per variant, trigger the hook with an invalid scope:
+
+```bash
+echo 'feat(invalid): test' | bash .husky/commit-msg /dev/stdin
+```
 
 ## Key Principles
 

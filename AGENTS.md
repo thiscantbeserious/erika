@@ -6,7 +6,7 @@ Reinforced Human Learning Platform. A self-hostable, white-label web platform fo
 
 You are an AI agent working on the RAGTS codebase. On startup:
 
-1. Auto-load the `roles` skill — this gives you access to role definitions and the SDLC workflow
+1. Auto-load the `workflow` skill — this gives you access to SDLC workflow variants and shared agent protocols
 2. Auto-load the `instructions` skill — this gives you project-specific development instructions
 3. Follow the user's file read requests from Required Reading below
 
@@ -38,8 +38,8 @@ Before starting any task, read these files in order:
 
 Frontend work is split across two specialized roles. **Do not attempt to handle both yourself** — delegate to the correct role:
 
-- **Frontend Designer** (`agents/skills/roles/references/frontend-designer.md`) — Design system, CSS, HTML mockups, visual design, responsive fixes, anything under `design/`. Uses Playwright MCP for visual verification.
-- **Frontend Engineer** (`agents/skills/roles/references/frontend-engineer.md`) — Vue 3 application code, components under `src/client/`, shared types, Vite config. Implements designs produced by the designer.
+- **Frontend Designer** (`agents/agents/frontend-designer.md`) — Design system, CSS, HTML mockups, visual design, responsive fixes, anything under `design/`. Uses Playwright MCP for visual verification.
+- **Frontend Engineer** (`agents/agents/frontend-engineer.md`) — Vue 3 application code, components under `src/client/`, shared types, Vite config. Implements designs produced by the designer.
 
 When a task involves visual/CSS/design work, spawn or defer to the **Frontend Designer**. When it involves application logic/Vue components, spawn or defer to the **Frontend Engineer**.
 
