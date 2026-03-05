@@ -1,9 +1,6 @@
 import { Hono } from 'hono';
 import { loadConfig } from './config.js';
-import { initDatabase } from './db/database.js';
-import { SqliteSessionRepository } from './db/sqlite-session-repository.js';
-import { SqliteSectionRepository } from './db/sqlite-section-repository.js';
-import { join } from 'path';
+import { SqliteDatabaseProvider } from './db/sqlite-database-provider.js';
 import { handleUpload } from './routes/upload.js';
 import {
   handleListSessions,
@@ -17,11 +14,10 @@ const app = new Hono();
 // Load configuration
 const config = loadConfig();
 
-// Initialize database and repositories
-const dbPath = join(config.dataDir, 'ragts.db');
-const db = initDatabase(dbPath);
-const sessionRepository = new SqliteSessionRepository(db);
-const sectionRepository = new SqliteSectionRepository(db);
+// Initialize database and repositories through the provider
+const provider = new SqliteDatabaseProvider();
+const { sessionRepository, sectionRepository, storageAdapter } =
+  await provider.initialize({ dataDir: config.dataDir });
 
 // Health check
 app.get('/api/health', (c) => {
@@ -30,13 +26,19 @@ app.get('/api/health', (c) => {
 
 // Upload endpoint
 app.post('/api/upload', (c) =>
-  handleUpload(c, sessionRepository, sectionRepository, config.dataDir, config.maxFileSizeMB)
+  handleUpload(c, sessionRepository, sectionRepository, storageAdapter, config.maxFileSizeMB)
 );
 
 // Session endpoints
 app.get('/api/sessions', (c) => handleListSessions(c, sessionRepository));
-app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionRepository, sectionRepository));
-app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionRepository));
-app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionRepository, sectionRepository));
+app.get('/api/sessions/:id', (c) =>
+  handleGetSession(c, sessionRepository, sectionRepository, storageAdapter)
+);
+app.delete('/api/sessions/:id', (c) =>
+  handleDeleteSession(c, sessionRepository, storageAdapter)
+);
+app.post('/api/sessions/:id/redetect', (c) =>
+  handleRedetect(c, sessionRepository, sectionRepository, storageAdapter)
+);
 
 export default app;

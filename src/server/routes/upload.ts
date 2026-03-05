@@ -7,9 +7,9 @@
 import type { Context } from 'hono';
 import { nanoid } from 'nanoid';
 import { parseAsciicast, validateAsciicast } from '../../shared/asciicast.js';
-import { saveSession, deleteSession } from '../storage.js';
 import type { SessionRepository } from '../db/session-repository.js';
-import type { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
+import type { SectionRepository } from '../db/section-repository.js';
+import type { StorageAdapter } from '../storage/storage-adapter.js';
 import { processSessionPipeline } from '../processing/index.js';
 
 /**
@@ -19,8 +19,8 @@ import { processSessionPipeline } from '../processing/index.js';
 export async function handleUpload(
   c: Context,
   repository: SessionRepository,
-  sectionRepository: SqliteSectionRepository,
-  dataDir: string,
+  sectionRepository: SectionRepository,
+  storageAdapter: StorageAdapter,
   maxFileSizeMB: number
 ): Promise<Response> {
   try {
@@ -68,7 +68,7 @@ export async function handleUpload(
     // Save file (fail fast if filesystem issues)
     let filepath: string;
     try {
-      filepath = saveSession(dataDir, id, content);
+      filepath = storageAdapter.save(id, content);
     } catch (err) {
       return c.json(
         {
@@ -99,7 +99,7 @@ export async function handleUpload(
       return c.json(sessionData, 201);
     } catch (err) {
       // DB insert failed - clean up file
-      deleteSession(filepath);
+      storageAdapter.delete(id);
       throw err;
     }
   } catch (err) {

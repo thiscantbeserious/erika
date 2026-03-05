@@ -16,7 +16,7 @@
  * 8. On error: set detection_status to 'failed'
  */
 
-import type { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
+import type { SectionRepository } from '../db/section-repository.js';
 import type { SessionRepository } from '../db/session-repository.js';
 import type { Marker, AsciicastEvent, AsciicastHeader } from '../../shared/asciicast-types.js';
 import { normalizeHeader } from '../../shared/asciicast.js';
@@ -41,7 +41,7 @@ export async function processSessionPipeline(
   filePath: string,
   sessionId: string,
   markers: Marker[],
-  sectionRepo: SqliteSectionRepository,
+  sectionRepo: SectionRepository,
   sessionRepo: SessionRepository
 ): Promise<void> {
   try {

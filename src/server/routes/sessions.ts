@@ -4,9 +4,9 @@
 
 import type { Context } from 'hono';
 import { parseAsciicast } from '../../shared/asciicast.js';
-import { readSession, deleteSession } from '../storage.js';
 import type { SessionRepository } from '../db/session-repository.js';
-import type { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
+import type { SectionRepository } from '../db/section-repository.js';
+import type { StorageAdapter } from '../storage/storage-adapter.js';
 import { processSessionPipeline } from '../processing/index.js';
 
 /**
@@ -39,7 +39,8 @@ export function handleListSessions(
 export function handleGetSession(
   c: Context,
   repository: SessionRepository,
-  sectionRepository?: SqliteSectionRepository
+  sectionRepository: SectionRepository,
+  storageAdapter: StorageAdapter
 ): Response {
   try {
     const id = c.req.param('id');
@@ -51,11 +52,11 @@ export function handleGetSession(
     }
 
     // Read and parse session file
-    const content = readSession(session.filepath);
+    const content = storageAdapter.read(id);
     const parsed = parseAsciicast(content);
 
-    // Get sections if repository provided
-    const sections = sectionRepository ? sectionRepository.findBySessionId(id) : [];
+    // Get sections for this session
+    const sections = sectionRepository.findBySessionId(id);
 
     // Parse session snapshot from JSON (if available)
     let snapshot = null;
@@ -127,12 +128,13 @@ export function handleGetSession(
  */
 export function handleDeleteSession(
   c: Context,
-  repository: SessionRepository
+  repository: SessionRepository,
+  storageAdapter: StorageAdapter
 ): Response {
   try {
     const id = c.req.param('id');
 
-    // Find session to get filepath
+    // Find session to verify it exists
     const session = repository.findById(id);
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
@@ -144,9 +146,9 @@ export function handleDeleteSession(
       return c.json({ error: 'Failed to delete session from database' }, 500);
     }
 
-    // Then delete file (best effort - DB is source of truth)
+    // Then delete file via adapter (best effort — DB is source of truth)
     try {
-      deleteSession(session.filepath);
+      storageAdapter.delete(id);
     } catch (err) {
       // Log but don't fail - DB deletion succeeded
       console.warn('Failed to delete session file:', err);
@@ -174,7 +176,8 @@ export function handleDeleteSession(
 export function handleRedetect(
   c: Context,
   sessionRepository: SessionRepository,
-  sectionRepository: SqliteSectionRepository
+  sectionRepository: SectionRepository,
+  storageAdapter: StorageAdapter
 ): Response {
   try {
     const id = c.req.param('id');
@@ -186,7 +189,7 @@ export function handleRedetect(
     }
 
     // Read and parse session file to get markers
-    const content = readSession(session.filepath);
+    const content = storageAdapter.read(id);
     const parsed = parseAsciicast(content);
 
     // Trigger async processing (fire and forget)

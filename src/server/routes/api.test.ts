@@ -12,6 +12,7 @@ import type Database from 'better-sqlite3';
 import { initDatabase } from '../db/database.js';
 import { SqliteSessionRepository } from '../db/sqlite-session-repository.js';
 import { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
+import { FsStorageAdapter } from '../storage/fs-storage-adapter.js';
 import { handleUpload } from './upload.js';
 import {
   handleListSessions,
@@ -27,6 +28,7 @@ describe('API Routes', () => {
   let db: ReturnType<typeof initDatabase>;
   let sessionRepository: SqliteSessionRepository;
   let sectionRepository: SqliteSectionRepository;
+  let storageAdapter: FsStorageAdapter;
 
   const validFixture = readFileSync(
     join(__dirname, '../../..', 'tests', 'fixtures', 'valid-with-markers.cast'),
@@ -50,16 +52,23 @@ describe('API Routes', () => {
     db = initDatabase(dbPath);
     sessionRepository = new SqliteSessionRepository(db);
     sectionRepository = new SqliteSectionRepository(db);
+    storageAdapter = new FsStorageAdapter(testDir);
 
     // Setup Hono app with routes
     app = new Hono();
     app.post('/api/upload', (c) =>
-      handleUpload(c, sessionRepository, sectionRepository, testDir, 2)
+      handleUpload(c, sessionRepository, sectionRepository, storageAdapter, 2)
     );
     app.get('/api/sessions', (c) => handleListSessions(c, sessionRepository));
-    app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionRepository, sectionRepository));
-    app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionRepository));
-    app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionRepository, sectionRepository));
+    app.get('/api/sessions/:id', (c) =>
+      handleGetSession(c, sessionRepository, sectionRepository, storageAdapter)
+    );
+    app.delete('/api/sessions/:id', (c) =>
+      handleDeleteSession(c, sessionRepository, storageAdapter)
+    );
+    app.post('/api/sessions/:id/redetect', (c) =>
+      handleRedetect(c, sessionRepository, sectionRepository, storageAdapter)
+    );
   });
 
   afterEach(() => {
