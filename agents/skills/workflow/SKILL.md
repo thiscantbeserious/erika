@@ -34,16 +34,16 @@ Enforcement: `.husky/commit-msg` validates commit scopes at commit time. Scopes 
 
 ## 3. Access Pattern
 
-If no role is explicitly assigned, default to the coordinator agent.
+If no agent is explicitly assigned, default to the coordinator agent.
 
 Startup policy:
 1. If user intent is explicit, skip menu and execute directly
 2. If simple greeting → respond naturally, then offer SDLC workflow or Direct Assist
 3. For unclear non-trivial requests → offer the two paths naturally
 
-Direct Assist: don't spawn roles by default. Propose SDLC if task is complex. Implementation requires explicit user confirmation via the Quick Implementation Loop (spawn engineer + reviewer, return result).
+Direct Assist: lightweight coordination without formal SDLC phases. Always delegate — spawn researchers for codebase analysis, spawn engineers for implementation. The main agent coordinates and talks to the user, never reads code or writes code inline.
 
-When a role is assigned, you ARE that role. Follow its instructions immediately.
+When an agent is assigned, you ARE that agent. Follow its instructions immediately.
 
 ## 4. Delegation
 
@@ -51,9 +51,10 @@ Your context window is finite and shared with the user. Protect it by delegating
 
 **Delegate when:**
 - You need to understand unfamiliar code → spawn `Task(researcher, "...")`
+- You need to read more than 3 files beyond Required Reading to assess a task
 - You're about to search or read across multiple files to answer a background question
 - The result might be large, noisy, or uncertain — let a sub-agent filter it
-- The work is outside your role's scope — use the appropriate specialized agent
+- The work is outside your agent's scope — use the appropriate specialized agent
 
 **Do it yourself when:**
 - You're reading a file listed in your Required Files section
@@ -67,7 +68,7 @@ Every file you read inline stays in your context forever. A sub-agent runs in is
 
 ## 5. Restriction
 
-Only operate as one role at a time.
+Only operate as one agent at a time.
 
 ## 6. Blocked Request Protocol
 
@@ -84,22 +85,22 @@ Request format:
 Response format:
 - `Answer:` / `Confidence:` high|medium|low / `Evidence:` / `Impact:` / `Open risk:`
 
-Limits: one active request per role, max 2 follow-ups, then escalate to user.
+Limits: one active request per agent, max 2 follow-ups, then escalate to user.
 
 ## 7. Verification
 
 - Check files exist before claiming to read them
 - Check checkboxes are `[x]` before claiming stages complete
 - Evidence = file path, line number, or command output
-- If unclear → ask other roles first, user last
+- If unclear → ask other agents first, user last
 
 ## 8. Cross-Consultation Protocol
 
 The Coordinator may spawn a secondary agent as a short-lived consultant during requirements or design phases.
 
-Triggers: lead role requests it, coordinator judges it prevents rework, or user asks.
+Triggers: lead agent requests it, coordinator judges it prevents rework, or user asks.
 
-Limits: max 3 per phase, max 2 follow-ups per question, lead role owns their artifact.
+Limits: max 3 per phase, max 2 follow-ups per question, lead agent owns their artifact.
 
 | Phase | Lead | Can consult | For |
 |---|---|---|---|
@@ -108,7 +109,7 @@ Limits: max 3 per phase, max 2 follow-ups per question, lead role owns their art
 
 ## 9. Phases
 
-A phase is a named operational mode of a role, represented by a separate agent file. A role without phases has a single agent file. A role with phases has one agent file per phase, named `<role>-<phase>.md`.
+A phase is a named operational mode of an agent, represented by a separate agent file. An agent without phases has a single agent file. An agent with phases has one agent file per phase, named `<agent>-<phase>.md`.
 
 Current phases:
 - **reviewer-pair:** collaborative, during implementation (per stage)

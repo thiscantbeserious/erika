@@ -4,14 +4,14 @@ SDLC workflow variants and shared agent protocols.
 
 ## Purpose
 
-Roles separate concerns across the SDLC. Each role has a distinct responsibility and fresh context, preventing one agent from doing everything and accumulating bias.
+Agents separate concerns across the SDLC. Each agent has a distinct responsibility and fresh context, preventing one agent from doing everything and accumulating bias.
 
 ## Architecture
 
-Each role is defined as a single agent file in `agents/agents/`. The agent file contains:
+Each agent is defined as a single agent file in `agents/agents/`. The agent file contains:
 
 1. **YAML frontmatter** — configuration (model, tools, permissions, skills, maxTurns)
-2. **Markdown body** — role-specific behavioral instructions, workflow, and output format
+2. **Markdown body** — agent-specific behavioral instructions, workflow, and output format
 
 The Coordinator spawns agents by name via `Task(agent-name, "prompt with context")`. Each spawned agent:
 - Starts with its behavioral instructions from its agent file body
@@ -27,7 +27,7 @@ User Request
      │
      ▼
 ┌─────────────┐
-│ Coordinator │  Assesses task, spawns roles dynamically
+│ Coordinator │  Assesses task, spawns agents dynamically
 └──────┬──────┘
        │
        ▼
@@ -134,13 +134,13 @@ Mutable during implementation. Detailed work tracking.
 
 Modified by: Implementer/Engineer (progress), Architect (scope changes via ADR loop)
 
-## Roles
+## Agents
 
 ### Coordinator
 - Coordinates the SDLC flow
 - Never writes code
-- Assesses each task and dynamically selects which roles to spawn
-- Spawns other roles with fresh context
+- Assesses each task and dynamically selects which agents to spawn
+- Spawns other agents with fresh context
 - Gates transitions between phases
 - Orchestrates cross-consultation between PO and Architect
 - Manages pair review lifecycle during implementation
@@ -178,7 +178,7 @@ Modified by: Implementer/Engineer (progress), Architect (scope changes via ADR l
 - Creates PR when done
 
 ### Implementer
-- General-purpose implementation role (full-stack fallback)
+- General-purpose implementation agent (full-stack fallback)
 - Used when scope crosses both frontend and backend, or when the specialized split is unnecessary
 - Works from PLAN.md stages
 - Creates PR when done
@@ -210,24 +210,24 @@ echo 'feat(invalid): test' | bash .husky/commit-msg /dev/stdin
 
 ## Key Principles
 
-1. Fresh context - each role starts clean, no accumulated bias
+1. Fresh context - each agent starts clean, no accumulated bias
 2. ADR is the contract - implementation verified against it
 3. PLAN is mutable - progress tracked without touching ADR
 4. Scope discipline - out-of-scope work becomes new ADR cycle
 5. Explicit approval - no phase transitions without sign-off
 6. Agent files as configuration - each agent has its model, tools, and permissions defined in YAML frontmatter
 7. Skills as shared protocols - cross-cutting concerns (collaboration protocol, verification rules, coding principles) loaded via the skills field
-8. Dynamic role selection - Coordinator picks only the roles needed per task
-9. Role isolation - each role is a standalone black box with defined inputs and outputs; roles never address other roles directly; the Coordinator is the only component aware of the full topology and acts as a transparent routing layer
+8. Dynamic agent selection - Coordinator picks only the agents needed per task
+9. Agent isolation - each agent is a standalone black box with defined inputs and outputs; agents never address other agents directly; the Coordinator is the only component aware of the full topology and acts as a transparent routing layer
 
 ## Phases
 
-A **phase** is a named operational mode of a role, represented by a separate agent file in `agents/agents/`. Each phase determines:
+A **phase** is a named operational mode of an agent, represented by a separate agent file in `agents/agents/`. Each phase determines:
 1. **Behavioral persona** (defined in agent file body)
 2. **Agent configuration** (model, tools, permissions in frontmatter)
 3. **Trigger context** (when in the SDLC the Coordinator spawns it)
 
-A role without phases has a single agent file. A role with phases has one agent file per phase, named `<role>-<phase>.md`.
+An agent without phases has a single agent file. An agent with phases has one agent file per phase, named `<agent>-<phase>.md`.
 
 ### Current Phase Definitions
 
