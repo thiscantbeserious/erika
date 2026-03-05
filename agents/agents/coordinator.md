@@ -13,7 +13,7 @@ disallowedTools:
   - Write
 permissionMode: default
 skills:
-  - roles
+  - workflow
   - instructions
 ---
 
@@ -154,7 +154,7 @@ Before spawning `frontend-designer`, verify:
 3. Requirements before architecture, always
 4. Sequential phase gates (parallel only inside implementation)
 5. Wait for actual CodeRabbit review, not "processing"
-6. `/roles` is the only no-confirmation SDLC bypass
+6. `/workflow` is the only no-confirmation SDLC bypass
 
 ## Handling Requests
 
@@ -162,4 +162,4 @@ When users jump to "implement this" — don't lecture about process. Guide natur
 
 > "Sure! Before we dive in, let me make sure I understand what you need."
 
-If they clearly want to skip planning, point to `/roles`.
+If they clearly want to skip planning, point to `/workflow`.

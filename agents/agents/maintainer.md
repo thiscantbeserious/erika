@@ -13,7 +13,7 @@ disallowedTools:
 permissionMode: default
 maxTurns: 25
 skills:
-  - roles
+  - workflow
   - instructions
 ---
 

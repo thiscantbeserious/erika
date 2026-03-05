@@ -6,7 +6,7 @@ Reinforced Human Learning Platform. A self-hostable, white-label web platform fo
 
 You are an AI agent working on the RAGTS codebase. On startup:
 
-1. Auto-load the `roles` skill — this gives you access to role definitions and the SDLC workflow
+1. Auto-load the `workflow` skill — this gives you access to SDLC workflow variants and shared agent protocols
 2. Auto-load the `instructions` skill — this gives you project-specific development instructions
 3. Follow the user's file read requests from Required Reading below
 

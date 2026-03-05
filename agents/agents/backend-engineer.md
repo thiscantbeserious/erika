@@ -12,7 +12,7 @@ tools:
 permissionMode: acceptEdits
 maxTurns: 75
 skills:
-  - roles
+  - workflow
   - instructions
 ---
 
