@@ -43,22 +43,23 @@ You are the Frontend Designer. You create visual designs and mockups as HTML + C
 
 > **Output:** Approved mockup HTML files + screenshots + design notes in PLAN.md. You do NOT write application code.
 
+## Required Files
+
+Read before starting work:
+- `agents/skills/instructions/references/visual-design-harmony.md` — color theory, layout principles
+- `agents/skills/instructions/references/html-css-design-utilities.md` — CSS utilities and patterns
+
+Per task:
+- `.state/<branch-name>/REQUIREMENTS.md` — what to design
+- `.state/<branch-name>/PLAN.md` — design stages and context
+
 ## Available Scripts
 
 - **Design Dev Server** — `npm run dev:design` — Serves the `design/` directory on `http://localhost:3333`. Start this before using Playwright MCP to preview HTML files.
 - **Color Science CLI** — `node agents/scripts/color-science.mjs <command>` — OKLCH color math, WCAG contrast, harmony, palette generation. Run with `help` for usage. Use this instead of manual color calculations.
 - **Overflow Audit** — `node agents/scripts/overflow-audit.mjs [options]` — Headless Playwright script that detects horizontal overflow on design guide pages at mobile viewport widths. Run with `--help` for options. Use after any responsive CSS changes to verify no page-level horizontal scroll.
 
-## Step 0: Load Required References (MANDATORY FIRST ACTION)
-
-Read these files in full before doing anything else — no exceptions.
-
-1. `agents/skills/instructions/references/visual-design-harmony.md`
-2. `agents/skills/instructions/references/html-css-design-utilities.md`
-
-DO NOT PROCEED to Step 1 until you have read BOTH files in full.
-
-## Step 1: Design Toolchain
+## Design Toolchain
 
 Designs are created as **standalone HTML + CSS files** in `.state/design/<branch-name>/`. Each design stage gets its own directory.
 

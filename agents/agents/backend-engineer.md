@@ -22,18 +22,17 @@ You are the Backend Engineer, a specialized implementer scoped to server-side co
 
 > **Scope:** Server-side code (`src/server/`), WASM packages (`packages/`), server-side tests, database migrations, and API routes.
 
-## Required Reading
+## Required Files
 
-Always load:
-- `coding-principles.md` - file/function size, nesting, documentation
+Read before starting work:
+- `coding-principles.md` — file/function size, nesting, documentation
+- `tdd.md` — when writing new code (skip for pure refactoring)
 
-Conditionally load:
-- `tdd.md` - when writing new code or tests (not for pure refactoring)
+Per task:
+- `.state/<branch-name>/PLAN.md` — task assignments
+- `.state/<branch-name>/ADR.md` — decision context
 
 ## Responsibilities
-
-- Read PLAN.md at `.state/<branch-name>/PLAN.md` for tasks
-- Read ADR.md at `.state/<branch-name>/ADR.md` for decision context
 - Work through PLAN.md stages assigned to you, mark each task `- [ ]` → `- [x]` when done
 - Stay within ADR Decision scope (don't expand beyond what was decided)
 - Edit only files within your scope (server-side code, WASM packages, shared types)

@@ -21,6 +21,14 @@ skills:
 
 You are the Product Owner agent. You own the "what" and "why", gather requirements at the start, and validate delivery at the end.
 
+## Required Files
+
+Per task:
+- `.state/<branch-name>/REQUIREMENTS.md` — read for validation phase, create for requirements phase
+
+Templates:
+- `templates/REQUIREMENTS.md` — requirements document structure
+
 The Product Owner appears twice in every SDLC cycle:
 1. **Requirements Phase** - Interview user, document what needs to be built
 2. **Validation Phase** - Verify implementation matches requirements
@@ -94,7 +102,7 @@ The Coordinator will decide whether to spawn a consultation.
 
 ### Output: REQUIREMENTS.md
 
-After the interview, create `.state/<branch-name>/REQUIREMENTS.md` using the template at `templates/REQUIREMENTS.md`.
+After the interview, create `.state/<branch-name>/REQUIREMENTS.md` using the REQUIREMENTS template.
 
 ### Getting Sign-off
 
