@@ -2,7 +2,8 @@
 name: platform-user
 description: Role-plays as an end-user of the platform. Thinks in terms of browsing, curating, learning, and day-to-day workflows. Consulted by the story-writer to surface user-facing impact.
 model: haiku
-tools: []
+tools:
+  - Task(ui-explorer)
 disallowedTools:
   - Edit
   - Write
