@@ -1,44 +1,44 @@
 /**
- * Repository interface for session persistence.
- * This is the abstraction boundary - implementations can swap SQLite for PostgreSQL.
+ * Adapter interface for session persistence.
+ * This is the abstraction boundary — implementations can swap SQLite for PostgreSQL.
  */
 
 import type { Session, SessionCreate } from '../../shared/types.js';
 
 /**
- * Repository for managing session entities.
+ * Adapter for managing session entities.
  * Defines the contract for session data access.
  */
-export interface SessionRepository {
+export interface SessionAdapter {
   /**
    * Create a new session.
    * Returns the created session with generated fields (id, created_at).
    */
-  create(data: SessionCreate): Session;
+  create(data: SessionCreate): Promise<Session>;
 
   /**
    * Create a new session with specified ID.
    * Used for transactional file + DB creation where ID must be known upfront.
    * Returns the created session with generated fields (created_at).
    */
-  createWithId(id: string, data: SessionCreate): Session;
+  createWithId(id: string, data: SessionCreate): Promise<Session>;
 
   /**
    * Find all sessions, ordered by upload timestamp descending (newest first).
    */
-  findAll(): Session[];
+  findAll(): Promise<Session[]>;
 
   /**
    * Find a session by ID.
    * Returns null if not found.
    */
-  findById(id: string): Session | null;
+  findById(id: string): Promise<Session | null>;
 
   /**
    * Delete a session by ID.
    * Returns true if deleted, false if not found.
    */
-  deleteById(id: string): boolean;
+  deleteById(id: string): Promise<boolean>;
 
   /**
    * Update session detection status and metadata.
@@ -49,11 +49,11 @@ export interface SessionRepository {
     status: 'pending' | 'processing' | 'completed' | 'failed',
     eventCount?: number,
     detectedSectionsCount?: number
-  ): void;
+  ): Promise<void>;
 
   /**
    * Update the unified snapshot for a session.
    * Stores the full getAllLines() JSON from the VT terminal.
    */
-  updateSnapshot(id: string, snapshot: string): void;
+  updateSnapshot(id: string, snapshot: string): Promise<void>;
 }

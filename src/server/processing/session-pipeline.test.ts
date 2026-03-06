@@ -7,18 +7,18 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import Database from 'better-sqlite3';
-import { initDatabase } from '../db/database.js';
-import { SqliteSessionRepository } from '../db/sqlite-session-repository.js';
-import { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { DatabaseContext } from '../db/database_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
 import { processSessionPipeline } from './session-pipeline.js';
 import { initVt } from '../../../packages/vt-wasm/index.js';
 
 describe('processSessionPipeline', () => {
   let tmpDir: string;
-  let db: Database.Database;
-  let sessionRepo: SqliteSessionRepository;
-  let sectionRepo: SqliteSectionRepository;
+  let ctx: DatabaseContext;
+  let sessionRepo: SessionAdapter;
+  let sectionRepo: SectionAdapter;
 
   beforeEach(async () => {
     // Initialize WASM module once before tests
@@ -26,15 +26,15 @@ describe('processSessionPipeline', () => {
 
     // Create temp directory for test database
     tmpDir = mkdtempSync(join(tmpdir(), 'ragts-pipeline-test-'));
-    const dbPath = join(tmpDir, 'test.db');
-    db = initDatabase(dbPath);
-    sessionRepo = new SqliteSessionRepository(db);
-    sectionRepo = new SqliteSectionRepository(db);
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: tmpDir });
+    sessionRepo = ctx.sessionRepository;
+    sectionRepo = ctx.sectionRepository;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Cleanup
-    db.close();
+    await ctx.close();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -45,7 +45,7 @@ describe('processSessionPipeline', () => {
     writeFileSync(filePath, castContent);
 
     // Create session in DB
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -63,13 +63,13 @@ describe('processSessionPipeline', () => {
     );
 
     // Verify session was updated
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession).toBeTruthy();
     expect(updatedSession?.detection_status).toBe('completed');
     expect(updatedSession?.event_count).toBe(200);
 
     // Verify sections were created (may or may not detect boundaries depending on content)
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     expect(Array.isArray(sections)).toBe(true);
   });
 
@@ -84,7 +84,7 @@ describe('processSessionPipeline', () => {
       { time: 2.0, label: 'Middle', index: 100 },
     ];
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-markers.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -100,7 +100,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const markerSections = sections.filter((s) => s.type === 'marker');
 
     // Should have 2 marker sections
@@ -121,7 +121,7 @@ describe('processSessionPipeline', () => {
     expect(markerSections[1].end_line).toBeTypeOf('number');
 
     // Verify session has full snapshot
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.snapshot).toBeTruthy();
     const fullSnapshot = JSON.parse(updatedSession!.snapshot!);
     expect(fullSnapshot.lines).toBeDefined();
@@ -133,7 +133,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'session-detected.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-detected.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -149,7 +149,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const detectedSections = sections.filter((s) => s.type === 'detected');
 
     // Should have at least 1 detected section from screen clear
@@ -162,7 +162,7 @@ describe('processSessionPipeline', () => {
     expect(firstDetected.end_line).toBeTypeOf('number');
 
     // Verify session has full snapshot
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.snapshot).toBeTruthy();
     const fullSnapshot = JSON.parse(updatedSession!.snapshot!);
     expect(fullSnapshot.lines).toBeDefined();
@@ -173,7 +173,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'session.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -182,7 +182,7 @@ describe('processSessionPipeline', () => {
     });
 
     // Verify initial status is pending (from migration default)
-    const initialSession = sessionRepo.findById(session.id);
+    const initialSession = await sessionRepo.findById(session.id);
     expect(initialSession?.detection_status).toBe('pending');
 
     await processSessionPipeline(
@@ -193,7 +193,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.detection_status).toBe('completed');
   });
 
@@ -203,7 +203,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'session.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -219,7 +219,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.event_count).toBe(eventCount);
   });
 
@@ -228,7 +228,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'session.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -245,7 +245,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.detection_status).toBe('failed');
   });
 
@@ -254,7 +254,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'session.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -271,7 +271,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const firstSections = sectionRepo.findBySessionId(session.id);
+    const firstSections = await sectionRepo.findBySessionId(session.id);
     const firstCount = firstSections.length;
 
     // Second processing (should replace sections)
@@ -283,7 +283,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const secondSections = sectionRepo.findBySessionId(session.id);
+    const secondSections = await sectionRepo.findBySessionId(session.id);
 
     // Should have same number of sections (replaced, not appended)
     expect(secondSections.length).toBe(firstCount);
@@ -304,7 +304,7 @@ describe('processSessionPipeline', () => {
       { time: 2.0, label: 'End', index: 100 },
     ];
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -320,7 +320,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const sortedSections = sections.sort((a, b) => a.start_event - b.start_event);
 
     // Each section's end_event should be the next section's start_event
@@ -330,7 +330,7 @@ describe('processSessionPipeline', () => {
 
     // Last section's end_event should be the total event count
     const lastSection = sortedSections[sortedSections.length - 1];
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(lastSection.end_event).toBe(updatedSession?.event_count);
   });
 
@@ -346,7 +346,7 @@ describe('processSessionPipeline', () => {
       { time: 3.0, label: 'Test', index: 55 },
     ];
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-delta.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -362,7 +362,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const sortedSections = sections.sort((a, b) => a.start_event - b.start_event);
 
     // 4 sections: preamble (detected) + 3 markers
@@ -377,7 +377,7 @@ describe('processSessionPipeline', () => {
     expect(markerSections.length).toBe(3);
 
     // Verify session has full snapshot
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.snapshot).toBeTruthy();
     const fullSnapshot = JSON.parse(updatedSession!.snapshot!);
     expect(fullSnapshot.lines).toBeDefined();
@@ -415,7 +415,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'mixed-cli-tui.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'mixed-cli-tui.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -431,7 +431,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const sortedSections = sections.sort((a, b) => a.start_event - b.start_event);
 
     // Should have sections (preamble + 3 markers)
@@ -464,7 +464,7 @@ describe('processSessionPipeline', () => {
     }
 
     // Verify session has a non-null snapshot (full document)
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.snapshot).toBeTruthy();
 
     // Parse session snapshot
@@ -490,7 +490,7 @@ describe('processSessionPipeline', () => {
       { time: 2.0, label: 'Middle', index: 100 },
     ];
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-full-snapshot.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -507,7 +507,7 @@ describe('processSessionPipeline', () => {
     );
 
     // Verify session has non-null snapshot
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.snapshot).toBeTruthy();
 
     // Parse and verify it has lines array
@@ -523,7 +523,7 @@ describe('processSessionPipeline', () => {
     expect(allText).toContain('Line'); // Our test fixture generates "Line X" content
 
     // Verify section line ranges correctly slice the session snapshot
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     for (const section of sections) {
       if (section.start_line !== null && section.end_line !== null) {
         const sectionLines = fullSnapshot.lines.slice(section.start_line, section.end_line);
@@ -545,7 +545,7 @@ describe('processSessionPipeline', () => {
       { time: 3.0, label: 'Test', index: 55 },
     ];
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-line-continuity.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -561,7 +561,7 @@ describe('processSessionPipeline', () => {
       sessionRepo
     );
 
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const sortedSections = sections.sort((a, b) => a.start_event - b.start_event);
 
     // Filter to CLI sections only (those with line ranges)
@@ -582,7 +582,7 @@ describe('processSessionPipeline', () => {
     }
 
     // Verify last section's end_line doesn't exceed full snapshot length
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     const fullSnapshot = JSON.parse(updatedSession!.snapshot!);
     const lastSection = sortedByLine[sortedByLine.length - 1];
     expect(lastSection.end_line).toBeLessThanOrEqual(fullSnapshot.lines.length);
@@ -594,7 +594,7 @@ describe('processSessionPipeline', () => {
     const filePath = join(tmpDir, 'session-no-boundaries.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-no-boundaries.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -611,11 +611,11 @@ describe('processSessionPipeline', () => {
     );
 
     // Verify no sections were created
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     expect(sections.length).toBe(0);
 
     // Verify session has non-null snapshot
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.snapshot).toBeTruthy();
 
     // Parse and verify it contains the output
@@ -641,7 +641,7 @@ describe('processSessionPipeline', () => {
       const filePath = join(tmpDir, 'empty-session.cast');
       writeFileSync(filePath, castContent);
 
-      const session = sessionRepo.create({
+      const session = await sessionRepo.create({
         filename: 'empty-session.cast',
         filepath: filePath,
         size_bytes: castContent.length,
@@ -658,12 +658,12 @@ describe('processSessionPipeline', () => {
       );
 
       // Should complete without error
-      const updatedSession = sessionRepo.findById(session.id);
+      const updatedSession = await sessionRepo.findById(session.id);
       expect(updatedSession?.detection_status).toBe('completed');
       expect(updatedSession?.event_count).toBe(0);
 
       // Should have no sections (below minimum threshold)
-      const sections = sectionRepo.findBySessionId(session.id);
+      const sections = await sectionRepo.findBySessionId(session.id);
       expect(sections.length).toBe(0);
     });
 
@@ -678,7 +678,7 @@ describe('processSessionPipeline', () => {
       const filePath = join(tmpDir, 'single-event.cast');
       writeFileSync(filePath, castContent);
 
-      const session = sessionRepo.create({
+      const session = await sessionRepo.create({
         filename: 'single-event.cast',
         filepath: filePath,
         size_bytes: castContent.length,
@@ -695,12 +695,12 @@ describe('processSessionPipeline', () => {
       );
 
       // Should complete without error
-      const updatedSession = sessionRepo.findById(session.id);
+      const updatedSession = await sessionRepo.findById(session.id);
       expect(updatedSession?.detection_status).toBe('completed');
       expect(updatedSession?.event_count).toBe(1);
 
       // Should have no sections (below minimum threshold)
-      const sections = sectionRepo.findBySessionId(session.id);
+      const sections = await sectionRepo.findBySessionId(session.id);
       expect(sections.length).toBe(0);
     });
 
@@ -728,7 +728,7 @@ describe('processSessionPipeline', () => {
       const filePath = join(tmpDir, 'unicode-session.cast');
       writeFileSync(filePath, castContent);
 
-      const session = sessionRepo.create({
+      const session = await sessionRepo.create({
         filename: 'unicode-session.cast',
         filepath: filePath,
         size_bytes: castContent.length,
@@ -745,12 +745,12 @@ describe('processSessionPipeline', () => {
       );
 
       // Should complete without error
-      const updatedSession = sessionRepo.findById(session.id);
+      const updatedSession = await sessionRepo.findById(session.id);
       expect(updatedSession?.detection_status).toBe('completed');
       expect(updatedSession?.event_count).toBe(200);
 
       // If sections were created, verify snapshots don't error
-      const sections = sectionRepo.findBySessionId(session.id);
+      const sections = await sectionRepo.findBySessionId(session.id);
       sections.forEach((section) => {
         if (section.snapshot) {
           // Should parse without error

@@ -8,10 +8,11 @@ import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { Hono } from 'hono';
-import type Database from 'better-sqlite3';
-import { initDatabase } from '../db/database.js';
-import { SqliteSessionRepository } from '../db/sqlite-session-repository.js';
-import { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { DatabaseContext } from '../db/database_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import type { StorageAdapter } from '../storage/storage_adapter.js';
 import { handleUpload } from './upload.js';
 import {
   handleListSessions,
@@ -19,14 +20,16 @@ import {
   handleDeleteSession,
   handleRedetect,
 } from './sessions.js';
+import { waitForPipelines } from '../processing/index.js';
 import { initVt } from '../../../packages/vt-wasm/index.js';
 
 describe('API Routes', () => {
   let testDir: string;
   let app: Hono;
-  let db: ReturnType<typeof initDatabase>;
-  let sessionRepository: SqliteSessionRepository;
-  let sectionRepository: SqliteSectionRepository;
+  let ctx: DatabaseContext;
+  let sessionRepository: SessionAdapter;
+  let sectionRepository: SectionAdapter;
+  let storageAdapter: StorageAdapter;
 
   const validFixture = readFileSync(
     join(__dirname, '../../..', 'tests', 'fixtures', 'valid-with-markers.cast'),
@@ -46,25 +49,34 @@ describe('API Routes', () => {
     testDir = mkdtempSync(join(tmpdir(), 'ragts-api-test-'));
 
     // Initialize database and repositories
-    const dbPath = join(testDir, 'test.db');
-    db = initDatabase(dbPath);
-    sessionRepository = new SqliteSessionRepository(db);
-    sectionRepository = new SqliteSectionRepository(db);
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: testDir });
+    sessionRepository = ctx.sessionRepository;
+    sectionRepository = ctx.sectionRepository;
+    storageAdapter = ctx.storageAdapter;
 
     // Setup Hono app with routes
     app = new Hono();
     app.post('/api/upload', (c) =>
-      handleUpload(c, sessionRepository, sectionRepository, testDir, 2)
+      handleUpload(c, sessionRepository, sectionRepository, storageAdapter, 2)
     );
     app.get('/api/sessions', (c) => handleListSessions(c, sessionRepository));
-    app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionRepository, sectionRepository));
-    app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionRepository));
-    app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionRepository, sectionRepository));
+    app.get('/api/sessions/:id', (c) =>
+      handleGetSession(c, sessionRepository, sectionRepository, storageAdapter)
+    );
+    app.delete('/api/sessions/:id', (c) =>
+      handleDeleteSession(c, sessionRepository, storageAdapter)
+    );
+    app.post('/api/sessions/:id/redetect', (c) =>
+      handleRedetect(c, sessionRepository, sectionRepository, storageAdapter)
+    );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait for all in-flight pipelines to complete before teardown
+    await waitForPipelines();
     // Close database before removing files
-    db.close();
+    ctx.close();
     // Clean up temporary directory
     rmSync(testDir, { recursive: true, force: true });
   });
@@ -235,6 +247,9 @@ describe('API Routes', () => {
       );
       const uploadData = await uploadRes.json();
 
+      // Wait for upload pipeline to finish before deleting the file
+      await waitForPipelines();
+
       // Delete session
       const deleteReq = new Request(
         `http://localhost/api/sessions/${uploadData.id}`,
@@ -302,6 +317,9 @@ describe('API Routes', () => {
       expect(retrieved.id).toBe(session.id);
       expect(retrieved.content).toBeDefined();
 
+      // Wait for upload pipeline to finish before deleting the file
+      await waitForPipelines();
+
       // 4. Delete
       const deleteRes = await app.fetch(
         new Request(`http://localhost/api/sessions/${session.id}`, {
@@ -337,8 +355,8 @@ describe('API Routes', () => {
       );
       const uploadData = await uploadRes.json();
 
-      // Wait a bit for initial processing to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for initial processing to complete
+      await waitForPipelines();
 
       // Trigger re-detection
       const req = new Request(
@@ -382,7 +400,7 @@ describe('API Routes', () => {
       const uploadData = await uploadRes.json();
 
       // Wait for async processing to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await waitForPipelines();
 
       // Get session - should include sections
       const getRes = await app.fetch(
@@ -413,7 +431,7 @@ describe('API Routes', () => {
       const uploadData = await uploadRes.json();
 
       // Wait for async processing to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await waitForPipelines();
 
       // Get session - check status
       const getRes = await app.fetch(

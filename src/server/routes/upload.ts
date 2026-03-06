@@ -7,10 +7,10 @@
 import type { Context } from 'hono';
 import { nanoid } from 'nanoid';
 import { parseAsciicast, validateAsciicast } from '../../shared/asciicast.js';
-import { saveSession, deleteSession } from '../storage.js';
-import type { SessionRepository } from '../db/session-repository.js';
-import type { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
-import { processSessionPipeline } from '../processing/index.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import type { StorageAdapter } from '../storage/storage_adapter.js';
+import { processSessionPipeline, trackPipeline } from '../processing/index.js';
 
 /**
  * Handle POST /api/upload
@@ -18,9 +18,9 @@ import { processSessionPipeline } from '../processing/index.js';
  */
 export async function handleUpload(
   c: Context,
-  repository: SessionRepository,
-  sectionRepository: SqliteSectionRepository,
-  dataDir: string,
+  repository: SessionAdapter,
+  sectionRepository: SectionAdapter,
+  storageAdapter: StorageAdapter,
   maxFileSizeMB: number
 ): Promise<Response> {
   try {
@@ -68,7 +68,7 @@ export async function handleUpload(
     // Save file (fail fast if filesystem issues)
     let filepath: string;
     try {
-      filepath = saveSession(dataDir, id, content);
+      filepath = await storageAdapter.save(id, content);
     } catch (err) {
       return c.json(
         {
@@ -81,7 +81,7 @@ export async function handleUpload(
 
     // Create database record with transaction safety
     try {
-      const session = repository.createWithId(id, {
+      const session = await repository.createWithId(id, {
         filename: file.name,
         filepath,
         size_bytes: file.size,
@@ -89,17 +89,20 @@ export async function handleUpload(
         uploaded_at: new Date().toISOString(),
       });
 
-      // Trigger async processing (fire and forget)
-      setImmediate(() => {
-        processSessionPipeline(filepath, id, parsed.markers, sectionRepository, repository)
-          .catch(err => console.error('Session processing failed:', err));
-      });
+      // Trigger async processing (tracked, non-blocking)
+      const pipeline = processSessionPipeline(filepath, id, parsed.markers, sectionRepository, repository)
+        .catch(err => console.error('Session processing failed:', err));
+      trackPipeline(pipeline);
 
       const { filepath: _fp, ...sessionData } = session;
       return c.json(sessionData, 201);
     } catch (err) {
-      // DB insert failed - clean up file
-      deleteSession(filepath);
+      // DB insert failed — clean up file (best effort, don't mask original error)
+      try {
+        await storageAdapter.delete(id);
+      } catch (cleanupErr) {
+        console.warn('Failed to clean up file after DB error:', cleanupErr);
+      }
       throw err;
     }
   } catch (err) {

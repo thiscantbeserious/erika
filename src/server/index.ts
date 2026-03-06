@@ -1,9 +1,7 @@
 import { Hono } from 'hono';
 import { loadConfig } from './config.js';
-import { initDatabase } from './db/database.js';
-import { SqliteSessionRepository } from './db/sqlite-session-repository.js';
-import { SqliteSectionRepository } from './db/sqlite-section-repository.js';
-import { join } from 'path';
+import { DatabaseFactory } from './db/database_factory.js';
+import { waitForPipelines } from './processing/index.js';
 import { handleUpload } from './routes/upload.js';
 import {
   handleListSessions,
@@ -17,11 +15,22 @@ const app = new Hono();
 // Load configuration
 const config = loadConfig();
 
-// Initialize database and repositories
-const dbPath = join(config.dataDir, 'ragts.db');
-const db = initDatabase(dbPath);
-const sessionRepository = new SqliteSessionRepository(db);
-const sectionRepository = new SqliteSectionRepository(db);
+// Initialize database and repositories through the factory
+const factory = new DatabaseFactory();
+const db = await factory.create();
+const { sessionRepository, sectionRepository, storageAdapter, close } =
+  await db.initialize({ dataDir: config.dataDir });
+
+process.on('SIGTERM', async () => {
+  await waitForPipelines();
+  await close();
+  process.exit(0);
+});
+process.on('SIGINT', async () => {
+  await waitForPipelines();
+  await close();
+  process.exit(0);
+});
 
 // Health check
 app.get('/api/health', (c) => {
@@ -30,13 +39,19 @@ app.get('/api/health', (c) => {
 
 // Upload endpoint
 app.post('/api/upload', (c) =>
-  handleUpload(c, sessionRepository, sectionRepository, config.dataDir, config.maxFileSizeMB)
+  handleUpload(c, sessionRepository, sectionRepository, storageAdapter, config.maxFileSizeMB)
 );
 
 // Session endpoints
 app.get('/api/sessions', (c) => handleListSessions(c, sessionRepository));
-app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionRepository, sectionRepository));
-app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionRepository));
-app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionRepository, sectionRepository));
+app.get('/api/sessions/:id', (c) =>
+  handleGetSession(c, sessionRepository, sectionRepository, storageAdapter)
+);
+app.delete('/api/sessions/:id', (c) =>
+  handleDeleteSession(c, sessionRepository, storageAdapter)
+);
+app.post('/api/sessions/:id/redetect', (c) =>
+  handleRedetect(c, sessionRepository, sectionRepository, storageAdapter)
+);
 
 export default app;

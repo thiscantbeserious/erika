@@ -69,14 +69,17 @@ GET /api/sessions/:id -> Session metadata + sections with pre-rendered snapshots
 
 ### Database Abstraction
 
-Repository pattern, partially implemented:
+Adapter pattern, fully implemented:
 
 | Component | Interface | Implementation | Status |
 |-----------|-----------|---------------|--------|
-| Sessions | `SessionRepository` | `SqliteSessionRepository` | Complete |
-| Sections | -- | `SqliteSectionRepository` | Missing interface |
-| File storage | -- | `storage.ts` (raw functions) | Missing abstraction |
-| DB init | -- | `database.ts` (SQLite-only) | Missing abstraction |
+| Sessions | `SessionAdapter` | `SqliteSessionImpl` | Complete |
+| Sections | `SectionAdapter` | `SqliteSectionImpl` | Complete |
+| File storage | `StorageAdapter` | `FsStorageImpl` | Complete |
+| DB init | `DatabaseAdapter` | `SqliteDatabaseImpl` | Complete |
+| DB creation | -- | `DatabaseFactory` | Complete |
+
+The application entry point obtains a `DatabaseAdapter` through `DatabaseFactory.create()`, which uses a dynamic require to avoid coupling `index.ts` to the concrete SQLite implementation. Adding a new backend (e.g. PostgreSQL) requires only a new `*DatabaseImpl` class and a new case in the factory — no changes to routes or processing code.
 
 ### API Surface
 
@@ -144,7 +147,6 @@ Same application code at every scale. Configuration determines embedded vs exter
 
 ### Immediate
 
-- **Complete database adapter pattern** -- Extract `SectionRepository` interface, `StorageAdapter` interface, abstract DB initialization.
 - **Migration tooling** -- Evaluate whether a proper migration framework is needed as schema grows.
 
 ### Near-Term (Auth + Multi-Tenancy)
@@ -177,6 +179,7 @@ Same application code at every scale. Configuration determines embedded vs exter
 | `feat/snapshot-testing` | [ADR](.state/feat/snapshot-testing/ADR.md) | Vitest + Playwright snapshot and visual regression strategy |
 | `design-system-bootstrap` | [ADR](.state/design-system-bootstrap/ADR.md) | Route map, navigation model, curation slide-over, design system scope |
 | `chore/sdlc-overhaul` | [ADR](.state/chore/sdlc-overhaul/ADR.md) | Specialized roles, dynamic coordinator, role isolation |
+| `refactor/db-adapter-pattern` | [ADR](.state/refactor/db-adapter-pattern/ADR.md) | DatabaseAdapter pattern, SectionAdapter interface, StorageAdapter/FsStorageImpl |
 
 ## 9. Previous Versions
 

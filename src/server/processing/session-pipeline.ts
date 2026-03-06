@@ -16,8 +16,8 @@
  * 8. On error: set detection_status to 'failed'
  */
 
-import type { SqliteSectionRepository } from '../db/sqlite-section-repository.js';
-import type { SessionRepository } from '../db/session-repository.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
 import type { Marker, AsciicastEvent, AsciicastHeader } from '../../shared/asciicast-types.js';
 import { normalizeHeader } from '../../shared/asciicast.js';
 import { NdjsonStream } from './ndjson-stream.js';
@@ -41,15 +41,15 @@ export async function processSessionPipeline(
   filePath: string,
   sessionId: string,
   markers: Marker[],
-  sectionRepo: SqliteSectionRepository,
-  sessionRepo: SessionRepository
+  sectionRepo: SectionAdapter,
+  sessionRepo: SessionAdapter
 ): Promise<void> {
   try {
     // Initialize WASM module (safe to call multiple times)
     await initVt();
 
     // Set status to processing
-    sessionRepo.updateDetectionStatus(sessionId, 'processing');
+    await sessionRepo.updateDetectionStatus(sessionId, 'processing');
 
     // Step 1: Read header + events from .cast file (single pass)
     let header: AsciicastHeader | null = null;
@@ -108,7 +108,7 @@ export async function processSessionPipeline(
     // - All sections as viewport snapshots: produces duplicate content for CLI sessions.
 
     // Step 4: Delete existing sections for this session (replace all)
-    sectionRepo.deleteBySessionId(sessionId);
+    await sectionRepo.deleteBySessionId(sessionId);
 
     // Always replay events through VT to capture the full session document.
     // Even with zero boundaries, the session needs its full snapshot for rendering.
@@ -206,7 +206,7 @@ export async function processSessionPipeline(
     const { cleanSnapshot, rawLineCountToClean } = buildCleanDocument(rawSnapshot, epochBoundaries);
 
     // Store deduplicated snapshot on session (always, even with zero boundaries)
-    sessionRepo.updateSnapshot(sessionId, JSON.stringify(cleanSnapshot));
+    await sessionRepo.updateSnapshot(sessionId, JSON.stringify(cleanSnapshot));
 
     // Compute line ranges and store sections.
     // previousCleanLineCount tracks the end of the last CLI section for contiguous ranges.
@@ -222,7 +222,7 @@ export async function processSessionPipeline(
 
       if (sd.snapshot) {
         // TUI section or scrollback overflow: store viewport snapshot, no line range
-        sectionRepo.create({
+        await sectionRepo.create({
           sessionId, type: isMarker ? 'marker' : 'detected',
           startEvent: boundary.eventIndex, endEvent,
           label: boundary.label,
@@ -237,7 +237,7 @@ export async function processSessionPipeline(
         const startLine = Math.min(previousCleanLineCount, endLine);
         previousCleanLineCount = endLine;
 
-        sectionRepo.create({
+        await sectionRepo.create({
           sessionId, type: isMarker ? 'marker' : 'detected',
           startEvent: boundary.eventIndex, endEvent,
           label: boundary.label,
@@ -253,7 +253,7 @@ export async function processSessionPipeline(
     ).length;
 
     // Step 7: Update session metadata
-    sessionRepo.updateDetectionStatus(
+    await sessionRepo.updateDetectionStatus(
       sessionId,
       'completed',
       eventCount,
@@ -262,6 +262,6 @@ export async function processSessionPipeline(
   } catch (error) {
     // On error: set detection_status to 'failed'
     console.error(`Session processing failed for ${sessionId}:`, error);
-    sessionRepo.updateDetectionStatus(sessionId, 'failed');
+    await sessionRepo.updateDetectionStatus(sessionId, 'failed');
   }
 }
