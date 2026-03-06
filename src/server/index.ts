@@ -16,7 +16,7 @@ const config = loadConfig();
 
 // Initialize database and repositories through the factory
 const factory = new DatabaseFactory();
-const db = factory.create();
+const db = await factory.create();
 const { sessionRepository, sectionRepository, storageAdapter, close } =
   await db.initialize({ dataDir: config.dataDir });
 

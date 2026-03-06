@@ -1,0 +1,130 @@
+/**
+ * Tests for DatabaseFactory.
+ * Verifies factory creates a working DatabaseAdapter for known types
+ * and rejects unknown types. All assertions go through the factory
+ * as the public entry point — not directly against SqliteDatabaseImpl.
+ */
+
+// @vitest-environment node
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { DatabaseFactory } from './database_factory.js';
+import type { DatabaseContext } from './database_adapter.js';
+
+describe('DatabaseFactory', () => {
+  describe('create("sqlite")', () => {
+    let ctx: DatabaseContext;
+    let testDir: string;
+
+    beforeEach(async () => {
+      testDir = mkdtempSync(join(tmpdir(), 'ragts-factory-test-'));
+      const factory = new DatabaseFactory();
+      const adapter = await factory.create('sqlite');
+      ctx = await adapter.initialize({ dataDir: testDir, dbPath: ':memory:' } as any);
+    });
+
+    afterEach(() => {
+      ctx.close();
+      rmSync(testDir, { recursive: true, force: true });
+    });
+
+    it('should return a DatabaseAdapter with an initialize method', async () => {
+      const factory = new DatabaseFactory();
+      const adapter = await factory.create('sqlite');
+      expect(typeof adapter.initialize).toBe('function');
+    });
+
+    it('should return a DatabaseContext with all required fields', () => {
+      expect(ctx.sessionRepository).toBeDefined();
+      expect(ctx.sectionRepository).toBeDefined();
+      expect(ctx.storageAdapter).toBeDefined();
+      expect(typeof ctx.close).toBe('function');
+    });
+
+    it('should return a working sessionRepository (insert + query round-trip)', () => {
+      const session = ctx.sessionRepository.create({
+        filename: 'factory-test.cast',
+        filepath: 'sessions/factory-test.cast',
+        size_bytes: 2048,
+        marker_count: 0,
+        uploaded_at: '2026-03-06T10:00:00Z',
+      });
+
+      expect(session.id).toBeTruthy();
+
+      const found = ctx.sessionRepository.findById(session.id);
+      expect(found).not.toBeNull();
+      expect(found!.filename).toBe('factory-test.cast');
+    });
+
+    it('should return a working sectionRepository (insert + query round-trip)', () => {
+      const session = ctx.sessionRepository.create({
+        filename: 'section-factory.cast',
+        filepath: 'sessions/section-factory.cast',
+        size_bytes: 512,
+        marker_count: 0,
+        uploaded_at: '2026-03-06T10:00:00Z',
+      });
+
+      const section = ctx.sectionRepository.create({
+        sessionId: session.id,
+        type: 'marker',
+        startEvent: 0,
+        endEvent: 5,
+        label: 'Intro',
+        snapshot: null,
+        startLine: null,
+        endLine: null,
+      });
+
+      expect(section.id).toBeTruthy();
+
+      const sections = ctx.sectionRepository.findBySessionId(session.id);
+      expect(sections).toHaveLength(1);
+      expect(sections[0].label).toBe('Intro');
+    });
+
+    it('should return a working storageAdapter (save + read round-trip)', () => {
+      const filepath = ctx.storageAdapter.save('factory-id', 'cast content');
+      expect(filepath).toContain('factory-id.cast');
+
+      const content = ctx.storageAdapter.read('factory-id');
+      expect(content).toBe('cast content');
+    });
+  });
+
+  describe('create("sqlite") default argument', () => {
+    it('should default to sqlite when no type is given', async () => {
+      const factory = new DatabaseFactory();
+      const adapter = await factory.create();
+      expect(typeof adapter.initialize).toBe('function');
+    });
+  });
+
+  describe('create("unknown")', () => {
+    it('should throw for an unknown database type', async () => {
+      const factory = new DatabaseFactory();
+      await expect(factory.create('unknown')).rejects.toThrow('Unknown database type: unknown');
+    });
+  });
+
+  describe('close()', () => {
+    it('should prevent further operations after close', async () => {
+      const testDir = mkdtempSync(join(tmpdir(), 'ragts-factory-close-'));
+
+      try {
+        const factory = new DatabaseFactory();
+        const adapter = await factory.create('sqlite');
+        const localCtx = await adapter.initialize({ dataDir: testDir, dbPath: ':memory:' } as any);
+
+        localCtx.close();
+
+        expect(() => localCtx.sessionRepository.findAll()).toThrow();
+      } finally {
+        rmSync(testDir, { recursive: true, force: true });
+      }
+    });
+  });
+});

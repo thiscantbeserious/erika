@@ -14,11 +14,9 @@ export class DatabaseFactory {
    *   Currently supported: 'sqlite'.
    * @throws Error if the type is unknown.
    */
-  create(type: string = 'sqlite'): DatabaseAdapter {
+  async create(type: string = 'sqlite'): Promise<DatabaseAdapter> {
     if (type === 'sqlite') {
-      // Dynamic require to avoid coupling to concrete implementation at module load time.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { SqliteDatabaseImpl } = require('./sqlite/sqlite_database_impl.js');
+      const { SqliteDatabaseImpl } = await import('./sqlite/sqlite_database_impl.js');
       return new SqliteDatabaseImpl() as DatabaseAdapter;
     }
     throw new Error(`Unknown database type: ${type}`);
