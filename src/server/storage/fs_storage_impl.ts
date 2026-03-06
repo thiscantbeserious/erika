@@ -3,8 +3,8 @@
  * Stores session files under `<dataDir>/sessions/<id>.cast`.
  */
 
-import { readFileSync, writeFileSync, unlinkSync, existsSync, mkdirSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { readFileSync, writeFileSync, unlinkSync, existsSync, mkdirSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
 import type { StorageAdapter } from './storage_adapter.js';
 
 /**
@@ -30,7 +30,7 @@ export class FsStorageImpl implements StorageAdapter {
    * Creates parent directory if needed.
    * Returns absolute filepath where file was saved.
    */
-  save(id: string, content: string): string {
+  async save(id: string, content: string): Promise<string> {
     const filepath = this.resolvePath(id);
     mkdirSync(dirname(filepath), { recursive: true });
     writeFileSync(filepath, content, 'utf-8');
@@ -41,7 +41,7 @@ export class FsStorageImpl implements StorageAdapter {
    * Read session content from filesystem.
    * Throws if the file does not exist.
    */
-  read(id: string): string {
+  async read(id: string): Promise<string> {
     const filepath = this.resolvePath(id);
     if (!existsSync(filepath)) {
       throw new Error(`Session file not found: ${filepath}`);
@@ -53,7 +53,7 @@ export class FsStorageImpl implements StorageAdapter {
    * Delete session file from filesystem.
    * Returns true if deleted, false if not found.
    */
-  delete(id: string): boolean {
+  async delete(id: string): Promise<boolean> {
     const filepath = this.resolvePath(id);
     if (!existsSync(filepath)) {
       return false;
@@ -65,7 +65,7 @@ export class FsStorageImpl implements StorageAdapter {
   /**
    * Check whether a session file exists on filesystem.
    */
-  exists(id: string): boolean {
+  async exists(id: string): Promise<boolean> {
     return existsSync(this.resolvePath(id));
   }
 }

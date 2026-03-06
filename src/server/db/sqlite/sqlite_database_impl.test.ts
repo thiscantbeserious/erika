@@ -23,8 +23,8 @@ describe('SqliteDatabaseImpl', () => {
     ctx = await impl.initialize({ dataDir: testDir });
   });
 
-  afterEach(() => {
-    ctx.close();
+  afterEach(async () => {
+    await ctx.close();
     rmSync(testDir, { recursive: true, force: true });
   });
 
@@ -36,35 +36,35 @@ describe('SqliteDatabaseImpl', () => {
       expect(typeof ctx.close).toBe('function');
     });
 
-    it('should return working sessionRepository (insert + query round-trip)', () => {
-      const session = ctx.sessionRepository.create(createTestSession());
+    it('should return working sessionRepository (insert + query round-trip)', async () => {
+      const session = await ctx.sessionRepository.create(createTestSession());
 
       expect(session.id).toBeTruthy();
 
-      const found = ctx.sessionRepository.findById(session.id);
+      const found = await ctx.sessionRepository.findById(session.id);
       expect(found).not.toBeNull();
       expect(found!.filename).toBe('test.cast');
     });
 
-    it('should return working sectionRepository (insert + query round-trip)', () => {
-      const session = ctx.sessionRepository.create(createTestSession());
+    it('should return working sectionRepository (insert + query round-trip)', async () => {
+      const session = await ctx.sessionRepository.create(createTestSession());
 
-      const section = ctx.sectionRepository.create(
+      const section = await ctx.sectionRepository.create(
         createTestSection(session.id, { label: 'Setup' })
       );
 
       expect(section.id).toBeTruthy();
 
-      const sections = ctx.sectionRepository.findBySessionId(session.id);
+      const sections = await ctx.sectionRepository.findBySessionId(session.id);
       expect(sections).toHaveLength(1);
       expect(sections[0].label).toBe('Setup');
     });
 
-    it('should return working storageAdapter (save + read round-trip)', () => {
-      const filepath = ctx.storageAdapter.save('test-id', 'cast content here');
+    it('should return working storageAdapter (save + read round-trip)', async () => {
+      const filepath = await ctx.storageAdapter.save('test-id', 'cast content here');
       expect(filepath).toContain('test-id.cast');
 
-      const content = ctx.storageAdapter.read('test-id');
+      const content = await ctx.storageAdapter.read('test-id');
       expect(content).toBe('cast content here');
     });
 
@@ -79,26 +79,26 @@ describe('SqliteDatabaseImpl', () => {
         dbPath: ':memory:',
       });
 
-      const session = inMemoryCtx.sessionRepository.create(
+      const session = await inMemoryCtx.sessionRepository.create(
         createTestSession({ filename: 'mem.cast', filepath: 'sessions/mem.cast', size_bytes: 512 })
       );
 
       expect(session.id).toBeTruthy();
-      inMemoryCtx.close();
+      await inMemoryCtx.close();
     });
   });
 
   describe('close', () => {
-    it('should allow calling close without throwing', () => {
-      expect(() => ctx.close()).not.toThrow();
+    it('should allow calling close without throwing', async () => {
+      await expect(ctx.close()).resolves.not.toThrow();
     });
 
-    it('should prevent further database operations after close', () => {
-      ctx.close();
+    it('should prevent further database operations after close', async () => {
+      await ctx.close();
 
-      expect(() =>
+      await expect(
         ctx.sessionRepository.findAll()
-      ).toThrow();
+      ).rejects.toThrow();
     });
   });
 
@@ -110,13 +110,13 @@ describe('SqliteDatabaseImpl', () => {
       memCtx = await impl.initialize({ dataDir: testDir, dbPath: ':memory:' });
     });
 
-    afterEach(() => {
-      memCtx.close();
+    afterEach(async () => {
+      await memCtx.close();
     });
 
-    it('should have sessions table with required columns', () => {
+    it('should have sessions table with required columns', async () => {
       // Verify schema by inserting and querying a session
-      const session = memCtx.sessionRepository.create(
+      const session = await memCtx.sessionRepository.create(
         createTestSession({ filename: 'schema-test.cast', filepath: 'sessions/schema-test.cast', size_bytes: 100 })
       );
 
@@ -126,12 +126,12 @@ describe('SqliteDatabaseImpl', () => {
       expect(session.created_at).toBeTruthy();
     });
 
-    it('should have sections table with required columns (migration 002)', () => {
-      const session = memCtx.sessionRepository.create(
+    it('should have sections table with required columns (migration 002)', async () => {
+      const session = await memCtx.sessionRepository.create(
         createTestSession({ filename: 'section-test.cast', filepath: 'sessions/section-test.cast', size_bytes: 100 })
       );
 
-      const section = memCtx.sectionRepository.create(
+      const section = await memCtx.sectionRepository.create(
         createTestSection(session.id, { type: 'detected', endEvent: null, label: null })
       );
 
@@ -140,32 +140,32 @@ describe('SqliteDatabaseImpl', () => {
       expect(section.end_line).toBeNull();
     });
 
-    it('should support snapshot column (migration 003)', () => {
-      const session = memCtx.sessionRepository.create(
+    it('should support snapshot column (migration 003)', async () => {
+      const session = await memCtx.sessionRepository.create(
         createTestSession({ filename: 'snap-test.cast', filepath: 'sessions/snap-test.cast', size_bytes: 100 })
       );
 
       const snapshot = JSON.stringify({ cursor: { x: 0, y: 0 } });
-      memCtx.sessionRepository.updateSnapshot(session.id, snapshot);
+      await memCtx.sessionRepository.updateSnapshot(session.id, snapshot);
 
-      const found = memCtx.sessionRepository.findById(session.id);
+      const found = await memCtx.sessionRepository.findById(session.id);
       expect(found).not.toBeNull();
       expect((found as any).snapshot).toBe(snapshot);
     });
 
-    it('should enforce foreign key constraints on sections', () => {
+    it('should enforce foreign key constraints on sections', async () => {
       // Deleting a session should cascade-delete its sections
-      const session = memCtx.sessionRepository.create(
+      const session = await memCtx.sessionRepository.create(
         createTestSession({ filename: 'fk-test.cast', filepath: 'sessions/fk-test.cast', size_bytes: 100 })
       );
 
-      memCtx.sectionRepository.create(
+      await memCtx.sectionRepository.create(
         createTestSection(session.id, { endEvent: 5, label: 'test' })
       );
 
-      memCtx.sessionRepository.deleteById(session.id);
+      await memCtx.sessionRepository.deleteById(session.id);
 
-      const sections = memCtx.sectionRepository.findBySessionId(session.id);
+      const sections = await memCtx.sectionRepository.findBySessionId(session.id);
       expect(sections).toHaveLength(0);
     });
   });

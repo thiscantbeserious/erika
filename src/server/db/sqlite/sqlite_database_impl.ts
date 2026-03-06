@@ -4,9 +4,9 @@
  */
 
 import Database from 'better-sqlite3';
-import { readFileSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { migrate002Sections } from './migrations/002-sections.js';
 import { migrate003UnifiedSnapshot } from './migrations/003-unified-snapshot.js';
 import { SqliteSessionImpl } from './sqlite_session_impl.js';
@@ -74,7 +74,7 @@ export class SqliteDatabaseImpl implements DatabaseAdapter {
       sessionRepository,
       sectionRepository,
       storageAdapter,
-      close: () => { db.close(); },
+      close: async () => { db.close(); },
     };
   }
 }

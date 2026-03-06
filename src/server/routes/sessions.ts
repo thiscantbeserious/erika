@@ -13,12 +13,12 @@ import { processSessionPipeline, trackPipeline } from '../processing/index.js';
  * Handle GET /api/sessions
  * List all sessions with metadata.
  */
-export function handleListSessions(
+export async function handleListSessions(
   c: Context,
   repository: SessionAdapter
-): Response {
+): Promise<Response> {
   try {
-    const sessions = repository.findAll();
+    const sessions = await repository.findAll();
     return c.json(sessions.map(({ filepath, ...rest }) => rest));
   } catch (err) {
     console.error('List sessions error:', err);
@@ -36,27 +36,27 @@ export function handleListSessions(
  * Handle GET /api/sessions/:id
  * Retrieve session metadata, full parsed content, and sections.
  */
-export function handleGetSession(
+export async function handleGetSession(
   c: Context,
   repository: SessionAdapter,
   sectionRepository: SectionAdapter,
   storageAdapter: StorageAdapter
-): Response {
+): Promise<Response> {
   try {
     const id = c.req.param('id');
 
     // Find session metadata
-    const session = repository.findById(id);
+    const session = await repository.findById(id);
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
     }
 
     // Read and parse session file
-    const content = storageAdapter.read(id);
+    const content = await storageAdapter.read(id);
     const parsed = parseAsciicast(content);
 
     // Get sections for this session
-    const sections = sectionRepository.findBySessionId(id);
+    const sections = await sectionRepository.findBySessionId(id);
 
     // Parse session snapshot from JSON (if available)
     let snapshot = null;
@@ -126,29 +126,29 @@ export function handleGetSession(
  * Delete session from both DB and filesystem.
  * Transactional: delete DB first, then file. If file delete fails, session is already gone from DB.
  */
-export function handleDeleteSession(
+export async function handleDeleteSession(
   c: Context,
   repository: SessionAdapter,
   storageAdapter: StorageAdapter
-): Response {
+): Promise<Response> {
   try {
     const id = c.req.param('id');
 
     // Find session to verify it exists
-    const session = repository.findById(id);
+    const session = await repository.findById(id);
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
     }
 
     // Delete from DB first
-    const deleted = repository.deleteById(id);
+    const deleted = await repository.deleteById(id);
     if (!deleted) {
       return c.json({ error: 'Failed to delete session from database' }, 500);
     }
 
     // Then delete file via adapter (best effort — DB is source of truth)
     try {
-      storageAdapter.delete(id);
+      await storageAdapter.delete(id);
     } catch (err) {
       // Log but don't fail - DB deletion succeeded
       console.warn('Failed to delete session file:', err);
@@ -173,23 +173,23 @@ export function handleDeleteSession(
  * Replaces all existing sections (both marker and detected).
  * Returns 202 Accepted immediately, processing happens async.
  */
-export function handleRedetect(
+export async function handleRedetect(
   c: Context,
   sessionRepository: SessionAdapter,
   sectionRepository: SectionAdapter,
   storageAdapter: StorageAdapter
-): Response {
+): Promise<Response> {
   try {
     const id = c.req.param('id');
 
     // Find session
-    const session = sessionRepository.findById(id);
+    const session = await sessionRepository.findById(id);
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
     }
 
     // Read and parse session file to get markers
-    const content = storageAdapter.read(id);
+    const content = await storageAdapter.read(id);
     const parsed = parseAsciicast(content);
 
     // Trigger async processing (tracked, non-blocking)

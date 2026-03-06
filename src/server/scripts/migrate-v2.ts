@@ -52,7 +52,7 @@ export async function migrateV2(
   sectionRepo: SectionAdapter
 ): Promise<MigrationResult> {
   // Get all sessions
-  const allSessions = sessionRepo.findAll();
+  const allSessions = await sessionRepo.findAll();
 
   // Filter sessions that need processing (not yet completed)
   const sessionsToProcess = allSessions.filter(
@@ -94,7 +94,7 @@ export async function migrateV2(
       );
       // Pipeline sets detection_status to 'failed', but ensure it's set even if pipeline doesn't run
       try {
-        sessionRepo.updateDetectionStatus(session.id, 'failed');
+        await sessionRepo.updateDetectionStatus(session.id, 'failed');
       } catch (updateError) {
         // Ignore update errors
       }
@@ -104,12 +104,12 @@ export async function migrateV2(
   // After existing migration, reprocess sessions missing unified snapshot
   console.log('');
   console.log('Checking for sessions without unified snapshot...');
-  const allSessionsAfterMigration = sessionRepo.findAll();
+  const allSessionsAfterMigration = await sessionRepo.findAll();
   let reprocessed = 0;
 
   for (let i = 0; i < allSessionsAfterMigration.length; i++) {
     const sessionSummary = allSessionsAfterMigration[i];
-    const fullSession = sessionRepo.findById(sessionSummary.id);
+    const fullSession = await sessionRepo.findById(sessionSummary.id);
 
     if (!fullSession) {
       console.log(`Session ${sessionSummary.id} not found, skipping`);
@@ -210,7 +210,7 @@ async function main() {
   try {
     await migrateV2(ctx.sessionRepository, ctx.sectionRepository);
   } finally {
-    ctx.close();
+    await ctx.close();
   }
 
   console.log('');

@@ -11,22 +11,22 @@ export interface StorageAdapter {
    * Creates parent directories as needed.
    * Returns the absolute filepath where the file was saved.
    */
-  save(id: string, content: string): string;
+  save(id: string, content: string): Promise<string>;
 
   /**
    * Read session content by ID.
    * Throws if the session file does not exist.
    */
-  read(id: string): string;
+  read(id: string): Promise<string>;
 
   /**
    * Delete session file by ID.
    * Returns true if deleted, false if not found.
    */
-  delete(id: string): boolean;
+  delete(id: string): Promise<boolean>;
 
   /**
    * Check whether a session file exists.
    */
-  exists(id: string): boolean;
+  exists(id: string): Promise<boolean>;
 }

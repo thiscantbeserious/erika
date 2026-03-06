@@ -23,12 +23,12 @@ const { sessionRepository, sectionRepository, storageAdapter, close } =
 
 process.on('SIGTERM', async () => {
   await waitForPipelines();
-  await Promise.resolve(close());
+  await close();
   process.exit(0);
 });
 process.on('SIGINT', async () => {
   await waitForPipelines();
-  await Promise.resolve(close());
+  await close();
   process.exit(0);
 });
 

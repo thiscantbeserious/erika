@@ -23,97 +23,97 @@ describe('FsStorageImpl', () => {
   });
 
   describe('save', () => {
-    it('should save content and return absolute filepath', () => {
-      const filepath = adapter.save('abc123', 'hello world');
+    it('should save content and return absolute filepath', async () => {
+      const filepath = await adapter.save('abc123', 'hello world');
 
       expect(filepath).toContain('abc123.cast');
       expect(filepath).toContain(join(testDir, 'sessions'));
     });
 
-    it('should create sessions directory if it does not exist', () => {
-      const filepath = adapter.save('abc123', 'hello world');
-      const content = adapter.read('abc123');
+    it('should create sessions directory if it does not exist', async () => {
+      const filepath = await adapter.save('abc123', 'hello world');
+      const content = await adapter.read('abc123');
 
       expect(content).toBe('hello world');
       expect(filepath).toBeTruthy();
     });
 
-    it('should overwrite existing file with same id', () => {
-      adapter.save('abc123', 'first content');
-      adapter.save('abc123', 'second content');
+    it('should overwrite existing file with same id', async () => {
+      await adapter.save('abc123', 'first content');
+      await adapter.save('abc123', 'second content');
 
-      expect(adapter.read('abc123')).toBe('second content');
+      expect(await adapter.read('abc123')).toBe('second content');
     });
 
-    it('should return an absolute path', () => {
-      const filepath = adapter.save('abc123', 'content');
+    it('should return an absolute path', async () => {
+      const filepath = await adapter.save('abc123', 'content');
 
       expect(isAbsolute(filepath)).toBe(true);
     });
   });
 
   describe('read', () => {
-    it('should read content for an existing session', () => {
-      adapter.save('abc123', 'my content');
+    it('should read content for an existing session', async () => {
+      await adapter.save('abc123', 'my content');
 
-      expect(adapter.read('abc123')).toBe('my content');
+      expect(await adapter.read('abc123')).toBe('my content');
     });
 
-    it('should throw if session does not exist', () => {
-      expect(() => adapter.read('nonexistent')).toThrow('Session file not found');
+    it('should throw if session does not exist', async () => {
+      await expect(adapter.read('nonexistent')).rejects.toThrow('Session file not found');
     });
   });
 
   describe('delete', () => {
-    it('should delete existing session and return true', () => {
-      adapter.save('abc123', 'content');
+    it('should delete existing session and return true', async () => {
+      await adapter.save('abc123', 'content');
 
-      expect(adapter.delete('abc123')).toBe(true);
+      expect(await adapter.delete('abc123')).toBe(true);
     });
 
-    it('should return false if session does not exist', () => {
-      expect(adapter.delete('nonexistent')).toBe(false);
+    it('should return false if session does not exist', async () => {
+      expect(await adapter.delete('nonexistent')).toBe(false);
     });
 
-    it('should remove the file so read throws afterwards', () => {
-      adapter.save('abc123', 'content');
-      adapter.delete('abc123');
+    it('should remove the file so read throws afterwards', async () => {
+      await adapter.save('abc123', 'content');
+      await adapter.delete('abc123');
 
-      expect(() => adapter.read('abc123')).toThrow();
+      await expect(adapter.read('abc123')).rejects.toThrow();
     });
   });
 
   describe('exists', () => {
-    it('should return true for an existing session', () => {
-      adapter.save('abc123', 'content');
+    it('should return true for an existing session', async () => {
+      await adapter.save('abc123', 'content');
 
-      expect(adapter.exists('abc123')).toBe(true);
+      expect(await adapter.exists('abc123')).toBe(true);
     });
 
-    it('should return false for a non-existent session', () => {
-      expect(adapter.exists('nonexistent')).toBe(false);
+    it('should return false for a non-existent session', async () => {
+      expect(await adapter.exists('nonexistent')).toBe(false);
     });
   });
 
   describe('path traversal rejection', () => {
-    it('should throw on save with ../ in id', () => {
-      expect(() => adapter.save('../evil', 'content')).toThrow('Invalid session ID');
+    it('should throw on save with ../ in id', async () => {
+      await expect(adapter.save('../evil', 'content')).rejects.toThrow('Invalid session ID');
     });
 
-    it('should throw on read with ../ in id', () => {
-      expect(() => adapter.read('../etc/passwd')).toThrow('Invalid session ID');
+    it('should throw on read with ../ in id', async () => {
+      await expect(adapter.read('../etc/passwd')).rejects.toThrow('Invalid session ID');
     });
 
-    it('should throw on delete with ../ in id', () => {
-      expect(() => adapter.delete('../../secret')).toThrow('Invalid session ID');
+    it('should throw on delete with ../ in id', async () => {
+      await expect(adapter.delete('../../secret')).rejects.toThrow('Invalid session ID');
     });
 
-    it('should throw on exists with forward slash in id', () => {
-      expect(() => adapter.exists('some/path')).toThrow('Invalid session ID');
+    it('should throw on exists with forward slash in id', async () => {
+      await expect(adapter.exists('some/path')).rejects.toThrow('Invalid session ID');
     });
 
-    it('should throw on save with backslash in id', () => {
-      expect(() => adapter.save('some\\path', 'content')).toThrow('Invalid session ID');
+    it('should throw on save with backslash in id', async () => {
+      await expect(adapter.save('some\\path', 'content')).rejects.toThrow('Invalid session ID');
     });
   });
 });

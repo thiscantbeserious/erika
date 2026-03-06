@@ -68,7 +68,7 @@ export async function handleUpload(
     // Save file (fail fast if filesystem issues)
     let filepath: string;
     try {
-      filepath = storageAdapter.save(id, content);
+      filepath = await storageAdapter.save(id, content);
     } catch (err) {
       return c.json(
         {
@@ -81,7 +81,7 @@ export async function handleUpload(
 
     // Create database record with transaction safety
     try {
-      const session = repository.createWithId(id, {
+      const session = await repository.createWithId(id, {
         filename: file.name,
         filepath,
         size_bytes: file.size,
@@ -99,7 +99,7 @@ export async function handleUpload(
     } catch (err) {
       // DB insert failed — clean up file (best effort, don't mask original error)
       try {
-        storageAdapter.delete(id);
+        await storageAdapter.delete(id);
       } catch (cleanupErr) {
         console.warn('Failed to clean up file after DB error:', cleanupErr);
       }

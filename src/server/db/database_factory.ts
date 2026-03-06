@@ -17,7 +17,7 @@ export class DatabaseFactory {
   async create(type: string = 'sqlite'): Promise<DatabaseAdapter> {
     if (type === 'sqlite') {
       const { SqliteDatabaseImpl } = await import('./sqlite/sqlite_database_impl.js');
-      return new SqliteDatabaseImpl() as DatabaseAdapter;
+      return new SqliteDatabaseImpl();
     }
     throw new Error(`Unknown database type: ${type}`);
   }

@@ -44,23 +44,23 @@ export interface SectionAdapter {
    * Create a new section.
    * Returns the created section with generated fields (id, created_at).
    */
-  create(input: CreateSectionInput): SectionRow;
+  create(input: CreateSectionInput): Promise<SectionRow>;
 
   /**
    * Find all sections for a session, ordered by start_event ASC.
    */
-  findBySessionId(sessionId: string): SectionRow[];
+  findBySessionId(sessionId: string): Promise<SectionRow[]>;
 
   /**
    * Delete sections by session ID.
    * Optionally filter by type (marker or detected).
    * Returns count of deleted sections.
    */
-  deleteBySessionId(sessionId: string, type?: 'marker' | 'detected'): number;
+  deleteBySessionId(sessionId: string, type?: 'marker' | 'detected'): Promise<number>;
 
   /**
    * Delete a section by ID.
    * Returns true if deleted, false if not found.
    */
-  deleteById(id: string): boolean;
+  deleteById(id: string): Promise<boolean>;
 }

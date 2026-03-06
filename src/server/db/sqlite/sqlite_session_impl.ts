@@ -13,12 +13,12 @@ import type { SessionAdapter } from '../session_adapter.js';
  * All methods use prepared statements.
  */
 export class SqliteSessionImpl implements SessionAdapter {
-  private insertStmt: Database.Statement;
-  private findAllStmt: Database.Statement;
-  private findByIdStmt: Database.Statement;
-  private deleteByIdStmt: Database.Statement;
-  private updateDetectionStatusStmt: Database.Statement;
-  private updateSnapshotStmt: Database.Statement;
+  private readonly insertStmt: Database.Statement;
+  private readonly findAllStmt: Database.Statement;
+  private readonly findByIdStmt: Database.Statement;
+  private readonly deleteByIdStmt: Database.Statement;
+  private readonly updateDetectionStatusStmt: Database.Statement;
+  private readonly updateSnapshotStmt: Database.Statement;
 
   constructor(db: Database.Database) {
     // Prepare statements once at construction
@@ -62,12 +62,12 @@ export class SqliteSessionImpl implements SessionAdapter {
     `);
   }
 
-  create(data: SessionCreate): Session {
+  async create(data: SessionCreate): Promise<Session> {
     const id = nanoid();
     return this.createWithId(id, data);
   }
 
-  createWithId(id: string, data: SessionCreate): Session {
+  async createWithId(id: string, data: SessionCreate): Promise<Session> {
     this.insertStmt.run(
       id,
       data.filename,
@@ -82,16 +82,16 @@ export class SqliteSessionImpl implements SessionAdapter {
     return session;
   }
 
-  findAll(): Session[] {
+  async findAll(): Promise<Session[]> {
     return this.findAllStmt.all() as Session[];
   }
 
-  findById(id: string): Session | null {
+  async findById(id: string): Promise<Session | null> {
     const session = this.findByIdStmt.get(id) as Session | undefined;
     return session || null;
   }
 
-  deleteById(id: string): boolean {
+  async deleteById(id: string): Promise<boolean> {
     const result = this.deleteByIdStmt.run(id);
     return result.changes > 0;
   }
@@ -100,12 +100,12 @@ export class SqliteSessionImpl implements SessionAdapter {
    * Update session detection status and metadata.
    * Used after processing a session for section detection.
    */
-  updateDetectionStatus(
+  async updateDetectionStatus(
     id: string,
     status: 'pending' | 'processing' | 'completed' | 'failed',
     eventCount?: number,
     detectedSectionsCount?: number
-  ): void {
+  ): Promise<void> {
     this.updateDetectionStatusStmt.run(
       status,
       eventCount ?? null,
@@ -118,7 +118,7 @@ export class SqliteSessionImpl implements SessionAdapter {
    * Update the unified snapshot for a session.
    * Stores the full getAllLines() JSON from the VT terminal.
    */
-  updateSnapshot(id: string, snapshot: string): void {
+  async updateSnapshot(id: string, snapshot: string): Promise<void> {
     this.updateSnapshotStmt.run(snapshot, id);
   }
 }

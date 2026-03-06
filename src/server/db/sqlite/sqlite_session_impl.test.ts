@@ -21,15 +21,15 @@ describe('SqliteSessionImpl', () => {
     repository = ctx.sessionRepository;
   });
 
-  afterEach(() => {
-    ctx.close();
+  afterEach(async () => {
+    await ctx.close();
   });
 
   describe('create', () => {
-    it('should create a session with generated id and created_at', () => {
+    it('should create a session with generated id and created_at', async () => {
       const data = createTestSession({ marker_count: 3, uploaded_at: '2026-02-16T10:30:00Z' });
 
-      const session = repository.create(data);
+      const session = await repository.create(data);
 
       expect(session.id).toBeTruthy();
       expect(session.id).toHaveLength(21); // nanoid default length
@@ -41,53 +41,53 @@ describe('SqliteSessionImpl', () => {
       expect(session.created_at).toBeTruthy();
     });
 
-    it('should generate unique IDs for multiple sessions', () => {
+    it('should generate unique IDs for multiple sessions', async () => {
       const data = createTestSession({ filepath: 'sessions/test1.cast' });
 
-      const session1 = repository.create(data);
-      const session2 = repository.create({ ...data, filepath: 'sessions/test2.cast' });
+      const session1 = await repository.create(data);
+      const session2 = await repository.create({ ...data, filepath: 'sessions/test2.cast' });
 
       expect(session1.id).not.toBe(session2.id);
     });
 
-    it('should default marker_count to 0 if not provided', () => {
+    it('should default marker_count to 0 if not provided', async () => {
       const data = createTestSession();
 
-      const session = repository.create(data);
+      const session = await repository.create(data);
 
       expect(session.marker_count).toBe(0);
     });
   });
 
   describe('findAll', () => {
-    it('should return empty array when no sessions exist', () => {
-      const sessions = repository.findAll();
+    it('should return empty array when no sessions exist', async () => {
+      const sessions = await repository.findAll();
 
       expect(sessions).toEqual([]);
     });
 
-    it('should return all sessions', () => {
+    it('should return all sessions', async () => {
       const data1 = createTestSession({ filename: 'test1.cast', filepath: 'sessions/test1.cast', marker_count: 3, uploaded_at: '2026-02-16T10:30:00Z' });
       const data2 = createTestSession({ filename: 'test2.cast', filepath: 'sessions/test2.cast', size_bytes: 2048, marker_count: 5, uploaded_at: '2026-02-16T11:00:00Z' });
 
-      const session1 = repository.create(data1);
-      const session2 = repository.create(data2);
+      const session1 = await repository.create(data1);
+      const session2 = await repository.create(data2);
 
-      const sessions = repository.findAll();
+      const sessions = await repository.findAll();
 
       expect(sessions).toHaveLength(2);
       expect(sessions.map(s => s.id)).toContain(session1.id);
       expect(sessions.map(s => s.id)).toContain(session2.id);
     });
 
-    it('should return sessions ordered by uploaded_at DESC (newest first)', () => {
+    it('should return sessions ordered by uploaded_at DESC (newest first)', async () => {
       const older = createTestSession({ filename: 'older.cast', filepath: 'sessions/older.cast', uploaded_at: '2026-02-15T10:00:00Z' });
       const newer = createTestSession({ filename: 'newer.cast', filepath: 'sessions/newer.cast', size_bytes: 2048, uploaded_at: '2026-02-16T10:00:00Z' });
 
-      repository.create(older);
-      const newerSession = repository.create(newer);
+      await repository.create(older);
+      const newerSession = await repository.create(newer);
 
-      const sessions = repository.findAll();
+      const sessions = await repository.findAll();
 
       expect(sessions[0].id).toBe(newerSession.id);
       expect(sessions[0].uploaded_at).toBe(newer.uploaded_at);
@@ -95,17 +95,17 @@ describe('SqliteSessionImpl', () => {
   });
 
   describe('findById', () => {
-    it('should return null when session does not exist', () => {
-      const session = repository.findById('nonexistent');
+    it('should return null when session does not exist', async () => {
+      const session = await repository.findById('nonexistent');
 
       expect(session).toBeNull();
     });
 
-    it('should return session when it exists', () => {
+    it('should return session when it exists', async () => {
       const data = createTestSession({ marker_count: 3, uploaded_at: '2026-02-16T10:30:00Z' });
 
-      const created = repository.create(data);
-      const found = repository.findById(created.id);
+      const created = await repository.create(data);
+      const found = await repository.findById(created.id);
 
       expect(found).not.toBeNull();
       expect(found?.id).toBe(created.id);
@@ -118,49 +118,47 @@ describe('SqliteSessionImpl', () => {
   });
 
   describe('deleteById', () => {
-    it('should return false when session does not exist', () => {
-      const deleted = repository.deleteById('nonexistent');
+    it('should return false when session does not exist', async () => {
+      const deleted = await repository.deleteById('nonexistent');
 
       expect(deleted).toBe(false);
     });
 
-    it('should return true and delete session when it exists', () => {
+    it('should return true and delete session when it exists', async () => {
       const data = createTestSession({ marker_count: 3, uploaded_at: '2026-02-16T10:30:00Z' });
 
-      const created = repository.create(data);
-      const deleted = repository.deleteById(created.id);
+      const created = await repository.create(data);
+      const deleted = await repository.deleteById(created.id);
 
       expect(deleted).toBe(true);
 
-      const found = repository.findById(created.id);
+      const found = await repository.findById(created.id);
       expect(found).toBeNull();
     });
 
-    it('should not affect other sessions', () => {
+    it('should not affect other sessions', async () => {
       const data1 = createTestSession({ filename: 'test1.cast', filepath: 'sessions/test1.cast', uploaded_at: '2026-02-16T10:30:00Z' });
       const data2 = createTestSession({ filename: 'test2.cast', filepath: 'sessions/test2.cast', size_bytes: 2048, uploaded_at: '2026-02-16T11:00:00Z' });
 
-      const session1 = repository.create(data1);
-      const session2 = repository.create(data2);
+      const session1 = await repository.create(data1);
+      const session2 = await repository.create(data2);
 
-      repository.deleteById(session1.id);
+      await repository.deleteById(session1.id);
 
-      const remaining = repository.findAll();
+      const remaining = await repository.findAll();
       expect(remaining).toHaveLength(1);
       expect(remaining[0].id).toBe(session2.id);
     });
   });
 
   describe('filepath uniqueness constraint', () => {
-    it('should enforce unique filepath constraint', () => {
+    it('should enforce unique filepath constraint', async () => {
       const data = createTestSession();
 
-      repository.create(data);
+      await repository.create(data);
 
       // Attempt to create with same filepath should throw
-      expect(() => {
-        repository.create(data);
-      }).toThrow();
+      await expect(repository.create(data)).rejects.toThrow();
     });
   });
 });

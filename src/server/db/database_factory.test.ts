@@ -26,8 +26,8 @@ describe('DatabaseFactory', () => {
       ctx = await adapter.initialize({ dataDir: testDir, dbPath: ':memory:' });
     });
 
-    afterEach(() => {
-      ctx.close();
+    afterEach(async () => {
+      await ctx.close();
       rmSync(testDir, { recursive: true, force: true });
     });
 
@@ -44,39 +44,39 @@ describe('DatabaseFactory', () => {
       expect(typeof ctx.close).toBe('function');
     });
 
-    it('should return a working sessionRepository (insert + query round-trip)', () => {
-      const session = ctx.sessionRepository.create(
+    it('should return a working sessionRepository (insert + query round-trip)', async () => {
+      const session = await ctx.sessionRepository.create(
         createTestSession({ filename: 'factory-test.cast', filepath: 'sessions/factory-test.cast', size_bytes: 2048 })
       );
 
       expect(session.id).toBeTruthy();
 
-      const found = ctx.sessionRepository.findById(session.id);
+      const found = await ctx.sessionRepository.findById(session.id);
       expect(found).not.toBeNull();
       expect(found!.filename).toBe('factory-test.cast');
     });
 
-    it('should return a working sectionRepository (insert + query round-trip)', () => {
-      const session = ctx.sessionRepository.create(
+    it('should return a working sectionRepository (insert + query round-trip)', async () => {
+      const session = await ctx.sessionRepository.create(
         createTestSession({ filename: 'section-factory.cast', filepath: 'sessions/section-factory.cast', size_bytes: 512 })
       );
 
-      const section = ctx.sectionRepository.create(
+      const section = await ctx.sectionRepository.create(
         createTestSection(session.id, { endEvent: 5, label: 'Intro' })
       );
 
       expect(section.id).toBeTruthy();
 
-      const sections = ctx.sectionRepository.findBySessionId(session.id);
+      const sections = await ctx.sectionRepository.findBySessionId(session.id);
       expect(sections).toHaveLength(1);
       expect(sections[0].label).toBe('Intro');
     });
 
-    it('should return a working storageAdapter (save + read round-trip)', () => {
-      const filepath = ctx.storageAdapter.save('factory-id', 'cast content');
+    it('should return a working storageAdapter (save + read round-trip)', async () => {
+      const filepath = await ctx.storageAdapter.save('factory-id', 'cast content');
       expect(filepath).toContain('factory-id.cast');
 
-      const content = ctx.storageAdapter.read('factory-id');
+      const content = await ctx.storageAdapter.read('factory-id');
       expect(content).toBe('cast content');
     });
   });
@@ -105,9 +105,9 @@ describe('DatabaseFactory', () => {
         const adapter = await factory.create('sqlite');
         const localCtx = await adapter.initialize({ dataDir: testDir, dbPath: ':memory:' });
 
-        localCtx.close();
+        await localCtx.close();
 
-        expect(() => localCtx.sessionRepository.findAll()).toThrow();
+        await expect(localCtx.sessionRepository.findAll()).rejects.toThrow();
       } finally {
         rmSync(testDir, { recursive: true, force: true });
       }

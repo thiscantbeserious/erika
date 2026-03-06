@@ -32,8 +32,8 @@ describe('migrateV2', () => {
     sectionRepo = ctx.sectionRepository;
   });
 
-  afterEach(() => {
-    ctx.close();
+  afterEach(async () => {
+    await ctx.close();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -44,7 +44,7 @@ describe('migrateV2', () => {
     writeFileSync(filePath, castContent);
 
     // Create session with detection_status = 'pending'
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session-with-markers.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -60,12 +60,12 @@ describe('migrateV2', () => {
     expect(result.failed).toBe(0);
 
     // Verify session was updated
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.detection_status).toBe('completed');
     expect(updatedSession?.event_count).toBe(150);
 
     // Verify marker sections were created with line ranges (CLI session)
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     const markerSections = sections.filter((s) => s.type === 'marker');
 
     expect(markerSections.length).toBe(2);
@@ -94,7 +94,7 @@ describe('migrateV2', () => {
     writeFileSync(filePath, castContent);
 
     // Create session and manually set detection_status to 'completed'
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'completed-session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -103,15 +103,15 @@ describe('migrateV2', () => {
     });
 
     // Manually set status to completed and add a unified snapshot
-    sessionRepo.updateDetectionStatus(session.id, 'completed', 200, 0);
-    sessionRepo.updateSnapshot(session.id, JSON.stringify({
+    await sessionRepo.updateDetectionStatus(session.id, 'completed', 200, 0);
+    await sessionRepo.updateSnapshot(session.id, JSON.stringify({
       cols: 80,
       rows: 24,
       lines: [{ spans: [{ text: 'test', fg: null, bg: null, attrs: 0 }] }],
     }));
 
     // Create a marker section manually to verify no duplicates are created
-    sectionRepo.create({
+    await sectionRepo.create({
       sessionId: session.id,
       type: 'marker',
       startEvent: 0,
@@ -130,14 +130,14 @@ describe('migrateV2', () => {
     expect(result.failed).toBe(0);
 
     // Verify no new sections were created
-    const sections = sectionRepo.findBySessionId(session.id);
+    const sections = await sectionRepo.findBySessionId(session.id);
     expect(sections.length).toBe(1);
     expect(sections[0].label).toBe('Existing Section');
   });
 
   it('handles corrupt .cast file gracefully', async () => {
     // Create session pointing to non-existent file
-    const session1 = sessionRepo.create({
+    const session1 = await sessionRepo.create({
       filename: 'nonexistent.cast',
       filepath: '/nonexistent/file.cast',
       size_bytes: 1000,
@@ -150,7 +150,7 @@ describe('migrateV2', () => {
     const filePath = join(tmpDir, 'valid-session.cast');
     writeFileSync(filePath, castContent);
 
-    const session2 = sessionRepo.create({
+    const session2 = await sessionRepo.create({
       filename: 'valid-session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -166,11 +166,11 @@ describe('migrateV2', () => {
     expect(result.failed).toBe(1);
 
     // Verify corrupt session status is 'failed'
-    const failedSession = sessionRepo.findById(session1.id);
+    const failedSession = await sessionRepo.findById(session1.id);
     expect(failedSession?.detection_status).toBe('failed');
 
     // Verify valid session was processed
-    const validSession = sessionRepo.findById(session2.id);
+    const validSession = await sessionRepo.findById(session2.id);
     expect(validSession?.detection_status).toBe('completed');
     expect(validSession?.event_count).toBe(200);
   });
@@ -181,7 +181,7 @@ describe('migrateV2', () => {
     const filePath = join(tmpDir, 'session.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -193,7 +193,7 @@ describe('migrateV2', () => {
     const result1 = await migrateV2(sessionRepo, sectionRepo);
     expect(result1.processed).toBe(1);
 
-    const sectionsAfterFirst = sectionRepo.findBySessionId(session.id);
+    const sectionsAfterFirst = await sectionRepo.findBySessionId(session.id);
     const firstCount = sectionsAfterFirst.length;
 
     // Run migration second time
@@ -202,7 +202,7 @@ describe('migrateV2', () => {
     expect(result2.skipped).toBe(1);
 
     // Verify no duplicate sections were created
-    const sectionsAfterSecond = sectionRepo.findBySessionId(session.id);
+    const sectionsAfterSecond = await sectionRepo.findBySessionId(session.id);
     expect(sectionsAfterSecond.length).toBe(firstCount);
   });
 
@@ -212,7 +212,7 @@ describe('migrateV2', () => {
     const filePath = join(tmpDir, 'session.cast');
     writeFileSync(filePath, castContent);
 
-    const session = sessionRepo.create({
+    const session = await sessionRepo.create({
       filename: 'session.cast',
       filepath: filePath,
       size_bytes: castContent.length,
@@ -224,7 +224,7 @@ describe('migrateV2', () => {
     await migrateV2(sessionRepo, sectionRepo);
 
     // Verify session metadata was updated
-    const updatedSession = sessionRepo.findById(session.id);
+    const updatedSession = await sessionRepo.findById(session.id);
     expect(updatedSession?.detection_status).toBe('completed');
     expect(updatedSession?.event_count).toBe(200);
     expect(updatedSession?.detected_sections_count).toBeGreaterThan(0);
@@ -238,7 +238,7 @@ describe('migrateV2', () => {
       const filePath = join(tmpDir, `session-${i}.cast`);
       writeFileSync(filePath, castContent);
 
-      const session = sessionRepo.create({
+      const session = await sessionRepo.create({
         filename: `session-${i}.cast`,
         filepath: filePath,
         size_bytes: castContent.length,
@@ -257,7 +257,7 @@ describe('migrateV2', () => {
 
     // Verify all sessions were processed
     for (const session of sessions) {
-      const updated = sessionRepo.findById(session.id);
+      const updated = await sessionRepo.findById(session.id);
       expect(updated?.detection_status).toBe('completed');
       expect(updated?.event_count).toBe(200);
     }

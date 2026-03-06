@@ -15,13 +15,17 @@ export type { SectionRow, CreateSectionInput } from '../section_adapter.js';
  * All methods use prepared statements.
  */
 export class SqliteSectionImpl implements SectionAdapter {
-  private insertStmt: Database.Statement;
-  private findBySessionIdStmt: Database.Statement;
-  private deleteBySessionIdStmt: Database.Statement;
-  private deleteBySessionIdAndTypeStmt: Database.Statement;
-  private deleteByIdStmt: Database.Statement;
+  private readonly insertStmt: Database.Statement;
+  private readonly findBySessionIdStmt: Database.Statement;
+  private readonly findByIdStmt: Database.Statement;
+  private readonly deleteBySessionIdStmt: Database.Statement;
+  private readonly deleteBySessionIdAndTypeStmt: Database.Statement;
+  private readonly deleteByIdStmt: Database.Statement;
+  private readonly db: Database.Database;
 
-  constructor(private db: Database.Database) {
+  constructor(db: Database.Database) {
+    this.db = db;
+
     // Prepare statements once at construction
     this.insertStmt = db.prepare(`
       INSERT INTO sections (id, session_id, type, start_event, end_event, label, snapshot, start_line, end_line)
@@ -32,6 +36,10 @@ export class SqliteSectionImpl implements SectionAdapter {
       SELECT * FROM sections
       WHERE session_id = ?
       ORDER BY start_event ASC
+    `);
+
+    this.findByIdStmt = db.prepare(`
+      SELECT * FROM sections WHERE id = ?
     `);
 
     this.deleteBySessionIdStmt = db.prepare(`
@@ -55,7 +63,7 @@ export class SqliteSectionImpl implements SectionAdapter {
    * Generates a unique ID using nanoid.
    * Returns the created section with generated fields.
    */
-  create(input: CreateSectionInput): SectionRow {
+  async create(input: CreateSectionInput): Promise<SectionRow> {
     const id = nanoid();
 
     this.insertStmt.run(
@@ -71,9 +79,7 @@ export class SqliteSectionImpl implements SectionAdapter {
     );
 
     // Retrieve the created section to get generated created_at
-    const section = this.db
-      .prepare('SELECT * FROM sections WHERE id = ?')
-      .get(id) as SectionRow;
+    const section = this.findByIdStmt.get(id) as SectionRow;
 
     return section;
   }
@@ -82,7 +88,7 @@ export class SqliteSectionImpl implements SectionAdapter {
    * Find all sections for a session.
    * Returns sections ordered by start_event ASC.
    */
-  findBySessionId(sessionId: string): SectionRow[] {
+  async findBySessionId(sessionId: string): Promise<SectionRow[]> {
     return this.findBySessionIdStmt.all(sessionId) as SectionRow[];
   }
 
@@ -91,7 +97,7 @@ export class SqliteSectionImpl implements SectionAdapter {
    * Optionally filter by type (marker or detected).
    * Returns count of deleted sections.
    */
-  deleteBySessionId(sessionId: string, type?: 'marker' | 'detected'): number {
+  async deleteBySessionId(sessionId: string, type?: 'marker' | 'detected'): Promise<number> {
     if (type) {
       const result = this.deleteBySessionIdAndTypeStmt.run(sessionId, type);
       return result.changes;
@@ -105,7 +111,7 @@ export class SqliteSectionImpl implements SectionAdapter {
    * Delete a section by ID.
    * Returns true if a section was deleted, false otherwise.
    */
-  deleteById(id: string): boolean {
+  async deleteById(id: string): Promise<boolean> {
     const result = this.deleteByIdStmt.run(id);
     return result.changes > 0;
   }
