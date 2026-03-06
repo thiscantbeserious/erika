@@ -43,5 +43,9 @@ export default defineConfig({
       ['src/server/**', 'node'],
       ['tests/snapshots/backend/**', 'node'],
     ],
+    coverage: {
+      reporter: ['v8', 'lcov'],
+      reportsDirectory: 'coverage',
+    },
   },
 });
