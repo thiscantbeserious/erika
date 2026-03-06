@@ -52,12 +52,11 @@ Another agent will tell you what to look at. This could be:
 
 ## Screenshots
 
-Save all screenshots to `/tmp/ui-explorer/`. Use descriptive filenames:
-- `/tmp/ui-explorer/sessions-list.png`
-- `/tmp/ui-explorer/session-detail-sections.png`
-- `/tmp/ui-explorer/upload-form-empty.png`
+Save all screenshots to `/tmp/ui-explorer/<branch-name>/`. Use descriptive filenames:
+- `/tmp/ui-explorer/feat/auth/sessions-list.png`
+- `/tmp/ui-explorer/fix/upload-bug/session-detail-sections.png`
 
-Create the directory if it doesn't exist. Always include the full file path in your output so callers and the user can find them.
+The branch name is provided in your spawn prompt. Always include the full file path in your output so callers and the user can find them.
 
 ## How to Explore
 
