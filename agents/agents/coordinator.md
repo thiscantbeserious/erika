@@ -86,7 +86,16 @@ Always include the branch name. Include state file paths the agent needs (REQUIR
 
 ## Pair Review
 
-After each completed PLAN stage, spawn `pair-reviewer` for that stage's diff. Classify findings:
+After each completed PLAN stage, spawn `pair-reviewer` for that stage's diff. Include the implementing engineer's role in the prompt so the pair-reviewer adopts that perspective:
+
+```text
+Task(pair-reviewer, "Review Stage N.
+Engineer role: backend-engineer
+Branch: <branch-name>
+Stage diff: <files>")
+```
+
+Classify findings:
 - **BLOCKING** (wrong direction, requirement mismatch, cascading rework) → send back to engineer before next stage
 - **NON-BLOCKING** (style, optimization, suggestions) → accumulate for reviewer
 
