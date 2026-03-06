@@ -9,7 +9,7 @@ tools:
   - Grep
   - Glob
   - WebSearch
-  # Playwright MCP (PRIMARY — headless, automatable, no org-policy issues)
+  # Playwright MCP
   - mcp__playwright__browser_navigate
   - mcp__playwright__browser_navigate_back
   - mcp__playwright__browser_snapshot
