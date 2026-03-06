@@ -6,9 +6,9 @@
 
 import type Database from 'better-sqlite3';
 import { nanoid } from 'nanoid';
-import type { SectionAdapter, SectionRow, CreateSectionInput } from './section-adapter.js';
+import type { SectionAdapter, SectionRow, CreateSectionInput } from '../section_adapter.js';
 
-export type { SectionRow, CreateSectionInput } from './section-adapter.js';
+export type { SectionRow, CreateSectionInput } from '../section_adapter.js';
 
 /**
  * SQLite-backed section implementation.

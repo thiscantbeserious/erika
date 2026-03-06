@@ -4,9 +4,9 @@
 
 import type { Context } from 'hono';
 import { parseAsciicast } from '../../shared/asciicast.js';
-import type { SessionAdapter } from '../db/session-adapter.js';
-import type { SectionAdapter } from '../db/section-adapter.js';
-import type { StorageAdapter } from '../storage/storage-adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import type { StorageAdapter } from '../storage/storage_adapter.js';
 import { processSessionPipeline } from '../processing/index.js';
 
 /**

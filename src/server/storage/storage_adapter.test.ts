@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, isAbsolute } from 'path';
-import { FsStorageImpl } from './fs-storage-impl.js';
+import { FsStorageImpl } from './fs_storage_impl.js';
 
 describe('FsStorageImpl', () => {
   let testDir: string;

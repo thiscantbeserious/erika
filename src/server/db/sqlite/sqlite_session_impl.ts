@@ -5,8 +5,8 @@
 
 import type Database from 'better-sqlite3';
 import { nanoid } from 'nanoid';
-import type { Session, SessionCreate } from '../../shared/types.js';
-import type { SessionAdapter } from './session-adapter.js';
+import type { Session, SessionCreate } from '../../../shared/types.js';
+import type { SessionAdapter } from '../session_adapter.js';
 
 /**
  * SQLite-backed session implementation.

@@ -16,8 +16,8 @@
  * 8. On error: set detection_status to 'failed'
  */
 
-import type { SectionAdapter } from '../db/section-adapter.js';
-import type { SessionAdapter } from '../db/session-adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
 import type { Marker, AsciicastEvent, AsciicastHeader } from '../../shared/asciicast-types.js';
 import { normalizeHeader } from '../../shared/asciicast.js';
 import { NdjsonStream } from './ndjson-stream.js';

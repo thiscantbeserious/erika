@@ -4,9 +4,9 @@
  * Implement this interface to add a PostgreSQL or other backend.
  */
 
-import type { SessionAdapter } from './session-adapter.js';
-import type { SectionAdapter } from './section-adapter.js';
-import type { StorageAdapter } from '../storage/storage-adapter.js';
+import type { SessionAdapter } from './session_adapter.js';
+import type { SectionAdapter } from './section_adapter.js';
+import type { StorageAdapter } from '../storage/storage_adapter.js';
 
 /**
  * All live persistence objects returned by a DatabaseAdapter.

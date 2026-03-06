@@ -8,11 +8,11 @@ import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { Hono } from 'hono';
-import type Database from 'better-sqlite3';
-import { initDatabase } from '../db/database.js';
-import { SqliteSessionImpl } from '../db/sqlite-session-impl.js';
-import { SqliteSectionImpl } from '../db/sqlite-section-impl.js';
-import { FsStorageImpl } from '../storage/fs-storage-impl.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { DatabaseContext } from '../db/database_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import { FsStorageImpl } from '../storage/fs_storage_impl.js';
 import { handleUpload } from './upload.js';
 import {
   handleListSessions,
@@ -25,9 +25,9 @@ import { initVt } from '../../../packages/vt-wasm/index.js';
 describe('API Routes', () => {
   let testDir: string;
   let app: Hono;
-  let db: ReturnType<typeof initDatabase>;
-  let sessionRepository: SqliteSessionImpl;
-  let sectionRepository: SqliteSectionImpl;
+  let ctx: DatabaseContext;
+  let sessionRepository: SessionAdapter;
+  let sectionRepository: SectionAdapter;
   let storageAdapter: FsStorageImpl;
 
   const validFixture = readFileSync(
@@ -48,10 +48,10 @@ describe('API Routes', () => {
     testDir = mkdtempSync(join(tmpdir(), 'ragts-api-test-'));
 
     // Initialize database and repositories
-    const dbPath = join(testDir, 'test.db');
-    db = initDatabase(dbPath);
-    sessionRepository = new SqliteSessionImpl(db);
-    sectionRepository = new SqliteSectionImpl(db);
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: testDir });
+    sessionRepository = ctx.sessionRepository;
+    sectionRepository = ctx.sectionRepository;
     storageAdapter = new FsStorageImpl(testDir);
 
     // Setup Hono app with routes
@@ -73,7 +73,7 @@ describe('API Routes', () => {
 
   afterEach(() => {
     // Close database before removing files
-    db.close();
+    ctx.close();
     // Clean up temporary directory
     rmSync(testDir, { recursive: true, force: true });
   });

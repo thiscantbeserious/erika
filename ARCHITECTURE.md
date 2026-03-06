@@ -77,6 +77,9 @@ Repository pattern, fully implemented:
 | Sections | `SectionAdapter` | `SqliteSectionImpl` | Complete |
 | File storage | `StorageAdapter` | `FsStorageImpl` | Complete |
 | DB init | `DatabaseAdapter` | `SqliteDatabaseImpl` | Complete |
+| DB creation | -- | `DatabaseFactory` | Complete |
+
+The application entry point obtains a `DatabaseAdapter` through `DatabaseFactory.create()`, which uses a dynamic require to avoid coupling `index.ts` to the concrete SQLite implementation. Adding a new backend (e.g. PostgreSQL) requires only a new `*DatabaseImpl` class and a new case in the factory — no changes to routes or processing code.
 
 ### API Surface
 

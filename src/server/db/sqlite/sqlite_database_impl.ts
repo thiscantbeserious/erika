@@ -1,0 +1,72 @@
+/**
+ * SQLite implementation of DatabaseAdapter.
+ * Encapsulates DB initialization, migrations, and repository construction.
+ */
+
+import Database from 'better-sqlite3';
+import { readFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { migrate002Sections } from './migrations/002-sections.js';
+import { migrate003UnifiedSnapshot } from './migrations/003-unified-snapshot.js';
+import { SqliteSessionImpl } from './sqlite_session_impl.js';
+import { SqliteSectionImpl } from './sqlite_section_impl.js';
+import { FsStorageImpl } from '../../storage/fs_storage_impl.js';
+import type { DatabaseAdapter, DatabaseContext } from '../database_adapter.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * SQLite-backed database implementation.
+ * Initializes the DB and wires up all repositories.
+ * The database file is placed at `<dataDir>/ragts.db` by default.
+ */
+export class SqliteDatabaseImpl implements DatabaseAdapter {
+  /**
+   * Initialize the SQLite persistence layer.
+   * Creates the database at `<dataDir>/ragts.db`, runs migrations,
+   * and constructs all repositories and the storage adapter.
+   *
+   * @param config.dataDir - Directory for the database file and session files.
+   * @param config.dbPath - Optional override for the database file path.
+   *   Use ':memory:' in tests to get a fast in-memory database.
+   */
+  async initialize(config: { dataDir: string; dbPath?: string }): Promise<DatabaseContext> {
+    const dbPath = config.dbPath ?? join(config.dataDir, 'ragts.db');
+
+    // Create parent directory if it doesn't exist (skip for :memory:)
+    if (dbPath !== ':memory:') {
+      mkdirSync(config.dataDir, { recursive: true });
+    }
+
+    // Open database connection
+    const db = new Database(dbPath);
+
+    // Enable WAL mode for better concurrent read performance
+    db.pragma('journal_mode = WAL');
+
+    // Enable foreign key constraints
+    db.pragma('foreign_keys = ON');
+
+    // Apply base schema from sql/schema.sql
+    const schemaPath = join(__dirname, 'sql', 'schema.sql');
+    const schema = readFileSync(schemaPath, 'utf-8');
+    db.exec(schema);
+
+    // Run migrations
+    migrate002Sections(db);
+    migrate003UnifiedSnapshot(db);
+
+    const sessionRepository = new SqliteSessionImpl(db);
+    const sectionRepository = new SqliteSectionImpl(db);
+    const storageAdapter = new FsStorageImpl(config.dataDir);
+
+    return {
+      sessionRepository,
+      sectionRepository,
+      storageAdapter,
+      close: () => { db.close(); },
+    };
+  }
+}

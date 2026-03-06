@@ -7,18 +7,18 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import Database from 'better-sqlite3';
-import { initDatabase } from '../db/database.js';
-import { SqliteSessionImpl } from '../db/sqlite-session-impl.js';
-import { SqliteSectionImpl } from '../db/sqlite-section-impl.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { DatabaseContext } from '../db/database_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
 import { migrateV2 } from './migrate-v2.js';
 import { initVt } from '../../../packages/vt-wasm/index.js';
 
 describe('migrateV2', () => {
   let tmpDir: string;
-  let db: Database.Database;
-  let sessionRepo: SqliteSessionImpl;
-  let sectionRepo: SqliteSectionImpl;
+  let ctx: DatabaseContext;
+  let sessionRepo: SessionAdapter;
+  let sectionRepo: SectionAdapter;
 
   beforeEach(async () => {
     // Initialize WASM module once before tests
@@ -26,15 +26,14 @@ describe('migrateV2', () => {
 
     // Create temp directory for test database
     tmpDir = mkdtempSync(join(tmpdir(), 'ragts-migrate-v2-test-'));
-    const dbPath = join(tmpDir, 'test.db');
-    db = initDatabase(dbPath);
-    sessionRepo = new SqliteSessionImpl(db);
-    sectionRepo = new SqliteSectionImpl(db);
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: tmpDir });
+    sessionRepo = ctx.sessionRepository;
+    sectionRepo = ctx.sectionRepository;
   });
 
   afterEach(() => {
-    // Cleanup
-    db.close();
+    ctx.close();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -54,7 +53,7 @@ describe('migrateV2', () => {
     });
 
     // Run migration
-    const result = await migrateV2(db);
+    const result = await migrateV2(sessionRepo, sectionRepo);
 
     expect(result.processed).toBe(1);
     expect(result.skipped).toBe(0);
@@ -124,7 +123,7 @@ describe('migrateV2', () => {
     });
 
     // Run migration
-    const result = await migrateV2(db);
+    const result = await migrateV2(sessionRepo, sectionRepo);
 
     expect(result.processed).toBe(0);
     expect(result.skipped).toBe(1);
@@ -160,7 +159,7 @@ describe('migrateV2', () => {
     });
 
     // Run migration
-    const result = await migrateV2(db);
+    const result = await migrateV2(sessionRepo, sectionRepo);
 
     expect(result.processed).toBe(1);
     expect(result.skipped).toBe(0);
@@ -191,14 +190,14 @@ describe('migrateV2', () => {
     });
 
     // Run migration first time
-    const result1 = await migrateV2(db);
+    const result1 = await migrateV2(sessionRepo, sectionRepo);
     expect(result1.processed).toBe(1);
 
     const sectionsAfterFirst = sectionRepo.findBySessionId(session.id);
     const firstCount = sectionsAfterFirst.length;
 
     // Run migration second time
-    const result2 = await migrateV2(db);
+    const result2 = await migrateV2(sessionRepo, sectionRepo);
     expect(result2.processed).toBe(0);
     expect(result2.skipped).toBe(1);
 
@@ -222,7 +221,7 @@ describe('migrateV2', () => {
     });
 
     // Run migration
-    await migrateV2(db);
+    await migrateV2(sessionRepo, sectionRepo);
 
     // Verify session metadata was updated
     const updatedSession = sessionRepo.findById(session.id);
@@ -250,7 +249,7 @@ describe('migrateV2', () => {
     }
 
     // Run migration
-    const result = await migrateV2(db);
+    const result = await migrateV2(sessionRepo, sectionRepo);
 
     expect(result.processed).toBe(3);
     expect(result.skipped).toBe(0);

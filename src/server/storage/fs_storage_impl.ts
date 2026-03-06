@@ -5,7 +5,7 @@
 
 import { readFileSync, writeFileSync, unlinkSync, existsSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
-import type { StorageAdapter } from './storage-adapter.js';
+import type { StorageAdapter } from './storage_adapter.js';
 
 /**
  * Filesystem-backed storage implementation.

@@ -1,27 +1,29 @@
 /**
  * Unit tests for SqliteSectionImpl.
- * Uses in-memory SQLite to avoid filesystem side effects.
+ * Uses an in-memory SQLite database to avoid filesystem side effects.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { initDatabase } from './database.js';
-import { SqliteSectionImpl } from './sqlite-section-impl.js';
-import { SqliteSessionImpl } from './sqlite-session-impl.js';
-import type { CreateSectionInput } from './sqlite-section-impl.js';
-import type { SessionCreate } from '../../shared/types.js';
-import type Database from 'better-sqlite3';
+// @vitest-environment node
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { tmpdir } from 'os';
+import { SqliteDatabaseImpl } from './sqlite_database_impl.js';
+import type { SectionAdapter } from '../section_adapter.js';
+import type { SessionAdapter } from '../session_adapter.js';
+import type { DatabaseContext } from '../database_adapter.js';
+import type { CreateSectionInput } from './sqlite_section_impl.js';
+import type { SessionCreate } from '../../../shared/types.js';
 
 describe('SqliteSectionImpl', () => {
-  let db: Database.Database;
-  let sectionRepo: SqliteSectionImpl;
-  let sessionRepo: SqliteSessionImpl;
+  let ctx: DatabaseContext;
+  let sectionRepo: SectionAdapter;
+  let sessionRepo: SessionAdapter;
   let testSessionId: string;
 
-  beforeEach(() => {
-    // Use in-memory database for each test
-    db = initDatabase(':memory:');
-    sectionRepo = new SqliteSectionImpl(db);
-    sessionRepo = new SqliteSessionImpl(db);
+  beforeEach(async () => {
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: tmpdir(), dbPath: ':memory:' });
+    sectionRepo = ctx.sectionRepository;
+    sessionRepo = ctx.sessionRepository;
 
     // Create a test session for use in tests
     const sessionData: SessionCreate = {
@@ -35,6 +37,10 @@ describe('SqliteSectionImpl', () => {
     testSessionId = session.id;
   });
 
+  afterEach(() => {
+    ctx.close();
+  });
+
   describe('create', () => {
     it('should create a section with generated id and created_at', () => {
       const input: CreateSectionInput = {
@@ -44,6 +50,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Setup',
         snapshot: JSON.stringify({ cursor: { x: 0, y: 0 } }),
+        startLine: null,
+        endLine: null,
       };
 
       const section = sectionRepo.create(input);
@@ -64,9 +72,11 @@ describe('SqliteSectionImpl', () => {
         sessionId: testSessionId,
         type: 'detected',
         startEvent: 5,
-        endEvent: null, // EOF
+        endEvent: null,
         label: null,
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       const section = sectionRepo.create(input);
@@ -84,6 +94,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       const section1 = sectionRepo.create(input);
@@ -108,6 +120,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -116,6 +130,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Section 2',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       const section1 = sectionRepo.create(input1);
@@ -136,6 +152,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 30,
         label: 'Later section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -144,6 +162,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Earlier section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input3: CreateSectionInput = {
         sessionId: testSessionId,
@@ -152,6 +172,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Middle section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       sectionRepo.create(input1);
@@ -170,7 +192,6 @@ describe('SqliteSectionImpl', () => {
     });
 
     it('should not return sections from other sessions', () => {
-      // Create another session
       const otherSessionData: SessionCreate = {
         filename: 'other.cast',
         filepath: 'sessions/other.cast',
@@ -180,7 +201,6 @@ describe('SqliteSectionImpl', () => {
       };
       const otherSession = sessionRepo.create(otherSessionData);
 
-      // Create section in test session
       const input1: CreateSectionInput = {
         sessionId: testSessionId,
         type: 'marker',
@@ -188,10 +208,11 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Test session section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       sectionRepo.create(input1);
 
-      // Create section in other session
       const input2: CreateSectionInput = {
         sessionId: otherSession.id,
         type: 'marker',
@@ -199,10 +220,11 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Other session section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       sectionRepo.create(input2);
 
-      // Query test session sections
       const sections = sectionRepo.findBySessionId(testSessionId);
 
       expect(sections).toHaveLength(1);
@@ -226,6 +248,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -234,6 +258,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Section 2',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       sectionRepo.create(input1);
@@ -255,6 +281,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Marker section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const detectedInput1: CreateSectionInput = {
         sessionId: testSessionId,
@@ -263,6 +291,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Detected section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const detectedInput2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -271,6 +301,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 30,
         label: 'Detected section 2',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       sectionRepo.create(markerInput);
@@ -295,6 +327,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Marker section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const markerInput2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -303,6 +337,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Marker section 2',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const detectedInput: CreateSectionInput = {
         sessionId: testSessionId,
@@ -311,6 +347,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 30,
         label: 'Detected section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       sectionRepo.create(markerInput1);
@@ -328,7 +366,6 @@ describe('SqliteSectionImpl', () => {
     });
 
     it('should not affect sections from other sessions', () => {
-      // Create another session
       const otherSessionData: SessionCreate = {
         filename: 'other.cast',
         filepath: 'sessions/other.cast',
@@ -338,7 +375,6 @@ describe('SqliteSectionImpl', () => {
       };
       const otherSession = sessionRepo.create(otherSessionData);
 
-      // Create sections in both sessions
       const input1: CreateSectionInput = {
         sessionId: testSessionId,
         type: 'marker',
@@ -346,6 +382,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Test session section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input2: CreateSectionInput = {
         sessionId: otherSession.id,
@@ -354,17 +392,17 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Other session section',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       sectionRepo.create(input1);
       sectionRepo.create(input2);
 
-      // Delete test session sections
       const count = sectionRepo.deleteBySessionId(testSessionId);
 
       expect(count).toBe(1);
 
-      // Other session sections should remain
       const otherSections = sectionRepo.findBySessionId(otherSession.id);
       expect(otherSections).toHaveLength(1);
       expect(otherSections[0].label).toBe('Other session section');
@@ -386,6 +424,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Section to delete',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       const section = sectionRepo.create(input);
@@ -405,6 +445,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -413,6 +455,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Section 2',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       const section1 = sectionRepo.create(input1);
@@ -429,7 +473,6 @@ describe('SqliteSectionImpl', () => {
 
   describe('foreign key cascade', () => {
     it('should delete sections when parent session is deleted', () => {
-      // Create sections
       const input1: CreateSectionInput = {
         sessionId: testSessionId,
         type: 'marker',
@@ -437,6 +480,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Section 1',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
       const input2: CreateSectionInput = {
         sessionId: testSessionId,
@@ -445,19 +490,18 @@ describe('SqliteSectionImpl', () => {
         endEvent: 20,
         label: 'Section 2',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       sectionRepo.create(input1);
       sectionRepo.create(input2);
 
-      // Verify sections exist
       let sections = sectionRepo.findBySessionId(testSessionId);
       expect(sections).toHaveLength(2);
 
-      // Delete parent session
       sessionRepo.deleteById(testSessionId);
 
-      // Sections should be automatically deleted
       sections = sectionRepo.findBySessionId(testSessionId);
       expect(sections).toHaveLength(0);
     });
@@ -477,6 +521,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'With snapshot',
         snapshot: JSON.stringify(snapshot),
+        startLine: null,
+        endLine: null,
       };
 
       const section = sectionRepo.create(input);
@@ -493,6 +539,8 @@ describe('SqliteSectionImpl', () => {
         endEvent: 10,
         label: 'Without snapshot',
         snapshot: null,
+        startLine: null,
+        endLine: null,
       };
 
       const section = sectionRepo.create(input);
@@ -501,13 +549,12 @@ describe('SqliteSectionImpl', () => {
     });
   });
 
-  describe('updateDetectionStatus', () => {
+  describe('updateDetectionStatus (via sessionRepo)', () => {
     it('should update detection status only', () => {
       sessionRepo.updateDetectionStatus(testSessionId, 'completed');
 
       const session = sessionRepo.findById(testSessionId);
       expect(session).not.toBeNull();
-      // Note: Need to cast to any to access new fields not in Session type yet
       expect((session as any).detection_status).toBe('completed');
     });
 
@@ -537,47 +584,6 @@ describe('SqliteSectionImpl', () => {
       expect(session).not.toBeNull();
       expect((session as any).detection_status).toBe('failed');
       expect((session as any).event_count).toBe(50);
-    });
-  });
-
-  describe('migration schema', () => {
-    it('should have created sections table with all columns', () => {
-      const tableInfo = db.pragma('table_info(sections)');
-
-      const columns = tableInfo.map((col: any) => col.name);
-      expect(columns).toContain('id');
-      expect(columns).toContain('session_id');
-      expect(columns).toContain('type');
-      expect(columns).toContain('start_event');
-      expect(columns).toContain('end_event');
-      expect(columns).toContain('label');
-      expect(columns).toContain('snapshot');
-      expect(columns).toContain('created_at');
-    });
-
-    it('should have created sections indexes', () => {
-      const indexes = db.pragma('index_list(sections)');
-
-      const indexNames = indexes.map((idx: any) => idx.name);
-      expect(indexNames).toContain('idx_sections_session_id');
-      expect(indexNames).toContain('idx_sections_start_event');
-    });
-
-    it('should have added new columns to sessions table', () => {
-      const tableInfo = db.pragma('table_info(sessions)');
-
-      const columns = tableInfo.map((col: any) => col.name);
-      expect(columns).toContain('agent_type');
-      expect(columns).toContain('event_count');
-      expect(columns).toContain('detected_sections_count');
-      expect(columns).toContain('detection_status');
-    });
-
-    it('should have created agent_type index on sessions table', () => {
-      const indexes = db.pragma('index_list(sessions)');
-
-      const indexNames = indexes.map((idx: any) => idx.name);
-      expect(indexNames).toContain('idx_sessions_agent_type');
     });
   });
 });

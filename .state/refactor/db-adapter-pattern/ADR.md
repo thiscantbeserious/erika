@@ -108,3 +108,4 @@ Product Owner validated scope alignment. SectionAdapter interface, DatabaseAdapt
 5. Existing tests remain valid -- they test SQLite implementations directly. New tests verify adapter wiring.
 6. PO cross-consultation confirmed scope and timing (pre-auth is the right moment for this refactor).
 7. Naming convention applied: `*Adapter` = interface, `*Impl` = implementation.
+8. `DatabaseFactory` added as a thin creation layer. `src/server/index.ts` (and any future application entry points) use the factory instead of importing `SqliteDatabaseImpl` directly. The factory uses a dynamic `require()` to avoid coupling the app module graph to the concrete SQLite implementation at load time. SQLite files reorganized under `src/server/db/sqlite/` (schema, migrations, and all `*Impl` classes), keeping the `src/server/db/` root for interfaces and the factory only.

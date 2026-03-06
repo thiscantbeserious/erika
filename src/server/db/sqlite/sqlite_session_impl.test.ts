@@ -1,22 +1,28 @@
 /**
  * Unit tests for SqliteSessionImpl.
- * Uses in-memory SQLite to avoid filesystem side effects.
+ * Uses an in-memory SQLite database to avoid filesystem side effects.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { initDatabase } from './database.js';
-import { SqliteSessionImpl } from './sqlite-session-impl.js';
-import type { SessionCreate } from '../../shared/types.js';
-import type Database from 'better-sqlite3';
+// @vitest-environment node
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { tmpdir } from 'os';
+import { SqliteDatabaseImpl } from './sqlite_database_impl.js';
+import type { SessionAdapter } from '../session_adapter.js';
+import type { DatabaseContext } from '../database_adapter.js';
+import type { SessionCreate } from '../../../shared/types.js';
 
 describe('SqliteSessionImpl', () => {
-  let db: Database.Database;
-  let repository: SqliteSessionImpl;
+  let ctx: DatabaseContext;
+  let repository: SessionAdapter;
 
-  beforeEach(() => {
-    // Use in-memory database for each test
-    db = initDatabase(':memory:');
-    repository = new SqliteSessionImpl(db);
+  beforeEach(async () => {
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: tmpdir(), dbPath: ':memory:' });
+    repository = ctx.sessionRepository;
+  });
+
+  afterEach(() => {
+    ctx.close();
   });
 
   describe('create', () => {

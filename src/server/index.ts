@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { loadConfig } from './config.js';
-import { SqliteDatabaseImpl } from './db/sqlite-database-impl.js';
+import { DatabaseFactory } from './db/database_factory.js';
 import { handleUpload } from './routes/upload.js';
 import {
   handleListSessions,
@@ -14,10 +14,11 @@ const app = new Hono();
 // Load configuration
 const config = loadConfig();
 
-// Initialize database and repositories through the implementation
-const dbImpl = new SqliteDatabaseImpl();
+// Initialize database and repositories through the factory
+const factory = new DatabaseFactory();
+const db = factory.create();
 const { sessionRepository, sectionRepository, storageAdapter, close } =
-  await dbImpl.initialize({ dataDir: config.dataDir });
+  await db.initialize({ dataDir: config.dataDir });
 
 process.on('SIGTERM', () => { Promise.resolve(close()).finally(() => process.exit(0)); });
 process.on('SIGINT', () => { Promise.resolve(close()).finally(() => process.exit(0)); });

@@ -11,16 +11,14 @@
  *   npx tsx src/server/scripts/migrate-v2.ts
  */
 
-import type Database from 'better-sqlite3';
-import { initDatabase } from '../db/database.js';
-import { SqliteSessionImpl } from '../db/sqlite-session-impl.js';
-import { SqliteSectionImpl } from '../db/sqlite-section-impl.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
 import { processSessionPipeline } from '../processing/session-pipeline.js';
 import { NdjsonStream } from '../processing/ndjson-stream.js';
 import { extractMarkers, computeCumulativeTimes } from '../../shared/asciicast.js';
 import type { AsciicastEvent, AsciicastHeader, Marker } from '../../shared/asciicast-types.js';
 import { loadConfig } from '../config.js';
-import { join } from 'path';
 
 /**
  * Result of the migration operation.
@@ -45,13 +43,14 @@ export interface MigrationResult {
  * - Sets detection_status to 'failed' for sessions that error
  * - Returns summary of processed/skipped/failed sessions
  *
- * @param db - Database connection
+ * @param sessionRepo - Session adapter
+ * @param sectionRepo - Section adapter
  * @returns Migration result summary
  */
-export async function migrateV2(db: Database.Database): Promise<MigrationResult> {
-  const sessionRepo = new SqliteSessionImpl(db);
-  const sectionRepo = new SqliteSectionImpl(db);
-
+export async function migrateV2(
+  sessionRepo: SessionAdapter,
+  sectionRepo: SectionAdapter
+): Promise<MigrationResult> {
   // Get all sessions
   const allSessions = sessionRepo.findAll();
 
@@ -199,19 +198,19 @@ async function extractMarkersFromFile(filePath: string): Promise<Marker[]> {
  */
 async function main() {
   const config = loadConfig();
-  const dbPath = join(config.dataDir, 'ragts.db');
 
   console.log('RAGTS v2 Migration Tool');
   console.log('=======================');
-  console.log(`Database: ${dbPath}`);
+  console.log(`Data directory: ${config.dataDir}`);
   console.log('');
 
-  const db = initDatabase(dbPath);
+  const impl = new SqliteDatabaseImpl();
+  const ctx = await impl.initialize({ dataDir: config.dataDir });
 
   try {
-    await migrateV2(db);
+    await migrateV2(ctx.sessionRepository, ctx.sectionRepository);
   } finally {
-    db.close();
+    ctx.close();
   }
 
   console.log('');

@@ -7,18 +7,18 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import Database from 'better-sqlite3';
-import { initDatabase } from '../db/database.js';
-import { SqliteSessionImpl } from '../db/sqlite-session-impl.js';
-import { SqliteSectionImpl } from '../db/sqlite-section-impl.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { DatabaseContext } from '../db/database_adapter.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
 import { processSessionPipeline } from './session-pipeline.js';
 import { initVt } from '../../../packages/vt-wasm/index.js';
 
 describe('processSessionPipeline', () => {
   let tmpDir: string;
-  let db: Database.Database;
-  let sessionRepo: SqliteSessionImpl;
-  let sectionRepo: SqliteSectionImpl;
+  let ctx: DatabaseContext;
+  let sessionRepo: SessionAdapter;
+  let sectionRepo: SectionAdapter;
 
   beforeEach(async () => {
     // Initialize WASM module once before tests
@@ -26,15 +26,15 @@ describe('processSessionPipeline', () => {
 
     // Create temp directory for test database
     tmpDir = mkdtempSync(join(tmpdir(), 'ragts-pipeline-test-'));
-    const dbPath = join(tmpDir, 'test.db');
-    db = initDatabase(dbPath);
-    sessionRepo = new SqliteSessionImpl(db);
-    sectionRepo = new SqliteSectionImpl(db);
+    const impl = new SqliteDatabaseImpl();
+    ctx = await impl.initialize({ dataDir: tmpDir });
+    sessionRepo = ctx.sessionRepository;
+    sectionRepo = ctx.sectionRepository;
   });
 
   afterEach(() => {
     // Cleanup
-    db.close();
+    ctx.close();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
