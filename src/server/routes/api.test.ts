@@ -124,8 +124,8 @@ describe('API Routes', () => {
     });
 
     it('should reject file exceeding size limit', async () => {
-      // Create file larger than 50MB limit
-      const largeContent = 'x'.repeat(51 * 1024 * 1024);
+      // Create file just over the 50MB limit — keep small to avoid CI timeout
+      const largeContent = 'x'.repeat(50 * 1024 * 1024 + 1);
       const formData = new FormData();
       const file = new File([largeContent], 'large.cast', { type: 'text/plain' });
       formData.append('file', file);
