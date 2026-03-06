@@ -43,6 +43,10 @@ You explore the running platform UI and report what you see. You navigate pages,
 - Decisions: what to explore, what to capture
 - Escalate: nothing — return observations to caller
 
+## Prerequisites
+
+The dev server must be running before you are spawned. If a page fails to load, report it clearly — do not attempt to start the server yourself.
+
 ## When Spawned
 
 Another agent will tell you what to look at. This could be:

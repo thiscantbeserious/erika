@@ -97,6 +97,10 @@ Task(story-writer, "User request:
 Branch: <branch-name>")
 ```
 
+### UI Explorer Pre-flight
+
+Before any agent spawns `ui-explorer`, ensure the dev server is running. If unsure, ask the user.
+
 ## Pair Review
 
 After each completed PLAN stage, spawn `pair-reviewer` for that stage's diff. Include the implementing engineer's role in the prompt so the pair-reviewer adopts that perspective:
