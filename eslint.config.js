@@ -12,7 +12,6 @@ export default tseslint.config(
       'packages/vt-wasm/pkg/**',
       'design/**',
       'agents/scripts/**',
-      'scripts/**',
       '.state/**',
     ],
   },
@@ -87,11 +86,15 @@ export default tseslint.config(
 
   {
     files: [
+      'scripts/**/*.ts',
       'src/server/scripts/**/*.ts',
       'src/server/start.ts',
     ],
     rules: {
       'no-console': 'off',
+      'no-control-regex': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'prefer-const': 'warn',
     },
   },
 );
