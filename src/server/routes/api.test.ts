@@ -521,5 +521,54 @@ describe('API Routes', () => {
       const body = await getRes.json();
       expect(body.snapshot).toBeNull();
     });
+
+    it('should handle session with corrupt section snapshot', async () => {
+      const formData = new FormData();
+      formData.append('file', new File([validFixture], 'test.cast'));
+      const uploadRes = await app.fetch(
+        new Request('http://localhost/api/upload', { method: 'POST', body: formData })
+      );
+      const uploadData = await uploadRes.json();
+      await waitForPipelines();
+
+      // Insert a section with corrupt snapshot directly
+      await sectionRepository.create({
+        sessionId: uploadData.id,
+        type: 'detected',
+        startEvent: 0,
+        endEvent: 1,
+        label: 'corrupt',
+        snapshot: '{bad json!',
+        startLine: null,
+        endLine: null,
+      });
+
+      const getRes = await app.fetch(
+        new Request(`http://localhost/api/sessions/${uploadData.id}`)
+      );
+      expect(getRes.status).toBe(200);
+      const body = await getRes.json();
+      const corruptSection = body.sections.find((s: any) => s.label === 'corrupt');
+      expect(corruptSection.snapshot).toBeNull();
+    });
+
+    it('should handle delete when file is already removed', async () => {
+      const formData = new FormData();
+      formData.append('file', new File([validFixture], 'test.cast'));
+      const uploadRes = await app.fetch(
+        new Request('http://localhost/api/upload', { method: 'POST', body: formData })
+      );
+      const uploadData = await uploadRes.json();
+      await waitForPipelines();
+
+      // Remove file first (simulates filesystem issue)
+      await storageAdapter.delete(uploadData.id);
+
+      // Delete should still succeed (DB is source of truth)
+      const deleteRes = await app.fetch(
+        new Request(`http://localhost/api/sessions/${uploadData.id}`, { method: 'DELETE' })
+      );
+      expect(deleteRes.status).toBe(200);
+    });
   });
 });
