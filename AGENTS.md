@@ -74,9 +74,14 @@ No external databases, Redis, or Docker containers are needed for development.
 - `npx playwright test` — visual regression tests (requires Playwright browsers: `npx playwright install`)
 - See `README.md` "Testing" section for additional commands
 
+### Linting
+
+- `npm run lint` — run ESLint (flat config: `eslint.config.js`)
+- `npm run lint:fix` — auto-fix fixable issues
+
 ### Gotchas
 
-- No ESLint is configured; the project has no `lint` script. Use `npx tsc --noEmit` for type checking, but note pre-existing TS errors in test files (strict null checks on test assertions, Vue SFC imports).
+- `npx tsc --noEmit` reports pre-existing TS errors in test files (strict `noUncheckedIndexedAccess` null checks on test assertions). These are separate from ESLint.
 - The commit-msg hook (`.husky/commit-msg`) validates commit scopes against `agents/skills/workflow/variants/*.md` and blocks snapshot file changes without `[snapshot-update]` in the message.
 - The WASM package (`packages/vt-wasm/pkg/`) is pre-built and committed; no Rust toolchain needed for development.
 - Upload endpoint is `POST /api/upload` (not `/api/sessions`). A sample `.cast` file is at `fixtures/sample.cast`.
