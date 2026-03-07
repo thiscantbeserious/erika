@@ -445,7 +445,7 @@ describe('API Routes', () => {
   });
 
   describe('Error paths', () => {
-    it('should return 500 when session file is missing from filesystem', async () => {
+    it('should return 404 when session file is missing from filesystem', async () => {
       // Upload a session first
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));
@@ -496,8 +496,10 @@ describe('API Routes', () => {
       const res = await app.fetch(
         new Request(`http://localhost/api/sessions/${uploadData.id}/redetect`, { method: 'POST' })
       );
-      // Redetect reads file — should fail since file is gone
-      expect([404, 500]).toContain(res.status);
+      // Redetect treats storage read failures as an internal error
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body.error).toContain('Failed to start re-detection');
     });
 
     it('should handle session with corrupt snapshot JSON', async () => {
