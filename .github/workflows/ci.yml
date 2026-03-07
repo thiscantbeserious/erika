@@ -71,8 +71,8 @@ jobs:
 
       - run: npm run lint
 
-  test:
-    name: Test
+  test-unit:
+    name: Unit Tests
     needs: install
     runs-on: ubuntu-latest
     steps:
@@ -87,4 +87,42 @@ jobs:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
 
-      - run: npm test
+      - run: npm run test:unit
+
+  test-snapshot:
+    name: Snapshot Tests
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - run: npm run test:snapshot
+
+  test-e2e:
+    name: E2E Tests
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run test:visual
