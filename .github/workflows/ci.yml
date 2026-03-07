@@ -112,7 +112,6 @@ jobs:
     name: E2E Tests
     needs: install
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -127,12 +126,13 @@ jobs:
 
       - run: npx playwright install --with-deps chromium
 
-      - name: Generate CI baselines
-        run: npx playwright test --update-snapshots
+      - run: npm run test:visual
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-baselines
-          path: tests/visual/__screenshots__/
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7
