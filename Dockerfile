@@ -10,8 +10,8 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Production dependencies only
-RUN rm -rf node_modules && npm ci --omit=dev
+# Production dependencies only (--ignore-scripts skips husky prepare hook)
+RUN rm -rf node_modules && npm ci --omit=dev --ignore-scripts
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
