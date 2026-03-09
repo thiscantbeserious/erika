@@ -104,25 +104,23 @@ Each variant addresses the weaknesses above with a different philosophy, risk pr
 
 #### What Changes
 
-```
-Current state                         Target state
-─────────────────────────────────────────────────────────────
-FsStorageImpl: readFileSync           fs.promises (async I/O)
-Unbounded pipeline concurrency        Semaphore (max 3 concurrent)
-No try/finally on WASM                Resource guard pattern
-Upload: 3 parse passes                Single-pass streaming validation
-Pipeline: single 227-line function    Stage functions, still synchronous
-findAll(): unbounded                  Cursor-based pagination
-Toast: per-instance state             Module-level singleton
-TerminalSnapshot: 40K DOM nodes       @tanstack/vue-virtual
-fetch() everywhere                    Shared HTTP client with interceptors
-Zero ARIA                             Progressive ARIA pass
-No production build                   tsconfig.build.json + Dockerfile
-No auth                               Stub middleware (header-based initially)
-No rate limiting                      Hono middleware (rate-limit on upload)
-No shared API types                   Shared response types in src/shared/
-Dead code + dead CSS                  Remove
-```
+| Current state | Target state |
+|---|---|
+| FsStorageImpl: readFileSync | fs.promises (async I/O) |
+| Unbounded pipeline concurrency | Semaphore (max 3 concurrent) |
+| No try/finally on WASM | Resource guard pattern |
+| Upload: 3 parse passes | Single-pass streaming validation |
+| Pipeline: single 227-line function | Stage functions, still synchronous |
+| findAll(): unbounded | Cursor-based pagination |
+| Toast: per-instance state | Module-level singleton |
+| TerminalSnapshot: 40K DOM nodes | @tanstack/vue-virtual |
+| fetch() everywhere | Shared HTTP client with interceptors |
+| Zero ARIA | Progressive ARIA pass |
+| No production build | tsconfig.build.json + Dockerfile |
+| No auth | Stub middleware (header-based initially) |
+| No rate limiting | Hono middleware (rate-limit on upload) |
+| No shared API types | Shared response types in src/shared/ |
+| Dead code + dead CSS | Remove |
 
 #### What Doesn't Change
 
@@ -169,63 +167,32 @@ Choose Variant A if the immediate goal is to ship a production-ready single-tena
 
 #### What Changes
 
-```
-Current state                         Target state
-─────────────────────────────────────────────────────────────
-Pipeline: one big async function      Pipeline: discrete stage functions
-                                      connected by an event bus
-Fire-and-forget processing            Job queue with persistence,
-                                      retry, and status tracking
-Client polls never                    SSE/WebSocket for real-time
-                                      pipeline progress events
-Status: pending|processing|completed  Status: queued|validating|detecting|
-                                      replaying|deduplicating|storing|
-                                      completed|failed + per-stage progress
-No observability                      Event log = audit trail + metrics source
-No retry on failure                   Automatic retry with exponential backoff
-                                      per stage (only failed stage re-runs)
-Monolithic process                    Optional: worker process for heavy
-                                      stages (VT replay, dedup)
-```
+| Current state | Target state |
+|---|---|
+| Pipeline: one big async function | Discrete stage functions connected by an event bus |
+| Fire-and-forget processing | Job queue with persistence, retry, and status tracking |
+| Client polls never | SSE/WebSocket for real-time pipeline progress events |
+| Status: pending\|processing\|completed | Status: queued\|validating\|detecting\|replaying\|deduplicating\|storing\|completed\|failed + per-stage progress |
+| No observability | Event log = audit trail + metrics source |
+| No retry on failure | Automatic retry with exponential backoff per stage (only failed stage re-runs) |
+| Monolithic process | Optional: worker process for heavy stages (VT replay, dedup) |
 
 #### Architecture
 
-```
-                    ┌──────────────┐
-                    │  Upload API  │
-                    └──────┬───────┘
-                           │ SessionUploaded event
-                    ┌──────▼───────┐
-                    │  Event Bus   │ (in-process default,
-                    │              │  Redis/NATS opt-in)
-                    └──────┬───────┘
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌───────────┐ ┌────────┐ ┌──────────┐
-        │ Validator  │ │Detector│ │VT Replay │
-        │  Stage     │ │ Stage  │ │  Stage   │
-        └─────┬─────┘ └───┬────┘ └────┬─────┘
-              │            │           │
-              ▼            ▼           ▼
-        ValidationDone  SectionsFound  SnapshotReady
-              │            │           │
-              └────────────┼───────────┘
-                           ▼
-                    ┌──────────────┐
-                    │ Dedup Stage  │
-                    └──────┬───────┘
-                           │ ProcessingComplete
-                           ▼
-                    ┌──────────────┐
-                    │   Storage    │
-                    │   Stage      │
-                    └──────┬───────┘
-                           │ SessionReady
-                           ▼
-                    ┌──────────────┐
-                    │  SSE/WS to   │
-                    │   clients    │
-                    └──────────────┘
+```mermaid
+flowchart TB
+    Upload["Upload API"]
+    Upload -- "SessionUploaded event" --> EventBus
+    EventBus["Event Bus\n(in-process default, Redis/NATS opt-in)"]
+    EventBus --> Validator["Validator Stage"]
+    EventBus --> Detector["Detector Stage"]
+    EventBus --> VTReplay["VT Replay Stage"]
+    Validator -- "ValidationDone" --> Dedup
+    Detector -- "SectionsFound" --> Dedup
+    VTReplay -- "SnapshotReady" --> Dedup
+    Dedup["Dedup Stage"]
+    Dedup -- "ProcessingComplete" --> Storage["Storage Stage"]
+    Storage -- "SessionReady" --> SSE["SSE/WS to clients"]
 ```
 
 #### Domain Events
@@ -280,20 +247,18 @@ Choose Variant B if the pipeline's reliability, observability, and scalability a
 
 #### What Changes
 
-```
-Current state                         Target state
-─────────────────────────────────────────────────────────────
-Hard-coded asciicast v3 only          FormatAdapter plugin (v2, v3, custom)
-Single section detector               DetectorPlugin (marker, timing, AI-based)
-Single dedup algorithm                DedupPlugin (per-epoch, stream, none)
-SQLite only (adapter exists)          StoragePlugin (SQLite, PostgreSQL, S3)
-No auth                               AuthPlugin (built-in, OIDC, proxy-header)
-No retrieval                          RetrievalPlugin (MCP server, REST, GraphQL)
-No search                             IndexPlugin (FTS5, Meilisearch, vector)
-Monolithic Hono app                   Core + plugin modules loaded at startup
-No theming                            ThemePlugin (CSS tokens, branding)
-No AGR integration                    TransformPlugin (AGR, custom)
-```
+| Current state | Target state |
+|---|---|
+| Hard-coded asciicast v3 only | FormatAdapter plugin (v2, v3, custom) |
+| Single section detector | DetectorPlugin (marker, timing, AI-based) |
+| Single dedup algorithm | DedupPlugin (per-epoch, stream, none) |
+| SQLite only (adapter exists) | StoragePlugin (SQLite, PostgreSQL, S3) |
+| No auth | AuthPlugin (built-in, OIDC, proxy-header) |
+| No retrieval | RetrievalPlugin (MCP server, REST, GraphQL) |
+| No search | IndexPlugin (FTS5, Meilisearch, vector) |
+| Monolithic Hono app | Core + plugin modules loaded at startup |
+| No theming | ThemePlugin (CSS tokens, branding) |
+| No AGR integration | TransformPlugin (AGR, custom) |
 
 #### Plugin Contract
 
@@ -327,34 +292,62 @@ interface PluginContext {
 
 #### Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Erika Core                           │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐  │
-│  │  Router   │ │ Pipeline │ │ EventBus │ │ PluginLoader │  │
-│  │ (Hono)   │ │ Engine   │ │          │ │              │  │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └──────┬───────┘  │
-│       │            │            │               │           │
-│  ─────┼────────────┼────────────┼───────────────┼───────    │
-│       │            │            │               │           │
-│  ┌────▼─────┐ ┌────▼─────┐ ┌───▼────┐ ┌───────▼────────┐  │
-│  │ Auth     │ │ Format   │ │ Index  │ │ Plugin         │  │
-│  │ Plugin   │ │ Plugins  │ │ Plugin │ │ Registry       │  │
-│  │          │ │          │ │        │ │                │  │
-│  │ built-in │ │ v3  v2   │ │ fts5   │ │ load from      │  │
-│  │ oidc     │ │ custom   │ │ meili  │ │ config.plugins │  │
-│  │ proxy    │ │          │ │ vector │ │                │  │
-│  └──────────┘ └──────────┘ └────────┘ └────────────────┘  │
-│                                                             │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐  │
-│  │ Detector │ │ Dedup    │ │ Storage  │ │ Retrieval    │  │
-│  │ Plugins  │ │ Plugins  │ │ Plugins  │ │ Plugins      │  │
-│  │          │ │          │ │          │ │              │  │
-│  │ marker   │ │ per-epoch│ │ local-fs │ │ mcp-server   │  │
-│  │ timing   │ │ stream   │ │ s3       │ │ rest-api     │  │
-│  │ ai-based │ │ none     │ │ postgres │ │ graphql      │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Core["Erika Core"]
+        Router["Router (Hono)"]
+        Pipeline["Pipeline Engine"]
+        EB["EventBus"]
+        PL["PluginLoader"]
+    end
+    subgraph Plugins["Plugin Layer"]
+        subgraph Auth["Auth Plugin"]
+            A1["built-in"]
+            A2["oidc"]
+            A3["proxy"]
+        end
+        subgraph Format["Format Plugins"]
+            F1["v3"]
+            F2["v2"]
+            F3["custom"]
+        end
+        subgraph Index["Index Plugin"]
+            I1["fts5"]
+            I2["meili"]
+            I3["vector"]
+        end
+        subgraph Registry["Plugin Registry"]
+            R1["load from config.plugins"]
+        end
+        subgraph Detector["Detector Plugins"]
+            D1["marker"]
+            D2["timing"]
+            D3["ai-based"]
+        end
+        subgraph Dedup["Dedup Plugins"]
+            DD1["per-epoch"]
+            DD2["stream"]
+            DD3["none"]
+        end
+        subgraph Storage["Storage Plugins"]
+            S1["local-fs"]
+            S2["s3"]
+            S3["postgres"]
+        end
+        subgraph Retrieval["Retrieval Plugins"]
+            RT1["mcp-server"]
+            RT2["rest-api"]
+            RT3["graphql"]
+        end
+    end
+    Router --> Auth
+    Pipeline --> Format
+    EB --> Index
+    PL --> Registry
+    Router --> Detector
+    Pipeline --> Dedup
+    EB --> Storage
+    PL --> Retrieval
 ```
 
 #### Configuration Model
@@ -466,15 +459,15 @@ Variant C is the end-state vision but premature today. The plugin contract shoul
 
 The recommended sequence:
 
-```
-A1-A2 (runtime safety + build)
-  → A3 (virtual scrolling)
-  → A4-A5 (types + auth stub)
-  → A6 (client resilience)
-  → B1-B2 (events + pipeline decomposition)
-  → B3-B4 (job queue + real-time client)
-  → B5 (observability)
-  → C1-C2 (plugin contract + format plugin) — when needed
+```mermaid
+flowchart LR
+    A12["A1-A2\nRuntime safety + build"] --> A3["A3\nVirtual scrolling"]
+    A3 --> A45["A4-A5\nTypes + auth stub"]
+    A45 --> A6["A6\nClient resilience"]
+    A6 --> B12["B1-B2\nEvents + pipeline\ndecomposition"]
+    B12 --> B34["B3-B4\nJob queue +\nreal-time client"]
+    B34 --> B5["B5\nObservability"]
+    B5 -. "when needed" .-> C12["C1-C2\nPlugin contract +\nformat plugin"]
 ```
 
 ---

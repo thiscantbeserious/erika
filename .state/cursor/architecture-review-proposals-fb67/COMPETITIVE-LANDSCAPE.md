@@ -26,13 +26,13 @@ The competitive space splits into three tiers:
 ```mermaid
 flowchart TB
     subgraph tier1["Tier 1 — Direct Competitors\n(agent session viewers, open-source)"]
-        AV["AgentsView\n(Go, 327★)"]
+        AV["AgentsView\n(Go, 379★)"]
         AL["AgentLogs\n(TypeScript, MIT)"]
         AR["AgentReplay\n(Rust, AGPL-3.0)"]
     end
     subgraph tier2["Tier 2 — Adjacent Platforms\n(LLM observability, open-source, human feedback)"]
-        LF["Langfuse\n(MIT, 8k+ ★)"]
-        PH["Phoenix / Arize\n(open-source, 8.5k+ ★)"]
+        LF["Langfuse\n(MIT, 22.9k ★)"]
+        PH["Phoenix / Arize\n(open-source, 8.8k ★)"]
         HE["Helicone\n(Apache 2.0)"]
         WV["Weave / W&B\n(Apache 2.0)"]
     end
@@ -62,7 +62,7 @@ These are the projects closest to Erika in concept: open-source tools for browsi
 | **URL** | [agentsview.io](https://agentsview.io) / [GitHub](https://github.com/wesm/agentsview) |
 | **Stack** | Go single binary + embedded Svelte 5 frontend + SQLite with FTS5 |
 | **License** | Not specified (check repo) |
-| **Stars** | 327 (as of March 2026) |
+| **Stars** | 379 (as of March 2026) |
 | **Created** | 2026 |
 | **Agents** | Claude Code, Codex, Copilot CLI, Gemini CLI, OpenCode, Amp, VSCode Copilot |
 | **Input format** | Reads native agent JSONL session files directly from disk (not asciicast) |
@@ -111,24 +111,24 @@ These are the projects closest to Erika in concept: open-source tools for browsi
 | Dimension | Detail |
 |-----------|--------|
 | **URL** | [agentreplay.dev](https://agentreplay.dev) / [GitHub](https://github.com/agentreplay/agentreplay) |
-| **Stack** | Rust (62.4%) + TypeScript (30.8%) + Python (5.3%), native desktop app |
+| **Stack** | Rust (62.4%) + TypeScript (30.8%) + Python (5.3%), local-first CLI + programmatic API |
 | **License** | AGPL-3.0 (same as Erika) |
 | **Stars** | New (created Jan 2026) |
 | **Agents** | Claude Code, Cursor, Windsurf, Cline, VS Code Copilot |
-| **Input format** | OpenTelemetry-native ingestion + MCP protocol |
-| **Key features** | 20+ built-in evaluators (hallucination, RAGAS, G-Eval, toxicity, tool correctness), full session tracing, token/cost tracking, persistent memory across restarts, MCP protocol server |
-| **Architecture** | Native desktop app (macOS/Linux/Windows), 100% local, zero cloud |
+| **Input format** | JSON/JSONL trace imports from agent frameworks |
+| **Key features** | Built-in evaluators (hallucination detection, safety checking, completeness validation, AI-powered quality scoring), full session tracing, token/cost tracking, persistent memory across restarts, SQLite-backed local storage |
+| **Architecture** | Local-first CLI tool with TypeScript/Node.js programmatic API, 100% local, zero cloud |
 | **Curation** | None explicit — but evaluators auto-score sessions |
-| **Retrieval** | MCP protocol server exposes traces and memory to agents |
-| **Team** | None — single-user desktop app |
+| **Retrieval** | Programmatic API exposes traces and memory |
+| **Team** | None — single-user local tool |
 
-**Likelihood: 5/5** — **This is the most dangerous competitor.** Same license (AGPL-3.0). MCP protocol server already implemented (Erika's is planned). OpenTelemetry-native ingestion (Erika has none). 20+ evaluators provide automated quality signals (Erika has none). Native desktop app eliminates server setup friction. Multi-agent support including non-terminal agents (Cursor, Windsurf, Cline).
+**Likelihood: 4/5** — **A significant competitor.** Same license (AGPL-3.0). Built-in evaluators provide automated quality signals (Erika has none). Local-first CLI with programmatic API is low-friction for developers already in the terminal. Multi-agent support including non-terminal agents (Cursor, Windsurf, Cline). However, it is a single-user CLI tool — not a web platform or team product.
 
-**Uniqueness of Erika: 3/5** — AgentReplay lacks human curation UX (its evaluators are automated, not human-guided). It lacks team features. It lacks the "asynchronous refinement loop" vision entirely — it's an observability tool, not a learning platform. But it has MCP retrieval and evaluators TODAY. If Erika doesn't ship curation + MCP soon, AgentReplay could add a curation layer faster than Erika can add evaluators + OTel + MCP.
+**Uniqueness of Erika: 4/5** — AgentReplay lacks human curation UX (its evaluators are automated, not human-guided). It lacks team features. It lacks the "asynchronous refinement loop" vision entirely — it's a local observability/debugging tool, not a learning platform. Its technical strengths are evaluators (hallucination detection, safety checking, quality scoring) and local-first simplicity, but it has no web UI, no team features, and no curation workflow.
 
-**Key gap AgentReplay has:** No human curation workflow (auto-eval only), no team features, no web platform (desktop-only), no browsable document model (trace view, not scrollable terminal document).
+**Key gap AgentReplay has:** No human curation workflow (auto-eval only), no team features, no web platform (CLI-only), no browsable document model (trace view, not scrollable terminal document).
 
-**Critical threat:** AgentReplay is Rust-native, AGPL-3.0, has MCP, has OTel, has evaluators. If they add a human annotation layer and team features, they become what Erika aspires to be — from a stronger technical foundation.
+**Critical threat:** AgentReplay is Rust-native, AGPL-3.0, and has built-in evaluators and a programmatic API. Its strengths are automated evaluation (hallucination, safety, completeness) and developer-friendly local CLI UX. If they add a human annotation layer, web UI, and team features, they could move toward Erika's vision — though from a CLI tool base rather than a web platform base.
 
 ---
 
@@ -160,7 +160,7 @@ These are broader LLM observability platforms that overlap on human feedback and
 | **Likelihood** | **3/5** |
 | **Uniqueness of Erika** | **4/5** |
 
-**Why moderate likelihood:** Phoenix is open-source, has 8.5k+ stars, provides agent tracing with OTel, human annotation, and evaluation tools. Strong in the ML/data science community. Recently added tool selection and tool invocation evaluators (Jan 2026).
+**Why moderate likelihood:** Phoenix is open-source, has 8.8k stars, provides agent tracing with OTel, human annotation, and evaluation tools. Strong in the ML/data science community. Recently added tool selection and tool invocation evaluators (Jan 2026).
 
 **Why Erika is more unique:** Phoenix targets ML engineers and data scientists building AI applications. Its UX is trace-centric (spans, latency, token counts), not session-centric (browsing what an agent did). No terminal rendering, no session-as-document model. Phoenix is about *evaluating model performance*, Erika is about *learning from agent behavior*.
 
@@ -233,7 +233,7 @@ These are lightweight search/browse tools. Not platforms, not competitors in the
 | **cass** (coding-agent-search) | Rust TUI | 11+ | Fastest multi-agent search, `--robot` flag for agent use | 1/5 | 5/5 |
 | **fast-resume** | Python CLI | 6+ | Fuzzy search, keyword syntax (`agent:claude date:<1d`) | 1/5 | 5/5 |
 | **engram** | Go + SQLite + FTS5 | Agent-agnostic | MCP server + HTTP API + CLI + TUI, persistent memory | 2/5 | 4/5 |
-| **agf** | Rust TUI | 6+ | Fuzzy search, bulk delete, git branch tracking | 1/5 | 5/5 |
+| **agf** | Rust TUI | 5 | Fuzzy search, bulk delete | 1/5 | 5/5 |
 
 **Why low likelihood:** These are single-user CLI tools for finding and resuming sessions. No web UI, no curation, no team features, no retrieval loop. They're in the "grep for agent sessions" category.
 
@@ -254,7 +254,7 @@ quadrantChart
     quadrant-2 "Direct Threat"
     quadrant-3 "Low Priority"
     quadrant-4 "Differentiated"
-    AgentReplay: [0.35, 0.92]
+    AgentReplay: [0.65, 0.72]
     AgentsView: [0.40, 0.78]
     Langfuse: [0.38, 0.78]
     AgentLogs: [0.65, 0.55]
@@ -339,7 +339,7 @@ Given the competitive landscape and the adapter strategy, here is what makes Eri
 | Fold/unfold section navigation | Yes | No | No | No | No |
 | AI-assisted curation suggestions | Planned | No | No | Auto-eval (different) | Partial (LLM-as-judge) |
 | Team curation + playbooks | Planned | No | Basic team dashboard | No | No |
-| Self-hosted web platform | Yes | Local-only app | Cloud-first | Desktop-only | Yes |
+| Self-hosted web platform | Yes | Local-only app | Cloud-first | CLI-only | Yes |
 | Format-agnostic adapter architecture | Planned | Hard-coded parsers | Hard-coded parsers | OTel-native | OTel + SDK |
 
 ### The Unique Combination
@@ -382,7 +382,7 @@ Humanloop's absorption into Anthropic is instructive:
 
 | Competitor | Likelihood | Erika Uniqueness | Category | Key Differentiator from Erika |
 |-----------|-----------|-----------------|----------|-------------------------------|
-| **AgentReplay** | 5/5 | 3/5 | Direct | MCP + OTel + evaluators TODAY; desktop-only, no curation UX |
+| **AgentReplay** | 4/5 | 4/5 | Direct | Evaluators + local CLI + programmatic API; CLI-only, no curation UX |
 | **AgentsView** | 4/5 | 3/5 | Direct | Better DX (single binary), more agents; no curation, no web platform |
 | **Langfuse** | 4/5 | 3/5 | Adjacent | Most complete OSS platform; general LLM observability, not agent sessions |
 | **AgentLogs** | 3/5 | 4/5 | Direct | Team features + git integration; cloud-first, no curation |
