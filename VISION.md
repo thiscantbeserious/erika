@@ -116,7 +116,7 @@ flowchart TD
 
     subgraph Adapter["🔌 Adapter"]
         direction LR
-        Asciicast([asciicast]) ~~~ JSONL([JSONL]) ~~~ OTel([OTel])
+        Asciicast["🖥️ asciicast"] ~~~ JSONL["📄 JSONL"] ~~~ OTel["📡 OTel"]
     end
 
     Session -->|raw output| Adapter
@@ -145,7 +145,7 @@ flowchart TD
 
     subgraph Curated["Curated Context"]
         direction LR
-        RAG[(RAG)] ~~~ MCP[(MCP)] ~~~ Files[(Files)]
+        RAG[("🗄️ RAG")] ~~~ MCP[("🔗 MCP")] ~~~ AgentsMd[("📋 AGENTS.md")]
     end
 
     Platform -->|writes curated| Curated
