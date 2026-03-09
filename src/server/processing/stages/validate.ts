@@ -34,6 +34,7 @@ export async function validate(
   const events: AsciicastEvent[] = [];
   const markers: Marker[] = [];
   const stream = new NdjsonStream(filePath);
+  let elapsed = 0;
 
   for await (const item of stream) {
     if (item.header) {
@@ -41,10 +42,11 @@ export async function validate(
     }
     if (item.event) {
       const event = item.event as AsciicastEvent;
+      elapsed += event[0];
       events.push(event);
       if (event[1] === 'm') {
         markers.push({
-          time: event[0],
+          time: elapsed,
           label: String(event[2]),
           index: events.length - 1,
         });

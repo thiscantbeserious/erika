@@ -58,7 +58,12 @@ function buildSections(
     const boundary = boundaries[i];
     const nextBoundary = boundaries[i + 1];
     const sd = sectionData[i];
-    if (boundary === undefined || sd === undefined) continue;
+    if (boundary === undefined) {
+      throw new Error(`Missing boundary at index ${i} in session ${sessionId}`);
+    }
+    if (sd === undefined) {
+      throw new Error(`Missing sectionData for boundary index ${i} in session ${sessionId}`);
+    }
 
     const endEvent = i < boundaries.length - 1 && nextBoundary !== undefined
       ? nextBoundary.eventIndex

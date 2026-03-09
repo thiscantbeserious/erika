@@ -98,6 +98,25 @@ describe('validate stage', () => {
     expect(result.markers[0]!.label).toBe('Start');
     expect(result.markers[1]!.label).toBe('End');
   });
+
+  it('stores cumulative elapsed time on markers, not deltas', async () => {
+    // Two marker events with delta times; Marker.time must be cumulative.
+    const header = JSON.stringify({ version: 3, term: { cols: 80, rows: 24 } });
+    const lines = [
+      header,
+      JSON.stringify([1.0, 'o', 'a\r\n']),  // elapsed: 1.0
+      JSON.stringify([2.0, 'm', 'Step 1']), // elapsed: 3.0
+      JSON.stringify([0.5, 'o', 'b\r\n']),  // elapsed: 3.5
+      JSON.stringify([1.5, 'm', 'Step 2']), // elapsed: 5.0
+    ];
+    const filePath = join(tmpDir, 'cumulative.cast');
+    writeFileSync(filePath, lines.join('\n'));
+
+    const result = await validate(filePath, 'session-cumulative');
+    expect(result.markers.length).toBe(2);
+    expect(result.markers[0]!.time).toBeCloseTo(3.0);
+    expect(result.markers[1]!.time).toBeCloseTo(5.0);
+  });
 });
 
 describe('detect stage', () => {

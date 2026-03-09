@@ -15,6 +15,7 @@ import {
   handleRedetect,
 } from './routes/sessions.js';
 
+const log = logger.child({ module: 'server' });
 const app = new Hono();
 
 app.use(pinoLogger({
@@ -45,17 +46,23 @@ const orchestrator = new PipelineOrchestrator(eventBus, jobQueue, {
   sessionRepository,
   storageAdapter,
 });
-await orchestrator.start();
 
-// Subscribe event log to every pipeline event type for audit/debugging
+// Subscribe event log to every pipeline event type BEFORE start() so recovered
+// jobs that emit events during startup are captured for audit/debugging.
 const allEventTypes = [
   'session.uploaded', 'session.validated', 'session.detected',
   'session.replayed', 'session.deduped', 'session.ready',
   'session.failed', 'session.retrying',
 ] as const;
 for (const type of allEventTypes) {
-  eventBus.on(type, (event) => { void eventLog.log(event as PipelineEvent); });
+  eventBus.on(type, (event) => {
+    eventLog.log(event as PipelineEvent).catch((err) => {
+      log.warn({ err, eventType: type }, 'Failed to persist event to event log');
+    });
+  });
 }
+
+await orchestrator.start();
 
 process.on('SIGTERM', async () => {
   await orchestrator.stop();

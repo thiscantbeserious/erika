@@ -87,6 +87,12 @@ describe('SqliteJobQueueImpl', () => {
       expect(updated!.startedAt).not.toBeNull();
       expect(updated!.attempts).toBe(1);
     });
+
+    it('throws when job is not in pending state', async () => {
+      const job = await queue.create(sessionId);
+      await queue.start(job.id); // now running
+      await expect(queue.start(job.id)).rejects.toThrow(/cannot be started/);
+    });
   });
 
   describe('advance', () => {
@@ -152,15 +158,26 @@ describe('SqliteJobQueueImpl', () => {
       expect(updated!.currentStage).toBe(PipelineStage.Detect);
     });
 
-    it('preserves attempt count on retry', async () => {
+    it('clears started_at and last_error on retry', async () => {
+      const job = await queue.create(sessionId);
+      await queue.start(job.id);
+      await queue.fail(job.id, 'error');
+      await queue.retry(job.id, PipelineStage.Detect);
+
+      const updated = await queue.findBySessionId(sessionId);
+      expect(updated!.startedAt).toBeNull();
+      expect(updated!.lastError).toBeNull();
+    });
+
+    it('increments attempt count on retry', async () => {
       const job = await queue.create(sessionId);
       await queue.start(job.id); // attempts: 1
       await queue.fail(job.id, 'err');
-      await queue.retry(job.id, PipelineStage.Validate);
+      await queue.retry(job.id, PipelineStage.Validate); // attempts: 2
 
       const updated = await queue.findBySessionId(sessionId);
-      // attempts should not be reset — we've already used one attempt
-      expect(updated!.attempts).toBe(1);
+      // retry increments attempts so the orchestrator can detect exhaustion
+      expect(updated!.attempts).toBe(2);
     });
   });
 

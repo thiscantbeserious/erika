@@ -63,7 +63,7 @@ export class SqliteJobQueueImpl implements JobQueueAdapter {
       SET status = 'running',
           started_at = datetime('now'),
           attempts = attempts + 1
-      WHERE id = ?
+      WHERE id = ? AND status = 'pending'
     `);
 
     this.advanceStmt = db.prepare(`
@@ -85,7 +85,10 @@ export class SqliteJobQueueImpl implements JobQueueAdapter {
       UPDATE jobs
       SET status = 'pending',
           current_stage = ?,
-          last_error = NULL
+          last_error = NULL,
+          attempts = attempts + 1,
+          started_at = NULL,
+          completed_at = NULL
       WHERE id = ?
     `);
 
@@ -120,7 +123,10 @@ export class SqliteJobQueueImpl implements JobQueueAdapter {
   }
 
   async start(jobId: string): Promise<void> {
-    this.startStmt.run(jobId);
+    const result = this.startStmt.run(jobId);
+    if (result.changes === 0) {
+      throw new Error(`Job ${jobId} cannot be started — not in pending state`);
+    }
   }
 
   async advance(jobId: string, nextStage: PipelineStage): Promise<void> {
