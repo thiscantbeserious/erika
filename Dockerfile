@@ -8,7 +8,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+RUN npm run build && \
+    npx tsc packages/vt-wasm/index.ts packages/vt-wasm/types.ts \
+      --module NodeNext --moduleResolution NodeNext \
+      --target ES2022 --declaration --skipLibCheck
 
 # Production dependencies only (--ignore-scripts skips husky prepare hook)
 RUN rm -rf node_modules && npm ci --omit=dev --ignore-scripts

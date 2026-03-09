@@ -212,28 +212,23 @@ jobs:
       - name: Build Docker image
         run: docker build -t erika:ci .
 
-      - name: Start container
-        run: docker run -d --name erika-ci -p 3000:3000 erika:ci
-
-      - name: Wait for health check
+      - name: Smoke test
         run: |
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:3000/api/health; then
-              echo ""
-              echo "Health check passed"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "Health check failed after 30s"
-          docker logs erika-ci
-          exit 1
+          docker run -d --name erika-ci -p 3000:3000 \
+            --health-cmd="wget -q --spider http://localhost:3000/api/health || exit 1" \
+            --health-interval=2s --health-timeout=3s --health-retries=15 \
+            --health-start-period=5s erika:ci
 
-      - name: Verify health response
-        run: |
+          # Wait until Docker reports healthy
+          timeout 60 sh -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" erika-ci)" = "healthy" ]; do sleep 2; done'
+
           RESPONSE=$(curl -sf http://localhost:3000/api/health)
           echo "$RESPONSE" | grep -q '"status":"ok"'
           echo "Health response OK: $RESPONSE"
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker logs erika-ci
 
       - name: Cleanup
         if: always()
