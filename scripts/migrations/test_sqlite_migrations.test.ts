@@ -9,7 +9,7 @@
  * exactly what each migration changes.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -145,18 +145,47 @@ async function load_migration_fn(
 }
 
 // ---------------------------------------------------------------------------
+// Schema logging
+// ---------------------------------------------------------------------------
+
+/** Logs a human-readable summary of the schema state after each step. */
+function log_schema_summary(label: string, schema: SchemaSnapshot): void {
+  const table_names = Object.keys(schema.tables).sort();
+  const total_indexes = table_names.reduce(
+    (sum, t) => sum + (schema.tables[t]?.indexes.length ?? 0),
+    0,
+  );
+  console.log(`  ${label}: ${table_names.length} tables, ${total_indexes} indexes`);
+  for (const t of table_names) {
+    const cols = schema.tables[t]?.columns.map((c) => c.name).join(', ') ?? '';
+    console.log(`    ${t}: [${cols}]`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 describe('SQLite schema migrations', () => {
+  const migration_files = discover_migration_files();
+
+  console.log(`\nDiscovered ${migration_files.length} migrations:`);
+  for (const f of migration_files) {
+    console.log(`  - ${f}`);
+  }
+
+  afterAll(() => {
+    console.log(`\n[OK] ${migration_files.length + 1} schema snapshots verified\n`);
+  });
+
   it('base schema matches snapshot', () => {
     const db = new Database(':memory:');
     db.exec(BASE_SCHEMA);
-    expect(capture_schema(db)).toMatchSnapshot();
+    const schema = capture_schema(db);
+    expect(schema).toMatchSnapshot();
+    log_schema_summary('base schema', schema);
     db.close();
   });
-
-  const migration_files = discover_migration_files();
 
   for (const file_name of migration_files) {
     it(`after ${file_name} matches snapshot`, async () => {
@@ -172,7 +201,9 @@ describe('SQLite schema migrations', () => {
         migrate(db);
       }
 
-      expect(capture_schema(db)).toMatchSnapshot();
+      const schema = capture_schema(db);
+      expect(schema).toMatchSnapshot();
+      log_schema_summary(`after ${file_name}`, schema);
       db.close();
     });
   }
