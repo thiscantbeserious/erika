@@ -25,6 +25,7 @@ import {
   type PendingEvent,
 } from '../services/index.js';
 import { startKeepalive } from '../utils/sse_keepalive.js';
+import { acquireConnection, releaseConnection } from '../utils/sse_connections.js';
 
 /** Terminal event types that close the SSE stream. */
 const TERMINAL_TYPES = new Set<PipelineEventType>(['session.ready', 'session.failed']);
@@ -52,6 +53,10 @@ export async function handleSseEvents(
 ): Promise<Response> {
   const id = c.req.param('id');
 
+  if (!acquireConnection(id)) {
+    return c.json({ error: 'Too many SSE connections' }, 429);
+  }
+
   const { notify, waitForEvent } = createNotifier();
   const pendingLive: PendingEvent[] = [];
   const handlers = registerSessionHandlers(eventBus, id, pendingLive, notify);
@@ -59,6 +64,7 @@ export async function handleSseEvents(
   const session = await sessionRepository.findById(id);
   if (!session) {
     unregisterSessionHandlers(eventBus, handlers);
+    releaseConnection(id);
     return c.json({ error: 'Session not found' }, 404);
   }
 
@@ -68,14 +74,20 @@ export async function handleSseEvents(
   c.header('Connection', 'keep-alive');
 
   return streamSSE(c, async (stream) => {
+    let released = false;
+    const cleanup = () => {
+      if (released) return;
+      released = true;
+      unregisterSessionHandlers(eventBus, handlers);
+      releaseConnection(id);
+    };
     try {
-      const cleanup = () => unregisterSessionHandlers(eventBus, handlers);
       const replayed = await replayMissedEvents(stream, eventLog, id, lastEventId, cleanup);
       if (replayed) return;
 
       await drainAndListen(stream, pendingLive, cleanup, waitForEvent);
     } catch {
-      unregisterSessionHandlers(eventBus, handlers);
+      cleanup();
     }
   });
 }

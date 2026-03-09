@@ -25,6 +25,7 @@ export class SqliteEventLogImpl implements EventLogAdapter {
   private readonly insertStmt: Database.Statement;
   private readonly findBySessionIdStmt: Database.Statement;
   private readonly findAfterIdStmt: Database.Statement;
+  private readonly deleteOlderThanStmt: Database.Statement;
 
   constructor(db: Database.Database) {
     this.insertStmt = db.prepare(`
@@ -45,6 +46,8 @@ export class SqliteEventLogImpl implements EventLogAdapter {
       WHERE session_id = ? AND id > ?
       ORDER BY id ASC
     `);
+
+    this.deleteOlderThanStmt = db.prepare('DELETE FROM events WHERE created_at < ?');
   }
 
   /**
@@ -78,6 +81,12 @@ export class SqliteEventLogImpl implements EventLogAdapter {
   async findBySessionIdAfterId(sessionId: string, afterId: number): Promise<EventLogEntry[]> {
     const rows = this.findAfterIdStmt.all(sessionId, afterId) as Array<Record<string, unknown>>;
     return rows.map(rowToEntry);
+  }
+
+  /** Delete events older than the given cutoff date. Returns the count of deleted rows. */
+  async deleteOlderThan(cutoff: Date): Promise<number> {
+    const result = this.deleteOlderThanStmt.run(cutoff.toISOString());
+    return result.changes;
   }
 }
 

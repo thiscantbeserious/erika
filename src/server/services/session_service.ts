@@ -17,6 +17,7 @@ import type { EventBusAdapter } from '../events/event_bus_adapter.js';
 import { PipelineStage } from '../../shared/types/pipeline.js';
 import type { Section } from '../../shared/types/section.js';
 import { logger } from '../logger.js';
+import { RateLimiter } from '../utils/rate_limiter.js';
 
 const log = logger.child({ module: 'services/session' });
 
@@ -30,7 +31,7 @@ export interface SessionServiceDeps {
 
 export type SessionServiceResult<T> =
   | { ok: true; data: T }
-  | { ok: false; status: 404 | 500; error: string; details?: string };
+  | { ok: false; status: 404 | 429 | 500; error: string; details?: string };
 
 /**
  * SessionService handles CRUD operations and re-detection triggering for sessions.
@@ -41,6 +42,7 @@ export class SessionService {
   private readonly storageAdapter: StorageAdapter;
   private readonly jobQueue: JobQueueAdapter;
   private readonly eventBus: EventBusAdapter;
+  private readonly redetectLimiter = new RateLimiter(30_000);
 
   constructor(deps: SessionServiceDeps) {
     this.sessionRepository = deps.sessionRepository;
@@ -125,6 +127,10 @@ export class SessionService {
     const session = await this.sessionRepository.findById(id);
     if (!session) {
       return { ok: false, status: 404, error: 'Session not found' };
+    }
+
+    if (!this.redetectLimiter.tryAcquire(id)) {
+      return { ok: false, status: 429, error: 'Rate limited — try again later' };
     }
 
     const content = await this.storageAdapter.read(id);

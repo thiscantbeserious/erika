@@ -48,4 +48,10 @@ export interface EventLogAdapter {
    * Used for efficient SSE replay — avoids loading all events then filtering in-memory.
    */
   findBySessionIdAfterId(sessionId: string, afterId: number): Promise<EventLogEntry[]>;
+
+  /**
+   * Delete events older than the given cutoff date.
+   * Returns the number of deleted rows. Used for event log retention cleanup.
+   */
+  deleteOlderThan(cutoff: Date): Promise<number>;
 }

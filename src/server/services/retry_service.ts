@@ -11,6 +11,7 @@ import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
 import { PipelineStage } from '../../shared/types/pipeline.js';
+import { RateLimiter } from '../utils/rate_limiter.js';
 
 export interface RetryServiceDeps {
   sessionRepository: SessionAdapter;
@@ -35,6 +36,7 @@ export class RetryService {
   private readonly sessionRepository: SessionAdapter;
   private readonly jobQueue: JobQueueAdapter;
   private readonly eventBus: EventBusAdapter;
+  private readonly rateLimiter = new RateLimiter(30_000);
 
   constructor(deps: RetryServiceDeps) {
     this.sessionRepository = deps.sessionRepository;
@@ -51,6 +53,10 @@ export class RetryService {
     const session = await this.sessionRepository.findById(sessionId);
     if (!session) {
       return { ok: false, status: 404, error: 'Session not found' };
+    }
+
+    if (!this.rateLimiter.tryAcquire(sessionId)) {
+      return { ok: false, status: 429, error: 'Rate limited — try again later' };
     }
 
     const job = await this.jobQueue.findBySessionId(sessionId);
