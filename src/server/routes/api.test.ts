@@ -761,6 +761,57 @@ describe('API Routes', () => {
       expect(body.error).toBe('Failed to save file');
     });
 
+    it('should return 500 when job queue fails after DB insert — updateDetectionStatus succeeds', async () => {
+      // Covers upload.ts lines 94-99: jobQueue.create throws, updateDetectionStatus is called best-effort
+      const failApp = new Hono();
+      const failJobQueue = {
+        create: () => { throw new Error('Queue unavailable'); },
+        findPending: jobQueue.findPending.bind(jobQueue),
+        findBySessionId: jobQueue.findBySessionId.bind(jobQueue),
+        start: jobQueue.start.bind(jobQueue),
+        advance: jobQueue.advance.bind(jobQueue),
+        complete: jobQueue.complete.bind(jobQueue),
+        fail: jobQueue.fail.bind(jobQueue),
+        recoverInterrupted: jobQueue.recoverInterrupted.bind(jobQueue),
+      } as unknown as JobQueueAdapter;
+      failApp.post('/api/upload', (c) =>
+        handleUpload(c, sessionRepository, storageAdapter, 250, failJobQueue, eventBus)
+      );
+
+      const formData = new FormData();
+      formData.append('file', new File([validFixture], 'test.cast'));
+      const res = await failApp.fetch(
+        new Request('http://localhost/api/upload', { method: 'POST', body: formData })
+      );
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body.error).toBe('Internal server error');
+    });
+
+    it('should return 500 when job queue fails and updateDetectionStatus also fails (best-effort catch)', async () => {
+      // Covers upload.ts lines 94-99: both jobQueue.create and updateDetectionStatus throw
+      const failApp = new Hono();
+      const failJobQueue = {
+        create: () => { throw new Error('Queue unavailable'); },
+      } as unknown as JobQueueAdapter;
+      const failRepo = {
+        createWithId: sessionRepository.createWithId.bind(sessionRepository),
+        updateDetectionStatus: () => { throw new Error('DB gone during status update'); },
+      } as unknown as SessionAdapter;
+      failApp.post('/api/upload', (c) =>
+        handleUpload(c, failRepo, storageAdapter, 250, failJobQueue, eventBus)
+      );
+
+      const formData = new FormData();
+      formData.append('file', new File([validFixture], 'test.cast'));
+      const res = await failApp.fetch(
+        new Request('http://localhost/api/upload', { method: 'POST', body: formData })
+      );
+      expect(res.status).toBe(500);
+      const body = await res.json();
+      expect(body.error).toBe('Internal server error');
+    });
+
     it('should return 500 when DB insert fails during upload', async () => {
       const failApp = new Hono();
       const failRepo = {

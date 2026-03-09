@@ -422,6 +422,27 @@ describe('dedup stage', () => {
     )).toThrow(/Missing sectionData/);
   });
 
+  it('throws when boundary at index is undefined (sparse boundaries array)', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', 'line\r\n'],
+    ];
+    const replayResult = replay(header, events, []);
+
+    // Construct a sparse array with length=1 but index 0 is undefined
+    const sparseBoundaries = new Array(1) as SectionBoundary[];
+    const sectionData = [{ lineCount: 1, snapshot: null }];
+
+    expect(() => dedup(
+      'session-sparse',
+      replayResult.rawSnapshot,
+      sectionData,
+      replayResult.epochBoundaries,
+      sparseBoundaries,
+      events.length
+    )).toThrow(/Missing boundary at index 0/);
+  });
+
   it('builds sections with snapshot when sectionData has a non-null snapshot (alt-screen path)', () => {
     const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
     const events: AsciicastEvent[] = [
