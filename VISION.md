@@ -114,12 +114,13 @@ flowchart TD
         Agent -->|works| Human
     end
 
+    Session -->|raw output| Adapter
+
     subgraph Adapter["🔌 Adapter"]
         direction LR
         Asciicast["🖥️ asciicast"] ~~~ JSONL["📄 JSONL"] ~~~ OTel["📡 OTel"]
     end
 
-    Session -->|raw output| Adapter
     Adapter -->|normalized sessions| Platform
 
     subgraph Platform["Erika Platform"]
@@ -143,11 +144,7 @@ flowchart TD
     Platform --> Team
     Team --> Platform
 
-    subgraph Curated["Curated Context"]
-        direction LR
-        RAG[("🗄️ RAG")] ~~~ MCP[("🔗 MCP")] ~~~ AgentsMd[("📋 AGENTS.md")]
-    end
-
+    Curated[("🗄️ Curated Context<br/>RAG · MCP · AGENTS.md")]
     Platform -->|writes curated| Curated
     Curated -.->|structured context| Agent
 ```
