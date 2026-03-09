@@ -10,28 +10,23 @@ import { join } from 'path';
 import { Hono } from 'hono';
 import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
 import type { DatabaseContext } from '../db/database_adapter.js';
-import type { SessionAdapter } from '../db/session_adapter.js';
-import type { EventLogAdapter } from '../events/event_log_adapter.js';
 import type { PipelineEvent } from '../../shared/pipeline_events.js';
 import { PipelineStage } from '../../shared/pipeline_events.js';
-import { handleGetEventLog } from './event-log.js';
+import { EventLogService } from '../services/index.js';
+import { handleGetEventLog } from './events.js';
 
 describe('GET /api/events', () => {
   let testDir: string;
   let app: Hono;
   let ctx: DatabaseContext;
-  let sessionRepository: SessionAdapter;
-  let eventLog: EventLogAdapter;
   let sessionId: string;
 
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), 'ragts-eventlog-test-'));
     const impl = new SqliteDatabaseImpl();
     ctx = await impl.initialize({ dataDir: testDir });
-    sessionRepository = ctx.sessionRepository;
-    eventLog = ctx.eventLog;
 
-    const session = await sessionRepository.createWithId('test-session-id', {
+    const session = await ctx.sessionRepository.createWithId('test-session-id', {
       filename: 'test.cast',
       filepath: '/tmp/test.cast',
       size_bytes: 100,
@@ -40,8 +35,13 @@ describe('GET /api/events', () => {
     });
     sessionId = session.id;
 
+    const service = new EventLogService({
+      sessionRepository: ctx.sessionRepository,
+      eventLog: ctx.eventLog,
+    });
+
     app = new Hono();
-    app.get('/api/events', (c) => handleGetEventLog(c, sessionRepository, eventLog));
+    app.get('/api/events', (c) => handleGetEventLog(c, service));
   });
 
   afterEach(async () => {
@@ -81,7 +81,7 @@ describe('GET /api/events', () => {
       { type: 'session.ready', sessionId },
     ];
     for (const event of events) {
-      await eventLog.log(event);
+      await ctx.eventLog.log(event);
     }
 
     const req = new Request(`http://localhost/api/events?sessionId=${sessionId}`);
@@ -93,7 +93,7 @@ describe('GET /api/events', () => {
   });
 
   it('each event includes id, eventType, stage, payload, createdAt', async () => {
-    await eventLog.log({ type: 'session.validated', sessionId, eventCount: 5 });
+    await ctx.eventLog.log({ type: 'session.validated', sessionId, eventCount: 5 });
 
     const req = new Request(`http://localhost/api/events?sessionId=${sessionId}`);
     const res = await app.fetch(req);
@@ -107,9 +107,9 @@ describe('GET /api/events', () => {
   });
 
   it('returns events in chronological order (by id ascending)', async () => {
-    await eventLog.log({ type: 'session.validated', sessionId, eventCount: 1 });
-    await eventLog.log({ type: 'session.detected', sessionId, sectionCount: 2 });
-    await eventLog.log({ type: 'session.ready', sessionId });
+    await ctx.eventLog.log({ type: 'session.validated', sessionId, eventCount: 1 });
+    await ctx.eventLog.log({ type: 'session.detected', sessionId, sectionCount: 2 });
+    await ctx.eventLog.log({ type: 'session.ready', sessionId });
 
     const req = new Request(`http://localhost/api/events?sessionId=${sessionId}`);
     const res = await app.fetch(req);
@@ -123,7 +123,7 @@ describe('GET /api/events', () => {
   });
 
   it('includes stage name for session.failed events', async () => {
-    await eventLog.log({
+    await ctx.eventLog.log({
       type: 'session.failed',
       sessionId,
       stage: PipelineStage.Detect,
@@ -137,15 +137,15 @@ describe('GET /api/events', () => {
   });
 
   it('does not return events for other sessions', async () => {
-    await sessionRepository.createWithId('other-session', {
+    await ctx.sessionRepository.createWithId('other-session', {
       filename: 'other.cast',
       filepath: '/tmp/other.cast',
       size_bytes: 50,
       marker_count: 0,
       uploaded_at: new Date().toISOString(),
     });
-    await eventLog.log({ type: 'session.ready', sessionId: 'other-session' });
-    await eventLog.log({ type: 'session.ready', sessionId });
+    await ctx.eventLog.log({ type: 'session.ready', sessionId: 'other-session' });
+    await ctx.eventLog.log({ type: 'session.ready', sessionId });
 
     const req = new Request(`http://localhost/api/events?sessionId=${sessionId}`);
     const res = await app.fetch(req);

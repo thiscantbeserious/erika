@@ -16,6 +16,10 @@ import type { StorageAdapter } from '../storage/storage_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import { EmitterEventBusImpl } from '../events/emitter_event_bus_impl.js';
 import { PipelineOrchestrator } from '../processing/pipeline_orchestrator.js';
+import {
+  UploadService,
+  SessionService,
+} from '../services/index.js';
 import { handleUpload } from './upload.js';
 import {
   handleListSessions,
@@ -65,20 +69,28 @@ describe('API Routes', () => {
     });
     await orchestrator.start();
 
+    const uploadService = new UploadService({
+      sessionRepository,
+      storageAdapter,
+      jobQueue,
+      eventBus,
+      maxFileSizeMB: 2,
+    });
+
+    const sessionService = new SessionService({
+      sessionRepository,
+      sectionRepository,
+      storageAdapter,
+      jobQueue,
+      eventBus,
+    });
+
     app = new Hono();
-    app.post('/api/upload', (c) =>
-      handleUpload(c, sessionRepository, storageAdapter, 2, jobQueue, eventBus)
-    );
-    app.get('/api/sessions', (c) => handleListSessions(c, sessionRepository));
-    app.get('/api/sessions/:id', (c) =>
-      handleGetSession(c, sessionRepository, sectionRepository, storageAdapter)
-    );
-    app.delete('/api/sessions/:id', (c) =>
-      handleDeleteSession(c, sessionRepository, storageAdapter)
-    );
-    app.post('/api/sessions/:id/redetect', (c) =>
-      handleRedetect(c, sessionRepository, storageAdapter, jobQueue, eventBus)
-    );
+    app.post('/api/upload', (c) => handleUpload(c, uploadService));
+    app.get('/api/sessions', (c) => handleListSessions(c, sessionService));
+    app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionService));
+    app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionService));
+    app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionService));
   });
 
   afterEach(async () => {
@@ -536,7 +548,14 @@ describe('API Routes', () => {
       const failingRepo = {
         findAll: () => { throw new Error('DB connection lost'); },
       } as unknown as SessionAdapter;
-      failApp.get('/api/sessions', (c) => handleListSessions(c, failingRepo));
+      const failService = new SessionService({
+        sessionRepository: failingRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.get('/api/sessions', (c) => handleListSessions(c, failService));
 
       const res = await failApp.fetch(new Request('http://localhost/api/sessions'));
       expect(res.status).toBe(500);
@@ -557,9 +576,14 @@ describe('API Routes', () => {
       const failRepo = {
         findById: () => { throw new Error('DB connection failed'); },
       } as unknown as SessionAdapter;
-      failApp.get('/api/sessions/:id', (c) =>
-        handleGetSession(c, failRepo, sectionRepository, storageAdapter)
-      );
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.get('/api/sessions/:id', (c) => handleGetSession(c, failService));
 
       const res = await failApp.fetch(
         new Request(`http://localhost/api/sessions/${uploadData.id}`)
@@ -583,9 +607,14 @@ describe('API Routes', () => {
         findById: sessionRepository.findById.bind(sessionRepository),
         deleteById: async () => false,
       } as unknown as SessionAdapter;
-      failApp.delete('/api/sessions/:id', (c) =>
-        handleDeleteSession(c, failRepo, storageAdapter)
-      );
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.delete('/api/sessions/:id', (c) => handleDeleteSession(c, failService));
 
       const res = await failApp.fetch(
         new Request(`http://localhost/api/sessions/${uploadData.id}`, { method: 'DELETE' })
@@ -600,9 +629,14 @@ describe('API Routes', () => {
       const failRepo = {
         findById: () => { throw new Error('DB crashed'); },
       } as unknown as SessionAdapter;
-      failApp.delete('/api/sessions/:id', (c) =>
-        handleDeleteSession(c, failRepo, storageAdapter)
-      );
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.delete('/api/sessions/:id', (c) => handleDeleteSession(c, failService));
 
       const res = await failApp.fetch(
         new Request('http://localhost/api/sessions/any-id', { method: 'DELETE' })
@@ -617,7 +651,14 @@ describe('API Routes', () => {
       const failRepo = {
         findAll: () => { throw 'string error code'; },
       } as unknown as SessionAdapter;
-      failApp.get('/api/sessions', (c) => handleListSessions(c, failRepo));
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.get('/api/sessions', (c) => handleListSessions(c, failService));
 
       const res = await failApp.fetch(new Request('http://localhost/api/sessions'));
       expect(res.status).toBe(500);
@@ -630,9 +671,14 @@ describe('API Routes', () => {
       const failRepo = {
         findById: () => { throw 'non-error-value'; },
       } as unknown as SessionAdapter;
-      failApp.get('/api/sessions/:id', (c) =>
-        handleGetSession(c, failRepo, sectionRepository, storageAdapter)
-      );
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.get('/api/sessions/:id', (c) => handleGetSession(c, failService));
 
       const res = await failApp.fetch(
         new Request('http://localhost/api/sessions/some-id')
@@ -647,9 +693,14 @@ describe('API Routes', () => {
       const failRepo = {
         findById: () => { throw 42; },
       } as unknown as SessionAdapter;
-      failApp.delete('/api/sessions/:id', (c) =>
-        handleDeleteSession(c, failRepo, storageAdapter)
-      );
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.delete('/api/sessions/:id', (c) => handleDeleteSession(c, failService));
 
       const res = await failApp.fetch(
         new Request('http://localhost/api/sessions/any-id', { method: 'DELETE' })
@@ -664,9 +715,14 @@ describe('API Routes', () => {
       const failRepo = {
         findById: () => { throw 'redetect-error'; },
       } as unknown as SessionAdapter;
-      failApp.post('/api/sessions/:id/redetect', (c) =>
-        handleRedetect(c, failRepo, storageAdapter, jobQueue, eventBus)
-      );
+      const failService = new SessionService({
+        sessionRepository: failRepo,
+        sectionRepository,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+      });
+      failApp.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, failService));
 
       const res = await failApp.fetch(
         new Request('http://localhost/api/sessions/any-id/redetect', { method: 'POST' })
@@ -684,9 +740,14 @@ describe('API Routes', () => {
         delete: storageAdapter.delete.bind(storageAdapter),
         exists: storageAdapter.exists.bind(storageAdapter),
       } as unknown as StorageAdapter;
-      failApp.post('/api/upload', (c) =>
-        handleUpload(c, sessionRepository, failStorage, 250, jobQueue, eventBus)
-      );
+      const failUploadService = new UploadService({
+        sessionRepository,
+        storageAdapter: failStorage,
+        jobQueue,
+        eventBus,
+        maxFileSizeMB: 250,
+      });
+      failApp.post('/api/upload', (c) => handleUpload(c, failUploadService));
 
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));
@@ -729,9 +790,14 @@ describe('API Routes', () => {
       const failStorage = {
         delete: () => { throw new Error('Permission denied'); },
       } as unknown as StorageAdapter;
-      failApp.delete('/api/sessions/:id', (c) =>
-        handleDeleteSession(c, sessionRepository, failStorage)
-      );
+      const failService = new SessionService({
+        sessionRepository,
+        sectionRepository,
+        storageAdapter: failStorage,
+        jobQueue,
+        eventBus,
+      });
+      failApp.delete('/api/sessions/:id', (c) => handleDeleteSession(c, failService));
 
       const res = await failApp.fetch(
         new Request(`http://localhost/api/sessions/${uploadData.id}`, { method: 'DELETE' })
@@ -747,9 +813,14 @@ describe('API Routes', () => {
         delete: storageAdapter.delete.bind(storageAdapter),
         exists: storageAdapter.exists.bind(storageAdapter),
       } as unknown as StorageAdapter;
-      failApp.post('/api/upload', (c) =>
-        handleUpload(c, sessionRepository, failStorage, 250, jobQueue, eventBus)
-      );
+      const failUploadService = new UploadService({
+        sessionRepository,
+        storageAdapter: failStorage,
+        jobQueue,
+        eventBus,
+        maxFileSizeMB: 250,
+      });
+      failApp.post('/api/upload', (c) => handleUpload(c, failUploadService));
 
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));
@@ -762,7 +833,6 @@ describe('API Routes', () => {
     });
 
     it('should return 500 when job queue fails after DB insert — updateDetectionStatus succeeds', async () => {
-      // Covers upload.ts lines 94-99: jobQueue.create throws, updateDetectionStatus is called best-effort
       const failApp = new Hono();
       const failJobQueue = {
         create: () => { throw new Error('Queue unavailable'); },
@@ -774,9 +844,14 @@ describe('API Routes', () => {
         fail: jobQueue.fail.bind(jobQueue),
         recoverInterrupted: jobQueue.recoverInterrupted.bind(jobQueue),
       } as unknown as JobQueueAdapter;
-      failApp.post('/api/upload', (c) =>
-        handleUpload(c, sessionRepository, storageAdapter, 250, failJobQueue, eventBus)
-      );
+      const failUploadService = new UploadService({
+        sessionRepository,
+        storageAdapter,
+        jobQueue: failJobQueue,
+        eventBus,
+        maxFileSizeMB: 250,
+      });
+      failApp.post('/api/upload', (c) => handleUpload(c, failUploadService));
 
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));
@@ -789,7 +864,6 @@ describe('API Routes', () => {
     });
 
     it('should return 500 when job queue fails and updateDetectionStatus also fails (best-effort catch)', async () => {
-      // Covers upload.ts lines 94-99: both jobQueue.create and updateDetectionStatus throw
       const failApp = new Hono();
       const failJobQueue = {
         create: () => { throw new Error('Queue unavailable'); },
@@ -798,9 +872,14 @@ describe('API Routes', () => {
         createWithId: sessionRepository.createWithId.bind(sessionRepository),
         updateDetectionStatus: () => { throw new Error('DB gone during status update'); },
       } as unknown as SessionAdapter;
-      failApp.post('/api/upload', (c) =>
-        handleUpload(c, failRepo, storageAdapter, 250, failJobQueue, eventBus)
-      );
+      const failUploadService = new UploadService({
+        sessionRepository: failRepo,
+        storageAdapter,
+        jobQueue: failJobQueue,
+        eventBus,
+        maxFileSizeMB: 250,
+      });
+      failApp.post('/api/upload', (c) => handleUpload(c, failUploadService));
 
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));
@@ -817,9 +896,14 @@ describe('API Routes', () => {
       const failRepo = {
         createWithId: () => { throw new Error('UNIQUE constraint failed'); },
       } as unknown as SessionAdapter;
-      failApp.post('/api/upload', (c) =>
-        handleUpload(c, failRepo, storageAdapter, 250, jobQueue, eventBus)
-      );
+      const failUploadService = new UploadService({
+        sessionRepository: failRepo,
+        storageAdapter,
+        jobQueue,
+        eventBus,
+        maxFileSizeMB: 250,
+      });
+      failApp.post('/api/upload', (c) => handleUpload(c, failUploadService));
 
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));
@@ -842,9 +926,14 @@ describe('API Routes', () => {
         delete: () => { throw new Error('Permission denied on cleanup'); },
         exists: storageAdapter.exists.bind(storageAdapter),
       } as unknown as StorageAdapter;
-      failApp.post('/api/upload', (c) =>
-        handleUpload(c, failRepo, failStorage, 250, jobQueue, eventBus)
-      );
+      const failUploadService = new UploadService({
+        sessionRepository: failRepo,
+        storageAdapter: failStorage,
+        jobQueue,
+        eventBus,
+        maxFileSizeMB: 250,
+      });
+      failApp.post('/api/upload', (c) => handleUpload(c, failUploadService));
 
       const formData = new FormData();
       formData.append('file', new File([validFixture], 'test.cast'));

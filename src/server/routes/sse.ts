@@ -7,24 +7,25 @@
  *
  * Supports reconnection via Last-Event-ID header: replays missed events
  * from the EventLogAdapter before switching to live streaming.
+ *
+ * Connections: SessionAdapter (db/), EventBusAdapter (events/),
+ * EventLogAdapter (events/).
  */
 
 import type { Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import type { SessionAdapter } from '../db/session_adapter.js';
-import type { EventBusAdapter, EventHandler } from '../events/event_bus_adapter.js';
-import type { EventLogAdapter, EventLogEntry } from '../events/event_log_adapter.js';
+import type { EventBusAdapter } from '../events/event_bus_adapter.js';
+import type { EventLogAdapter } from '../events/event_log_adapter.js';
 import type { PipelineEvent, PipelineEventType } from '../../shared/pipeline_events.js';
+import {
+  registerSessionHandlers,
+  unregisterSessionHandlers,
+  getMissedEvents,
+} from '../services/index.js';
 
 /** Terminal event types that close the SSE stream. */
 const TERMINAL_TYPES = new Set<PipelineEventType>(['session.ready', 'session.failed']);
-
-/** All pipeline event types to subscribe to. */
-const ALL_EVENT_TYPES: PipelineEventType[] = [
-  'session.uploaded', 'session.validated', 'session.detected',
-  'session.replayed', 'session.deduped', 'session.ready',
-  'session.failed', 'session.retrying',
-];
 
 /** Keepalive interval in milliseconds. */
 const KEEPALIVE_INTERVAL_MS = 30_000;
@@ -52,14 +53,12 @@ export async function handleSseEvents(
 ): Promise<Response> {
   const id = c.req.param('id');
 
-  // Buffer live events synchronously BEFORE any async await
   const pendingLive: PipelineEvent[] = [];
-  const handlers = registerHandlers(eventBus, id, pendingLive);
+  const handlers = registerSessionHandlers(eventBus, id, pendingLive);
 
-  // Now do the async session lookup
   const session = await sessionRepository.findById(id);
   if (!session) {
-    unregisterHandlers(eventBus, handlers);
+    unregisterSessionHandlers(eventBus, handlers);
     return c.json({ error: 'Session not found' }, 404);
   }
 
@@ -70,13 +69,12 @@ export async function handleSseEvents(
 
   return streamSSE(c, async (stream) => {
     try {
-      // Replay missed events from the log if Last-Event-ID was provided
       if (lastEventId !== undefined) {
         const afterId = parseInt(lastEventId, 10);
         if (!isNaN(afterId)) {
           const missed = await getMissedEvents(eventLog, id, afterId);
           for (const entry of missed) {
-            if (stream.closed) { unregisterHandlers(eventBus, handlers); return; }
+            if (stream.closed) { unregisterSessionHandlers(eventBus, handlers); return; }
             await stream.writeSSE({
               id: String(entry.id),
               event: entry.eventType,
@@ -86,48 +84,11 @@ export async function handleSseEvents(
         }
       }
 
-      await drainAndListen(stream, pendingLive, () => unregisterHandlers(eventBus, handlers));
+      await drainAndListen(stream, pendingLive, () => unregisterSessionHandlers(eventBus, handlers));
     } catch {
-      unregisterHandlers(eventBus, handlers);
+      unregisterSessionHandlers(eventBus, handlers);
     }
   });
-}
-
-/** Register all event bus handlers for a session synchronously, buffering events. */
-function registerHandlers(
-  eventBus: EventBusAdapter,
-  sessionId: string,
-  pending: PipelineEvent[]
-): Map<PipelineEventType, (event: PipelineEvent) => void> {
-  const handlers = new Map<PipelineEventType, (event: PipelineEvent) => void>();
-  for (const type of ALL_EVENT_TYPES) {
-    const handler = (event: PipelineEvent) => {
-      if (event.sessionId === sessionId) pending.push(event);
-    };
-    handlers.set(type, handler);
-    eventBus.on(type, handler as EventHandler<typeof type>);
-  }
-  return handlers;
-}
-
-/** Remove all registered event bus handlers. */
-function unregisterHandlers(
-  eventBus: EventBusAdapter,
-  handlers: Map<PipelineEventType, (event: PipelineEvent) => void>
-): void {
-  for (const [type, handler] of handlers) {
-    eventBus.off(type, handler as EventHandler<typeof type>);
-  }
-}
-
-/** Returns events from the log with id strictly greater than afterId. */
-async function getMissedEvents(
-  eventLog: EventLogAdapter,
-  sessionId: string,
-  afterId: number
-): Promise<EventLogEntry[]> {
-  const all = await eventLog.findBySessionId(sessionId);
-  return all.filter(e => e.id > afterId);
 }
 
 /**
@@ -150,7 +111,6 @@ async function drainAndListen(
     while (true) {
       if (stream.closed) break;
 
-      // Flush all currently buffered events
       while (pending.length > 0) {
         const event = pending.shift()!;
         if (stream.closed) break;
@@ -159,8 +119,6 @@ async function drainAndListen(
       }
 
       if (stream.closed) break;
-
-      // Wait for the next event to arrive via polling
       await waitForNextEvent(pending, stream);
     }
   } finally {

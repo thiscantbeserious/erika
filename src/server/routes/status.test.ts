@@ -13,6 +13,7 @@ import type { DatabaseContext } from '../db/database_adapter.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import { PipelineStage } from '../../shared/pipeline_events.js';
+import { StatusService } from '../services/index.js';
 import { handleGetStatus } from './status.js';
 
 describe('GET /api/sessions/:id/status', () => {
@@ -39,10 +40,10 @@ describe('GET /api/sessions/:id/status', () => {
     });
     sessionId = session.id;
 
+    const service = new StatusService({ sessionRepository, jobQueue });
+
     app = new Hono();
-    app.get('/api/sessions/:id/status', (c) =>
-      handleGetStatus(c, sessionRepository, jobQueue)
-    );
+    app.get('/api/sessions/:id/status', (c) => handleGetStatus(c, service));
   });
 
   afterEach(async () => {

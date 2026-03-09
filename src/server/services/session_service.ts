@@ -1,0 +1,172 @@
+/**
+ * SessionService: list, retrieve, delete, and redetect sessions.
+ *
+ * Reads and writes session records, strips internal fields from API responses,
+ * and coordinates storage and pipeline re-triggering for redetect requests.
+ *
+ * Connections: SessionAdapter (db/), SectionAdapter (db/),
+ * StorageAdapter (storage/), JobQueueAdapter (jobs/), EventBusAdapter (events/).
+ */
+
+import { parseAsciicast } from '../../shared/asciicast.js';
+import type { SessionAdapter } from '../db/session_adapter.js';
+import type { SectionAdapter } from '../db/section_adapter.js';
+import type { StorageAdapter } from '../storage/storage_adapter.js';
+import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
+import type { EventBusAdapter } from '../events/event_bus_adapter.js';
+import { PipelineStage } from '../../shared/pipeline_events.js';
+import { logger } from '../logger.js';
+
+const log = logger.child({ module: 'services/session' });
+
+export interface SessionServiceDeps {
+  sessionRepository: SessionAdapter;
+  sectionRepository: SectionAdapter;
+  storageAdapter: StorageAdapter;
+  jobQueue: JobQueueAdapter;
+  eventBus: EventBusAdapter;
+}
+
+export type SessionServiceResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; status: 404 | 500; error: string; details?: string };
+
+/**
+ * SessionService handles CRUD operations and re-detection triggering for sessions.
+ */
+export class SessionService {
+  private readonly sessionRepository: SessionAdapter;
+  private readonly sectionRepository: SectionAdapter;
+  private readonly storageAdapter: StorageAdapter;
+  private readonly jobQueue: JobQueueAdapter;
+  private readonly eventBus: EventBusAdapter;
+
+  constructor(deps: SessionServiceDeps) {
+    this.sessionRepository = deps.sessionRepository;
+    this.sectionRepository = deps.sectionRepository;
+    this.storageAdapter = deps.storageAdapter;
+    this.jobQueue = deps.jobQueue;
+    this.eventBus = deps.eventBus;
+  }
+
+  /** List all sessions, stripping the internal filepath field from each record. */
+  async listSessions(): Promise<Record<string, unknown>[]> {
+    const sessions = await this.sessionRepository.findAll();
+    return sessions.map(({ filepath: _filepath, ...rest }) => rest as Record<string, unknown>);
+  }
+
+  /**
+   * Retrieve full session data including parsed content and sections.
+   * Returns 404 if the session record does not exist.
+   */
+  async getSession(id: string): Promise<SessionServiceResult<Record<string, unknown>>> {
+    const session = await this.sessionRepository.findById(id);
+    if (!session) {
+      return { ok: false, status: 404, error: 'Session not found' };
+    }
+
+    const content = await this.storageAdapter.read(id);
+    const parsed = parseAsciicast(content);
+    const sections = await this.sectionRepository.findBySessionId(id);
+
+    const snapshot = parseSnapshotJson(session.snapshot, 'session', id);
+    const transformedSections = sections.map(section => transformSection(section));
+
+    const { filepath: _fp, snapshot: _snap, ...sessionData } = session;
+    return {
+      ok: true,
+      data: {
+        ...sessionData,
+        snapshot,
+        content: { header: parsed.header, markers: parsed.markers },
+        sections: transformedSections,
+      } as Record<string, unknown>,
+    };
+  }
+
+  /**
+   * Delete a session record and its stored file.
+   * File deletion is best-effort; DB deletion failure returns 500.
+   */
+  async deleteSession(id: string): Promise<SessionServiceResult<{ success: boolean }>> {
+    const session = await this.sessionRepository.findById(id);
+    if (!session) {
+      return { ok: false, status: 404, error: 'Session not found' };
+    }
+
+    const deleted = await this.sessionRepository.deleteById(id);
+    if (!deleted) {
+      return { ok: false, status: 500, error: 'Failed to delete session from database' };
+    }
+
+    try {
+      await this.storageAdapter.delete(id);
+    } catch (err) {
+      log.warn({ err }, 'Failed to delete session file');
+    }
+
+    return { ok: true, data: { success: true } };
+  }
+
+  /**
+   * Re-trigger section detection for an existing session.
+   * Returns 202 data payload; the pipeline runs asynchronously.
+   */
+  async redetectSession(id: string): Promise<SessionServiceResult<{ message: string; sessionId: string }>> {
+    const session = await this.sessionRepository.findById(id);
+    if (!session) {
+      return { ok: false, status: 404, error: 'Session not found' };
+    }
+
+    const content = await this.storageAdapter.read(id);
+    parseAsciicast(content);
+
+    const existing = await this.jobQueue.findBySessionId(id);
+    if (existing && (existing.status === 'pending' || existing.status === 'running')) {
+      return { ok: true, data: { message: 'Re-detection already in progress', sessionId: id } };
+    }
+
+    if (existing) {
+      await this.jobQueue.retry(existing.id, PipelineStage.Validate);
+    } else {
+      await this.jobQueue.create(id);
+    }
+
+    this.eventBus.emit({ type: 'session.uploaded', sessionId: id, filename: session.filename });
+    return { ok: true, data: { message: 'Re-detection started', sessionId: id } };
+  }
+}
+
+/** Parse a JSON snapshot string; returns null on failure, logging a warning. */
+function parseSnapshotJson(value: string | null | undefined, context: string, id: string): unknown {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    log.warn({ err, [`${context}Id`]: id }, `Failed to parse ${context} snapshot JSON`);
+    return null;
+  }
+}
+
+/** Transform a DB section row into the API response shape. */
+function transformSection(section: {
+  id: string;
+  type: string;
+  label: string | null;
+  start_event: number;
+  end_event: number | null;
+  start_line: number | null;
+  end_line: number | null;
+  snapshot: string | null;
+}): Record<string, unknown> {
+  return {
+    id: section.id,
+    type: section.type,
+    label: section.label,
+    startEvent: section.start_event,
+    endEvent: section.end_event,
+    startLine: section.start_line,
+    endLine: section.end_line,
+    snapshot: section.snapshot ? parseSnapshotJson(section.snapshot, 'section', section.id) : null,
+  };
+}

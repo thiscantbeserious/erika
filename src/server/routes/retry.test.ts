@@ -14,6 +14,7 @@ import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import { EmitterEventBusImpl } from '../events/emitter_event_bus_impl.js';
 import { PipelineStage } from '../../shared/pipeline_events.js';
+import { RetryService } from '../services/index.js';
 import { handleRetry } from './retry.js';
 
 describe('POST /api/sessions/:id/retry', () => {
@@ -43,10 +44,10 @@ describe('POST /api/sessions/:id/retry', () => {
 
     eventBus = new EmitterEventBusImpl();
 
+    const service = new RetryService({ sessionRepository, jobQueue, eventBus });
+
     app = new Hono();
-    app.post('/api/sessions/:id/retry', (c) =>
-      handleRetry(c, sessionRepository, jobQueue, eventBus)
-    );
+    app.post('/api/sessions/:id/retry', (c) => handleRetry(c, service));
   });
 
   afterEach(async () => {

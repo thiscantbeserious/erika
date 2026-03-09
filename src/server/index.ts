@@ -7,6 +7,13 @@ import { DatabaseFactory } from './db/database_factory.js';
 import { EmitterEventBusImpl } from './events/emitter_event_bus_impl.js';
 import { PipelineOrchestrator } from './processing/pipeline_orchestrator.js';
 import type { PipelineEvent } from '../shared/pipeline_events.js';
+import {
+  UploadService,
+  SessionService,
+  StatusService,
+  RetryService,
+  EventLogService,
+} from './services/index.js';
 import { handleUpload } from './routes/upload.js';
 import {
   handleListSessions,
@@ -17,7 +24,7 @@ import {
 import { handleSseEvents } from './routes/sse.js';
 import { handleGetStatus } from './routes/status.js';
 import { handleRetry } from './routes/retry.js';
-import { handleGetEventLog } from './routes/event-log.js';
+import { handleGetEventLog } from './routes/events.js';
 
 const log = logger.child({ module: 'server' });
 const app = new Hono();
@@ -79,6 +86,27 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// Instantiate services with their dependencies
+const uploadService = new UploadService({
+  sessionRepository,
+  storageAdapter,
+  jobQueue,
+  eventBus,
+  maxFileSizeMB: config.maxFileSizeMB,
+});
+
+const sessionService = new SessionService({
+  sessionRepository,
+  sectionRepository,
+  storageAdapter,
+  jobQueue,
+  eventBus,
+});
+
+const statusService = new StatusService({ sessionRepository, jobQueue });
+const retryService = new RetryService({ sessionRepository, jobQueue, eventBus });
+const eventLogService = new EventLogService({ sessionRepository, eventLog });
+
 // Health check — includes DB ping to verify connectivity
 app.get('/api/health', async (c) => {
   try {
@@ -91,21 +119,13 @@ app.get('/api/health', async (c) => {
 });
 
 // Upload endpoint
-app.post('/api/upload', (c) =>
-  handleUpload(c, sessionRepository, storageAdapter, config.maxFileSizeMB, jobQueue, eventBus)
-);
+app.post('/api/upload', (c) => handleUpload(c, uploadService));
 
 // Session endpoints
-app.get('/api/sessions', (c) => handleListSessions(c, sessionRepository));
-app.get('/api/sessions/:id', (c) =>
-  handleGetSession(c, sessionRepository, sectionRepository, storageAdapter)
-);
-app.delete('/api/sessions/:id', (c) =>
-  handleDeleteSession(c, sessionRepository, storageAdapter)
-);
-app.post('/api/sessions/:id/redetect', (c) =>
-  handleRedetect(c, sessionRepository, storageAdapter, jobQueue, eventBus)
-);
+app.get('/api/sessions', (c) => handleListSessions(c, sessionService));
+app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionService));
+app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionService));
+app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionService));
 
 // SSE endpoint — real-time pipeline events for a session
 app.get('/api/sessions/:id/events', (c) =>
@@ -113,19 +133,13 @@ app.get('/api/sessions/:id/events', (c) =>
 );
 
 // Session status endpoint — current processing stage for UI hydration
-app.get('/api/sessions/:id/status', (c) =>
-  handleGetStatus(c, sessionRepository, jobQueue)
-);
+app.get('/api/sessions/:id/status', (c) => handleGetStatus(c, statusService));
 
 // Retry endpoint — restart processing from validate stage for failed jobs
-app.post('/api/sessions/:id/retry', (c) =>
-  handleRetry(c, sessionRepository, jobQueue, eventBus)
-);
+app.post('/api/sessions/:id/retry', (c) => handleRetry(c, retryService));
 
 // Event log endpoint — pipeline event history for debugging
-app.get('/api/events', (c) =>
-  handleGetEventLog(c, sessionRepository, eventLog)
-);
+app.get('/api/events', (c) => handleGetEventLog(c, eventLogService));
 
 // Serve frontend in production — single-container deployment
 if (config.nodeEnv === 'production') {
