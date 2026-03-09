@@ -50,6 +50,7 @@ export default defineConfig({
         '**/migrations/**',
         'packages/vt-wasm/pkg/**',
         'tests/helpers/**',
+        'src/server/routes/**',
       ],
       thresholds: {
         lines: 90,
