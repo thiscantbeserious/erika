@@ -13,6 +13,7 @@ import {
   StatusService,
   RetryService,
   EventLogService,
+  ALL_PIPELINE_EVENT_TYPES,
 } from './services/index.js';
 import { handleUpload } from './routes/upload.js';
 import {
@@ -60,16 +61,16 @@ const orchestrator = new PipelineOrchestrator(eventBus, jobQueue, {
 
 // Subscribe event log to every pipeline event type BEFORE start() so recovered
 // jobs that emit events during startup are captured for audit/debugging.
-const allEventTypes = [
-  'session.uploaded', 'session.validated', 'session.detected',
-  'session.replayed', 'session.deduped', 'session.ready',
-  'session.failed', 'session.retrying',
-] as const;
-for (const type of allEventTypes) {
+// logSync runs synchronously before other handlers fire, attaching the log ID
+// to the event object so SSE handlers can include it as the SSE `id` field.
+for (const type of ALL_PIPELINE_EVENT_TYPES) {
   eventBus.on(type, (event) => {
-    eventLog.log(event as PipelineEvent).catch((err) => {
+    try {
+      const logId = eventLog.logSync(event as PipelineEvent);
+      Object.assign(event, { logId });
+    } catch (err) {
       log.warn({ err, eventType: type }, 'Failed to persist event to event log');
-    });
+    }
   });
 }
 

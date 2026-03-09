@@ -31,8 +31,21 @@ export interface EventLogAdapter {
   log(event: PipelineEvent): Promise<void>;
 
   /**
+   * Synchronously persist a pipeline event and return the inserted row ID.
+   * Used when the caller must attach the log ID to the event before
+   * other synchronous event bus handlers fire.
+   */
+  logSync(event: PipelineEvent): number;
+
+  /**
    * Find all logged events for a session, ordered by id ASC (insertion order).
    * Returns an empty array if no events exist for the session.
    */
   findBySessionId(sessionId: string): Promise<EventLogEntry[]>;
+
+  /**
+   * Find events for a session with id strictly greater than afterId, ordered by id ASC.
+   * Used for efficient SSE replay — avoids loading all events then filtering in-memory.
+   */
+  findBySessionIdAfterId(sessionId: string, afterId: number): Promise<EventLogEntry[]>;
 }

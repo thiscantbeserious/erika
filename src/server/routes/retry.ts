@@ -27,12 +27,6 @@ export async function handleRetry(
     return c.json(result.data);
   } catch (err) {
     log.error({ err }, 'Retry error');
-    return c.json(
-      {
-        error: 'Failed to start retry',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to start retry' }, 500);
   }
 }

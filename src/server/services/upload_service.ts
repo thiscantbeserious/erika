@@ -77,11 +77,12 @@ export class UploadService {
     try {
       filepath = await this.storageAdapter.save(id, content);
     } catch (err) {
+      log.error({ err }, 'Storage save failed');
       return {
         ok: false,
         status: 500,
         error: 'Failed to save file',
-        details: err instanceof Error ? err.message : String(err),
+        details: 'Storage write failed',
       };
     }
 
@@ -101,6 +102,11 @@ export class UploadService {
       return { ok: true, session: sessionData as Record<string, unknown> };
     } catch (err) {
       await this.cleanupFile(id);
+      try {
+        await this.sessionRepository.deleteById(id);
+      } catch (cleanupErr) {
+        log.warn({ err: cleanupErr }, 'Failed to clean up session record after pipeline error');
+      }
       throw err;
     }
   }

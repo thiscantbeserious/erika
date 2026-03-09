@@ -17,11 +17,12 @@ import { streamSSE } from 'hono/streaming';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
 import type { EventLogAdapter } from '../events/event_log_adapter.js';
-import type { PipelineEvent, PipelineEventType } from '../../shared/types/pipeline.js';
+import type { PipelineEventType } from '../../shared/types/pipeline.js';
 import {
   registerSessionHandlers,
   unregisterSessionHandlers,
   getMissedEvents,
+  type PendingEvent,
 } from '../services/index.js';
 
 /** Terminal event types that close the SSE stream. */
@@ -53,7 +54,7 @@ export async function handleSseEvents(
 ): Promise<Response> {
   const id = c.req.param('id');
 
-  const pendingLive: PipelineEvent[] = [];
+  const pendingLive: PendingEvent[] = [];
   const handlers = registerSessionHandlers(eventBus, id, pendingLive);
 
   const session = await sessionRepository.findById(id);
@@ -73,6 +74,7 @@ export async function handleSseEvents(
         const afterId = parseInt(lastEventId, 10);
         if (!isNaN(afterId)) {
           const missed = await getMissedEvents(eventLog, id, afterId);
+          let replayedTerminal = false;
           for (const entry of missed) {
             if (stream.closed) { unregisterSessionHandlers(eventBus, handlers); return; }
             await stream.writeSSE({
@@ -80,6 +82,13 @@ export async function handleSseEvents(
               event: entry.eventType,
               data: entry.payload ?? '{}',
             });
+            if (TERMINAL_TYPES.has(entry.eventType as PipelineEventType)) {
+              replayedTerminal = true;
+            }
+          }
+          if (replayedTerminal) {
+            unregisterSessionHandlers(eventBus, handlers);
+            return;
           }
         }
       }
@@ -97,11 +106,18 @@ export async function handleSseEvents(
  */
 async function drainAndListen(
   stream: { writeSSE: (msg: SseMessage) => Promise<void>; closed: boolean },
-  pending: PipelineEvent[],
+  pending: PendingEvent[],
   cleanup: () => void
 ): Promise<void> {
-  const keepaliveTimer = setInterval(() => {
+  const keepaliveTimer = setInterval(async () => {
     if (stream.closed) {
+      clearInterval(keepaliveTimer);
+      cleanup();
+      return;
+    }
+    try {
+      await stream.writeSSE({ event: 'keepalive', data: '' });
+    } catch {
       clearInterval(keepaliveTimer);
       cleanup();
     }
@@ -112,9 +128,9 @@ async function drainAndListen(
       if (stream.closed) break;
 
       while (pending.length > 0) {
-        const event = pending.shift()!;
+        const { event, logId } = pending.shift()!;
         if (stream.closed) break;
-        await stream.writeSSE({ event: event.type, data: JSON.stringify(event) });
+        await stream.writeSSE({ id: String(logId), event: event.type, data: JSON.stringify(event) });
         if (TERMINAL_TYPES.has(event.type)) return;
       }
 
@@ -132,7 +148,7 @@ async function drainAndListen(
  * Uses short-interval polling to avoid blocking the event loop.
  */
 function waitForNextEvent(
-  pending: PipelineEvent[],
+  pending: PendingEvent[],
   stream: { closed: boolean }
 ): Promise<void> {
   return new Promise<void>((resolve) => {
@@ -141,6 +157,6 @@ function waitForNextEvent(
         clearInterval(interval);
         resolve();
       }
-    }, 5);
+    }, 50);
   });
 }

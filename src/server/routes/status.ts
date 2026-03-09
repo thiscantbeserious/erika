@@ -27,12 +27,6 @@ export async function handleGetStatus(
     return c.json(result.data);
   } catch (err) {
     log.error({ err }, 'Get session status error');
-    return c.json(
-      {
-        error: 'Failed to retrieve session status',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to retrieve session status' }, 500);
   }
 }

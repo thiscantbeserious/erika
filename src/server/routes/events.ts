@@ -29,12 +29,6 @@ export async function handleGetEventLog(
     return c.json(result.data);
   } catch (err) {
     log.error({ err }, 'Get event log error');
-    return c.json(
-      {
-        error: 'Failed to retrieve event log',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to retrieve event log' }, 500);
   }
 }

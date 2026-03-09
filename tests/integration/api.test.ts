@@ -672,7 +672,7 @@ describe('API Routes', () => {
       expect(body.error).toBe('Failed to delete session');
     });
 
-    it('should use String(err) when non-Error is thrown from list sessions', async () => {
+    it('should return 500 without internal details when non-Error is thrown from list sessions', async () => {
       const failApp = new Hono();
       const failRepo = {
         findAll: () => { throw 'string error code'; },
@@ -689,10 +689,11 @@ describe('API Routes', () => {
       const res = await failApp.fetch(new Request('http://localhost/api/sessions'));
       expect(res.status).toBe(500);
       const body = await res.json();
-      expect(body.details).toBe('string error code');
+      expect(body.error).toBe('Failed to list sessions');
+      expect(body.details).toBeUndefined();
     });
 
-    it('should use String(err) when non-Error is thrown from get session', async () => {
+    it('should return 500 without internal details when non-Error is thrown from get session', async () => {
       const failApp = new Hono();
       const failRepo = {
         findById: () => { throw 'non-error-value'; },
@@ -711,10 +712,11 @@ describe('API Routes', () => {
       );
       expect(res.status).toBe(500);
       const body = await res.json();
-      expect(body.details).toBe('non-error-value');
+      expect(body.error).toBe('Failed to retrieve session');
+      expect(body.details).toBeUndefined();
     });
 
-    it('should use String(err) when non-Error is thrown from delete session', async () => {
+    it('should return 500 without internal details when non-Error is thrown from delete session', async () => {
       const failApp = new Hono();
       const failRepo = {
         findById: () => { throw 42; },
@@ -733,10 +735,11 @@ describe('API Routes', () => {
       );
       expect(res.status).toBe(500);
       const body = await res.json();
-      expect(body.details).toBe('42');
+      expect(body.error).toBe('Failed to delete session');
+      expect(body.details).toBeUndefined();
     });
 
-    it('should use String(err) when non-Error is thrown from redetect', async () => {
+    it('should return 500 without internal details when non-Error is thrown from redetect', async () => {
       const failApp = new Hono();
       const failRepo = {
         findById: () => { throw 'redetect-error'; },
@@ -755,10 +758,11 @@ describe('API Routes', () => {
       );
       expect(res.status).toBe(500);
       const body = await res.json();
-      expect(body.details).toBe('redetect-error');
+      expect(body.error).toBe('Failed to start re-detection');
+      expect(body.details).toBeUndefined();
     });
 
-    it('should use String(err) when non-Error is thrown from storage save during upload', async () => {
+    it('should return safe details when storage save fails during upload', async () => {
       const failApp = new Hono();
       const failStorage = {
         save: () => { throw 'disk-quota-exceeded'; },
@@ -783,7 +787,7 @@ describe('API Routes', () => {
       expect(res.status).toBe(500);
       const body = await res.json();
       expect(body.error).toBe('Failed to save file');
-      expect(body.details).toBe('disk-quota-exceeded');
+      expect(body.details).toBe('Storage write failed');
     });
 
     it('should handle delete when file is already removed', async () => {

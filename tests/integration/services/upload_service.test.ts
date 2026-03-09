@@ -177,7 +177,7 @@ describe('UploadService.upload', () => {
     expect(result.error).toBe('Failed to save file');
   });
 
-  it('includes error details when storage save fails with non-Error', async () => {
+  it('returns safe details when storage save fails — does not expose raw error', async () => {
     const failStorage = {
       save: () => { throw 'quota-exceeded'; },
       read: storageAdapter.read.bind(storageAdapter),
@@ -197,7 +197,7 @@ describe('UploadService.upload', () => {
     const result = await failService.upload(file);
     expect(result.ok).toBe(false);
     assert(!result.ok);
-    expect(result.details).toBe('quota-exceeded');
+    expect(result.details).toBe('Storage write failed');
   });
 
   it('throws when DB insert fails (triggers cleanup path)', async () => {

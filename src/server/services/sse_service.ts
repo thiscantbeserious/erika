@@ -11,6 +11,12 @@ import type { EventBusAdapter, EventHandler } from '../events/event_bus_adapter.
 import type { EventLogAdapter, EventLogEntry } from '../events/event_log_adapter.js';
 import type { PipelineEvent, PipelineEventType } from '../../shared/types/pipeline.js';
 
+/** A buffered live event paired with its persisted event log row ID for SSE `id` field. */
+export interface PendingEvent {
+  event: PipelineEvent;
+  logId: number;
+}
+
 /** All pipeline event types to subscribe to. */
 export const ALL_PIPELINE_EVENT_TYPES: PipelineEventType[] = [
   'session.uploaded', 'session.validated', 'session.detected',
@@ -42,7 +48,7 @@ export class SseService {
    */
   registerSessionHandlers(
     sessionId: string,
-    pending: PipelineEvent[]
+    pending: PendingEvent[]
   ): Map<PipelineEventType, (event: PipelineEvent) => void> {
     return registerSessionHandlers(this.eventBus, sessionId, pending);
   }
@@ -60,16 +66,23 @@ export class SseService {
   }
 }
 
-/** Register event bus handlers for a session synchronously, buffering events into pending. */
+/**
+ * Register event bus handlers for a session synchronously, buffering events into pending.
+ * Each buffered entry includes the event log row ID (set by the log handler in index.ts
+ * before this handler fires) so the SSE stream can include it as the `id` field.
+ */
 export function registerSessionHandlers(
   eventBus: EventBusAdapter,
   sessionId: string,
-  pending: PipelineEvent[]
+  pending: PendingEvent[]
 ): Map<PipelineEventType, (event: PipelineEvent) => void> {
   const handlers = new Map<PipelineEventType, (event: PipelineEvent) => void>();
   for (const type of ALL_PIPELINE_EVENT_TYPES) {
     const handler = (event: PipelineEvent) => {
-      if (event.sessionId === sessionId) pending.push(event);
+      if (event.sessionId === sessionId) {
+        const logId = (event as Record<string, unknown>)['logId'];
+        pending.push({ event, logId: typeof logId === 'number' ? logId : 0 });
+      }
     };
     handlers.set(type, handler);
     eventBus.on(type, handler as EventHandler<typeof type>);
@@ -93,6 +106,5 @@ export async function getMissedEvents(
   sessionId: string,
   afterId: number
 ): Promise<EventLogEntry[]> {
-  const all = await eventLog.findBySessionId(sessionId);
-  return all.filter(e => e.id > afterId);
+  return eventLog.findBySessionIdAfterId(sessionId, afterId);
 }

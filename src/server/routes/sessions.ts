@@ -22,13 +22,7 @@ export async function handleListSessions(
     return c.json(sessions);
   } catch (err) {
     log.error({ err }, 'List sessions error');
-    return c.json(
-      {
-        error: 'Failed to list sessions',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to list sessions' }, 500);
   }
 }
 
@@ -49,18 +43,7 @@ export async function handleGetSession(
     return c.json(result.data);
   } catch (err) {
     log.error({ err }, 'Get session error');
-
-    if (err instanceof Error && err.message.includes('not found')) {
-      return c.json({ error: 'Session file not found on filesystem' }, 404);
-    }
-
-    return c.json(
-      {
-        error: 'Failed to retrieve session',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to retrieve session' }, 500);
   }
 }
 
@@ -81,13 +64,7 @@ export async function handleDeleteSession(
     return c.json(result.data);
   } catch (err) {
     log.error({ err }, 'Delete session error');
-    return c.json(
-      {
-        error: 'Failed to delete session',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to delete session' }, 500);
   }
 }
 
@@ -109,12 +86,6 @@ export async function handleRedetect(
     return c.json(result.data, 202);
   } catch (err) {
     log.error({ err }, 'Redetect error');
-    return c.json(
-      {
-        error: 'Failed to start re-detection',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Failed to start re-detection' }, 500);
   }
 }

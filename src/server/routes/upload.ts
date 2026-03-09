@@ -36,12 +36,6 @@ export async function handleUpload(
     return c.json(result.session, 201);
   } catch (err) {
     log.error({ err }, 'Upload error');
-    return c.json(
-      {
-        error: 'Internal server error',
-        details: err instanceof Error ? err.message : String(err),
-      },
-      500
-    );
+    return c.json({ error: 'Internal server error' }, 500);
   }
 }
