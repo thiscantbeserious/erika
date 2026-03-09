@@ -147,7 +147,7 @@ flowchart TD
     Platform -->|writes curated| Curated
     Curated -.->|structured context| Agent
 
-    style Adapter stroke-dasharray: 5 5
+    style Adapter stroke-dasharray: 5 5, fill:#f5f5f5, stroke:#999, color:#333
 ```
 
 Each cycle sharpens both sides. Humans browse sessions, curate what matters, share with the team — on their own time, not blocking the agent. Agents contribute too: flagging patterns, linking related sessions, suggesting refinements. Both feed back into the platform asynchronously. Curated insights flow back as structured context, replacing the self-written, uncurated files from Step 4.
