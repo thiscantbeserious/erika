@@ -201,3 +201,40 @@ jobs:
           **To update baselines:** comment \`/update-snapshots\` on this PR. This will regenerate all visual baselines on the CI runner and commit them to your branch."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    name: Docker Build & Smoke Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ragts:ci .
+
+      - name: Start container
+        run: docker run -d --name ragts-ci -p 3000:3000 ragts:ci
+
+      - name: Wait for health check
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/health; then
+              echo ""
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Health check failed after 30s"
+          docker logs ragts-ci
+          exit 1
+
+      - name: Verify health response
+        run: |
+          RESPONSE=$(curl -sf http://localhost:3000/api/health)
+          echo "$RESPONSE" | grep -q '"status":"ok"'
+          echo "Health response OK: $RESPONSE"
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f ragts-ci || true
