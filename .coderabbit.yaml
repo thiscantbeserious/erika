@@ -1,0 +1,6 @@
+reviews:
+  auto_review:
+    drafts: false
+    base_branches:
+      - main
+    auto_incremental_review: false
