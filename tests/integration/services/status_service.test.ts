@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import assert from 'node:assert';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -47,25 +48,23 @@ describe('StatusService.getStatus', () => {
   it('returns 404 for non-existent session', async () => {
     const result = await service.getStatus('nonexistent-id');
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(404);
-      expect(result.error).toContain('not found');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(404);
+    expect(result.error).toContain('not found');
   });
 
   it('returns synthetic completed record when no job exists (pre-upgrade session)', async () => {
     const result = await service.getStatus(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.sessionId).toBe(sessionId);
-      expect(result.data.status).toBe('completed');
-      expect(result.data.currentStage).toBeNull();
-      expect(result.data.attempts).toBe(0);
-      expect(result.data.maxAttempts).toBe(0);
-      expect(result.data.lastError).toBeNull();
-      expect(result.data.startedAt).toBeNull();
-      expect(result.data.completedAt).toBeNull();
-    }
+    assert(result.ok);
+    expect(result.data.sessionId).toBe(sessionId);
+    expect(result.data.status).toBe('completed');
+    expect(result.data.currentStage).toBeNull();
+    expect(result.data.attempts).toBe(0);
+    expect(result.data.maxAttempts).toBe(0);
+    expect(result.data.lastError).toBeNull();
+    expect(result.data.startedAt).toBeNull();
+    expect(result.data.completedAt).toBeNull();
   });
 
   it('returns pending status for a queued job', async () => {
@@ -73,12 +72,11 @@ describe('StatusService.getStatus', () => {
 
     const result = await service.getStatus(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.status).toBe('pending');
-      expect(result.data.currentStage).toBe(PipelineStage.Validate);
-      expect(typeof result.data.attempts).toBe('number');
-      expect(typeof result.data.maxAttempts).toBe('number');
-    }
+    assert(result.ok);
+    expect(result.data.status).toBe('pending');
+    expect(result.data.currentStage).toBe(PipelineStage.Validate);
+    expect(typeof result.data.attempts).toBe('number');
+    expect(typeof result.data.maxAttempts).toBe('number');
   });
 
   it('returns running status for a started job', async () => {
@@ -87,10 +85,9 @@ describe('StatusService.getStatus', () => {
 
     const result = await service.getStatus(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.status).toBe('running');
-      expect(result.data.startedAt).toBeDefined();
-    }
+    assert(result.ok);
+    expect(result.data.status).toBe('running');
+    expect(result.data.startedAt).toBeDefined();
   });
 
   it('returns failed status with lastError for a failed job', async () => {
@@ -100,10 +97,9 @@ describe('StatusService.getStatus', () => {
 
     const result = await service.getStatus(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.status).toBe('failed');
-      expect(result.data.lastError).toBe('Something exploded');
-    }
+    assert(result.ok);
+    expect(result.data.status).toBe('failed');
+    expect(result.data.lastError).toBe('Something exploded');
   });
 
   it('returns completed status with completedAt for a completed job', async () => {
@@ -113,10 +109,9 @@ describe('StatusService.getStatus', () => {
 
     const result = await service.getStatus(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.status).toBe('completed');
-      expect(result.data.completedAt).toBeDefined();
-    }
+    assert(result.ok);
+    expect(result.data.status).toBe('completed');
+    expect(result.data.completedAt).toBeDefined();
   });
 
   it('response includes all expected fields', async () => {
@@ -125,16 +120,15 @@ describe('StatusService.getStatus', () => {
 
     const result = await service.getStatus(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      const data = result.data;
-      expect(data).toHaveProperty('sessionId');
-      expect(data).toHaveProperty('status');
-      expect(data).toHaveProperty('currentStage');
-      expect(data).toHaveProperty('attempts');
-      expect(data).toHaveProperty('maxAttempts');
-      expect(data).toHaveProperty('lastError');
-      expect(data).toHaveProperty('startedAt');
-      expect(data).toHaveProperty('completedAt');
-    }
+    assert(result.ok);
+    const data = result.data;
+    expect(data).toHaveProperty('sessionId');
+    expect(data).toHaveProperty('status');
+    expect(data).toHaveProperty('currentStage');
+    expect(data).toHaveProperty('attempts');
+    expect(data).toHaveProperty('maxAttempts');
+    expect(data).toHaveProperty('lastError');
+    expect(data).toHaveProperty('startedAt');
+    expect(data).toHaveProperty('completedAt');
   });
 });

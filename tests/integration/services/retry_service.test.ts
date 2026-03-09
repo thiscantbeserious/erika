@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import assert from 'node:assert';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -51,19 +52,17 @@ describe('RetryService.retry', () => {
   it('returns 404 for non-existent session', async () => {
     const result = await service.retry('nonexistent-id');
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(404);
-      expect(result.error).toContain('not found');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(404);
+    expect(result.error).toContain('not found');
   });
 
   it('returns 400 when no job exists for session', async () => {
     const result = await service.retry(sessionId);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-      expect(result.error).toContain('nothing to retry');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
+    expect(result.error).toContain('nothing to retry');
   });
 
   it('returns 409 when job is in running state', async () => {
@@ -72,10 +71,9 @@ describe('RetryService.retry', () => {
 
     const result = await service.retry(sessionId);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(409);
-      expect(result.error).toContain('already processing');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(409);
+    expect(result.error).toContain('already processing');
   });
 
   it('returns 400 when job is in pending state', async () => {
@@ -83,10 +81,9 @@ describe('RetryService.retry', () => {
 
     const result = await service.retry(sessionId);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-      expect(result.error).toContain('pending');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
+    expect(result.error).toContain('pending');
   });
 
   it('returns 400 when job is in completed state', async () => {
@@ -96,10 +93,9 @@ describe('RetryService.retry', () => {
 
     const result = await service.retry(sessionId);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-      expect(result.error).toContain('completed');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
+    expect(result.error).toContain('completed');
   });
 
   it('retries a failed job and resets it to validate stage', async () => {
@@ -109,10 +105,9 @@ describe('RetryService.retry', () => {
 
     const result = await service.retry(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.sessionId).toBe(sessionId);
-      expect(result.data.message).toContain('Retry started');
-    }
+    assert(result.ok);
+    expect(result.data.sessionId).toBe(sessionId);
+    expect(result.data.message).toContain('Retry started');
 
     const updatedJob = await ctx.jobQueue.findBySessionId(sessionId);
     expect(updatedJob?.status).toBe('pending');
@@ -151,9 +146,8 @@ describe('RetryService.retry', () => {
 
     const result = await service.retry(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.jobId).toBeDefined();
-      expect(typeof result.data.jobId).toBe('string');
-    }
+    assert(result.ok);
+    expect(result.data.jobId).toBeDefined();
+    expect(typeof result.data.jobId).toBe('string');
   });
 });

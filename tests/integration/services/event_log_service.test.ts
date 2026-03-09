@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import assert from 'node:assert';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -48,36 +49,32 @@ describe('EventLogService.getEvents', () => {
   it('returns 400 when sessionId is undefined', async () => {
     const result = await service.getEvents(undefined);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-      expect(result.error).toContain('sessionId');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
+    expect(result.error).toContain('sessionId');
   });
 
   it('returns 400 when sessionId is empty string', async () => {
     const result = await service.getEvents('');
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
   });
 
   it('returns 404 for non-existent session', async () => {
     const result = await service.getEvents('nonexistent-id');
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(404);
-      expect(result.error).toContain('not found');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(404);
+    expect(result.error).toContain('not found');
   });
 
   it('returns empty array for session with no events', async () => {
     const result = await service.getEvents(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(Array.isArray(result.data)).toBe(true);
-      expect(result.data).toHaveLength(0);
-    }
+    assert(result.ok);
+    expect(Array.isArray(result.data)).toBe(true);
+    expect(result.data).toHaveLength(0);
   });
 
   it('returns events ordered by id ascending', async () => {
@@ -92,25 +89,23 @@ describe('EventLogService.getEvents', () => {
 
     const result = await service.getEvents(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toHaveLength(3);
-      const types = result.data.map(e => e.eventType);
-      expect(types).toEqual(['session.validated', 'session.detected', 'session.ready']);
-    }
+    assert(result.ok);
+    expect(result.data).toHaveLength(3);
+    const types = result.data.map(e => e.eventType);
+    expect(types).toEqual(['session.validated', 'session.detected', 'session.ready']);
   });
 
   it('each entry has id, eventType, stage, payload, createdAt fields', async () => {
     await ctx.eventLog.log({ type: 'session.validated', sessionId, eventCount: 5 });
     const result = await service.getEvents(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      const entry = result.data[0]!;
-      expect(entry).toHaveProperty('id');
-      expect(entry).toHaveProperty('eventType');
-      expect(entry).toHaveProperty('stage');
-      expect(entry).toHaveProperty('payload');
-      expect(entry).toHaveProperty('createdAt');
-    }
+    assert(result.ok);
+    const entry = result.data[0]!;
+    expect(entry).toHaveProperty('id');
+    expect(entry).toHaveProperty('eventType');
+    expect(entry).toHaveProperty('stage');
+    expect(entry).toHaveProperty('payload');
+    expect(entry).toHaveProperty('createdAt');
   });
 
   it('preserves stage field for session.failed events', async () => {
@@ -122,9 +117,8 @@ describe('EventLogService.getEvents', () => {
     });
     const result = await service.getEvents(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data[0]!.stage).toBe(PipelineStage.Detect);
-    }
+    assert(result.ok);
+    expect(result.data[0]!.stage).toBe(PipelineStage.Detect);
   });
 
   it('does not include events from other sessions', async () => {
@@ -140,9 +134,8 @@ describe('EventLogService.getEvents', () => {
 
     const result = await service.getEvents(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0]!.eventType).toBe('session.ready');
-    }
+    assert(result.ok);
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0]!.eventType).toBe('session.ready');
   });
 });

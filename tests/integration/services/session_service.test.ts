@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import assert from 'node:assert';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -77,12 +78,11 @@ describe('SessionService.getSession — null section field coalescing', () => {
 
     const result = await service.getSession(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      const sections = result.data.sections as Array<{ label: string; endEvent: number }>;
-      expect(sections).toHaveLength(1);
-      expect(sections[0]!.label).toBe('');
-      expect(sections[0]!.endEvent).toBe(0);
-    }
+    assert(result.ok);
+    const sections = result.data.sections as Array<{ label: string; endEvent: number }>;
+    expect(sections).toHaveLength(1);
+    expect(sections[0]!.label).toBe('');
+    expect(sections[0]!.endEvent).toBe(0);
   });
 });
 
@@ -129,10 +129,9 @@ describe('SessionService.redetectSession', () => {
   it('returns 404 for a non-existent session', async () => {
     const result = await service.redetectSession('nonexistent');
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(404);
-      expect(result.error).toContain('not found');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(404);
+    expect(result.error).toContain('not found');
   });
 
   it('returns early with in-progress message when a pending job already exists', async () => {
@@ -144,10 +143,9 @@ describe('SessionService.redetectSession', () => {
 
     const result = await service.redetectSession(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.message).toContain('already in progress');
-      expect(result.data.sessionId).toBe(sessionId);
-    }
+    assert(result.ok);
+    expect(result.data.message).toContain('already in progress');
+    expect(result.data.sessionId).toBe(sessionId);
     // No event should be emitted since it returns early
     expect(emittedTypes).toHaveLength(0);
   });
@@ -162,9 +160,8 @@ describe('SessionService.redetectSession', () => {
 
     const result = await service.redetectSession(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.message).toContain('already in progress');
-    }
+    assert(result.ok);
+    expect(result.data.message).toContain('already in progress');
     expect(emittedTypes).toHaveLength(0);
   });
 
@@ -179,10 +176,9 @@ describe('SessionService.redetectSession', () => {
 
     const result = await service.redetectSession(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.message).toContain('Re-detection started');
-      expect(result.data.sessionId).toBe(sessionId);
-    }
+    assert(result.ok);
+    expect(result.data.message).toContain('Re-detection started');
+    expect(result.data.sessionId).toBe(sessionId);
     expect(emittedTypes).toContain('session.uploaded');
 
     // The job should be reset to pending/validate via retry()
@@ -200,9 +196,8 @@ describe('SessionService.redetectSession', () => {
 
     const result = await service.redetectSession(sessionId);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.data.message).toContain('Re-detection started');
-    }
+    assert(result.ok);
+    expect(result.data.message).toContain('Re-detection started');
     expect(emittedTypes).toContain('session.uploaded');
 
     const created = await ctx.jobQueue.findBySessionId(sessionId);

@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import assert from 'node:assert';
 import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -76,10 +77,9 @@ describe('UploadService.upload', () => {
     const file = new File([largeContent], 'large.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(413);
-      expect(result.error).toContain('too large');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(413);
+    expect(result.error).toContain('too large');
   });
 
   it('returns 400 for invalid asciicast format', async () => {
@@ -87,10 +87,9 @@ describe('UploadService.upload', () => {
     const file = new File([invalidContent], 'invalid.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-      expect(result.error).toContain('Invalid asciicast');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
+    expect(result.error).toContain('Invalid asciicast');
   });
 
   it('returns 400 with line number for invalid asciicast', async () => {
@@ -98,10 +97,9 @@ describe('UploadService.upload', () => {
     const file = new File([invalidContent], 'invalid.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(400);
-      expect(result.line).toBeDefined();
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(400);
+    expect(result.line).toBeDefined();
   });
 
   it('creates session record on successful upload', async () => {
@@ -109,10 +107,9 @@ describe('UploadService.upload', () => {
     const file = new File([content], 'test.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.session).toHaveProperty('id');
-      expect(result.session.filename).toBe('test.cast');
-    }
+    assert(result.ok);
+    expect(result.session).toHaveProperty('id');
+    expect(result.session.filename).toBe('test.cast');
   });
 
   it('counts markers correctly in returned session', async () => {
@@ -120,9 +117,8 @@ describe('UploadService.upload', () => {
     const file = new File([content], 'markers.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.session.marker_count).toBe(2);
-    }
+    assert(result.ok);
+    expect(result.session.marker_count).toBe(2);
   });
 
   it('does not include filepath in returned session data', async () => {
@@ -130,9 +126,8 @@ describe('UploadService.upload', () => {
     const file = new File([content], 'test.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.session).not.toHaveProperty('filepath');
-    }
+    assert(result.ok);
+    expect(result.session).not.toHaveProperty('filepath');
   });
 
   it('emits session.uploaded event after successful upload', async () => {
@@ -151,12 +146,11 @@ describe('UploadService.upload', () => {
     const file = new File([content], 'test.cast');
     const result = await service.upload(file);
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      const id = result.session.id as string;
-      const job = await jobQueue.findBySessionId(id);
-      expect(job).not.toBeNull();
-      expect(job?.status).toBe('pending');
-    }
+    assert(result.ok);
+    const id = result.session.id as string;
+    const job = await jobQueue.findBySessionId(id);
+    expect(job).not.toBeNull();
+    expect(job?.status).toBe('pending');
   });
 
   it('returns 500 when storage save fails', async () => {
@@ -178,10 +172,9 @@ describe('UploadService.upload', () => {
     const file = new File([content], 'test.cast');
     const result = await failService.upload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.status).toBe(500);
-      expect(result.error).toBe('Failed to save file');
-    }
+    assert(!result.ok);
+    expect(result.status).toBe(500);
+    expect(result.error).toBe('Failed to save file');
   });
 
   it('includes error details when storage save fails with non-Error', async () => {
@@ -203,9 +196,8 @@ describe('UploadService.upload', () => {
     const file = new File([content], 'test.cast');
     const result = await failService.upload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.details).toBe('quota-exceeded');
-    }
+    assert(!result.ok);
+    expect(result.details).toBe('quota-exceeded');
   });
 
   it('throws when DB insert fails (triggers cleanup path)', async () => {
@@ -261,8 +253,6 @@ describe('UploadService.upload', () => {
     // (it will fail validation if content is malformed, but not size)
     const result = await service.upload(file);
     // We just care it's not a size error
-    if (!result.ok) {
-      expect(result.status).not.toBe(413);
-    }
+    expect(result.ok || result.status !== 413).toBe(true);
   });
 });
