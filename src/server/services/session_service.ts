@@ -58,7 +58,7 @@ export class SessionService {
 
   /**
    * Retrieve full session data including parsed content and sections.
-   * Returns 404 if the session record does not exist.
+   * Returns 404 if the session record or its stored file does not exist.
    */
   async getSession(id: string): Promise<SessionServiceResult<Record<string, unknown>>> {
     const session = await this.sessionRepository.findById(id);
@@ -66,7 +66,15 @@ export class SessionService {
       return { ok: false, status: 404, error: 'Session not found' };
     }
 
-    const content = await this.storageAdapter.read(id);
+    let content: string;
+    try {
+      content = await this.storageAdapter.read(id);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('not found')) {
+        return { ok: false, status: 404, error: 'Session file not found on filesystem' };
+      }
+      throw err;
+    }
     const parsed = parseAsciicast(content);
     const sections = await this.sectionRepository.findBySessionId(id);
 
@@ -130,7 +138,20 @@ export class SessionService {
     if (existing) {
       await this.jobQueue.retry(existing.id, PipelineStage.Validate);
     } else {
-      await this.jobQueue.create(id);
+      try {
+        await this.jobQueue.create(id);
+      } catch (err) {
+        // Concurrent request may have already created the job — treat as success
+        if (err instanceof Error && err.message.includes('UNIQUE constraint')) {
+          log.info({ sessionId: id }, 'Concurrent redetect — job already created');
+          const retryJob = await this.jobQueue.findBySessionId(id);
+          if (retryJob) {
+            await this.jobQueue.retry(retryJob.id, PipelineStage.Validate);
+          }
+        } else {
+          throw err;
+        }
+      }
     }
 
     this.eventBus.emit({ type: 'session.uploaded', sessionId: id, filename: session.filename });
