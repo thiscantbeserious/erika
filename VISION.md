@@ -114,15 +114,12 @@ flowchart TD
         Agent -->|works| Human
     end
 
-    subgraph Writers["Uncurated Context · Today"]
+    subgraph Adapter["🔌 Adapter"]
         direction LR
-        MemFile[(MEMORY.md)] ~~~ AgentsFile[(AGENTS.md)]
+        Asciicast([asciicast]) ~~~ JSONL([JSONL]) ~~~ OTel([OTel])
     end
 
-    Agent -.->|writes to| Writers
-    Writers -.->|auto-loaded, uncurated| Agent
-
-    Session -->|raw output| Adapter{{"🔌 Adapter\nasciicast · JSONL · OTel"}}
+    Session -->|raw output| Adapter
     Adapter -->|normalized sessions| Platform
 
     subgraph Platform["Erika Platform"]
@@ -146,9 +143,13 @@ flowchart TD
     Platform --> Team
     Team --> Platform
 
-    CuratedCtx[("Curated Context\nRAG · MCP · files")]
-    Platform -->|writes curated| CuratedCtx
-    CuratedCtx -.->|structured context| Agent
+    subgraph Curated["Curated Context"]
+        direction LR
+        RAG[(RAG)] ~~~ MCP[(MCP)] ~~~ Files[(Files)]
+    end
+
+    Platform -->|writes curated| Curated
+    Curated -.->|structured context| Agent
 ```
 
 Each cycle sharpens both sides. Humans browse sessions, curate what matters, share with the team — on their own time, not blocking the agent. Curated insights flow back as structured context, replacing the self-written, uncurated files from Step 4.
