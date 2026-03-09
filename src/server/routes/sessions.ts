@@ -7,7 +7,9 @@ import { parseAsciicast } from '../../shared/asciicast.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { SectionAdapter } from '../db/section_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
-import { processSessionPipeline, runPipeline } from '../processing/index.js';
+import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
+import type { EventBusAdapter } from '../events/event_bus_adapter.js';
+import { PipelineStage } from '../../shared/pipeline_events.js';
 import { logger } from '../logger.js';
 
 const log = logger.child({ module: 'routes' });
@@ -174,44 +176,44 @@ export async function handleDeleteSession(
  * Handle POST /api/sessions/:id/redetect
  * Re-run section detection on an existing session.
  * Replaces all existing sections (both marker and detected).
- * Returns 202 Accepted immediately, processing happens async.
+ * Returns 202 Accepted immediately; the orchestrator handles processing via event bus.
  */
 export async function handleRedetect(
   c: Context,
   sessionRepository: SessionAdapter,
-  storageAdapter: StorageAdapter
+  storageAdapter: StorageAdapter,
+  jobQueue: JobQueueAdapter,
+  eventBus: EventBusAdapter
 ): Promise<Response> {
   try {
     const id = c.req.param('id');
 
-    // Find session
     const session = await sessionRepository.findById(id);
     if (!session) {
       return c.json({ error: 'Session not found' }, 404);
     }
 
-    // Read and parse session file to get markers
+    // Read and parse to verify the file is accessible
     const content = await storageAdapter.read(id);
-    const parsed = parseAsciicast(content);
+    parseAsciicast(content); // validate file is still parseable
 
-    // Trigger async processing (bounded concurrency, non-blocking)
-    runPipeline(() =>
-      processSessionPipeline(
-        session.filepath,
-        id,
-        parsed.markers,
-        sessionRepository
-      )
-    );
+    // Upsert job: replace existing job if present, then emit session.uploaded
+    const existing = await jobQueue.findBySessionId(id);
+    if (existing && (existing.status === 'pending' || existing.status === 'running')) {
+      // Already queued or running — return 202 without re-creating
+      return c.json({ message: 'Re-detection already in progress', sessionId: id }, 202);
+    }
 
-    // Return 202 Accepted
-    return c.json(
-      {
-        message: 'Re-detection started',
-        sessionId: id,
-      },
-      202
-    );
+    if (existing) {
+      // Re-queue a completed or failed job for re-detection
+      await jobQueue.retry(existing.id, PipelineStage.Validate);
+    } else {
+      await jobQueue.create(id);
+    }
+
+    eventBus.emit({ type: 'session.uploaded', sessionId: id, filename: session.filename });
+
+    return c.json({ message: 'Re-detection started', sessionId: id }, 202);
   } catch (err) {
     log.error({ err }, 'Redetect error');
     return c.json(

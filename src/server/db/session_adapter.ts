@@ -5,6 +5,7 @@
 
 import type { Session, SessionCreate } from '../../shared/types.js';
 import type { ProcessedSession } from '../processing/types.js';
+import type { DetectionStatus } from '../../shared/pipeline_events.js';
 
 /**
  * Adapter for managing session entities.
@@ -47,7 +48,7 @@ export interface SessionAdapter {
    */
   updateDetectionStatus(
     id: string,
-    status: 'pending' | 'processing' | 'completed' | 'failed',
+    status: DetectionStatus,
     eventCount?: number,
     detectedSectionsCount?: number
   ): Promise<void>;

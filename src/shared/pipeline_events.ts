@@ -5,6 +5,24 @@
  * (SSE event parsing). Keep this type-only — no runtime logic here.
  */
 
+/**
+ * All valid values for the detection_status column.
+ * Includes terminal states (pending, processing, completed, failed) and
+ * intermediate pipeline stage states written by the orchestrator.
+ */
+export type DetectionStatus =
+  | 'pending'
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'interrupted'
+  | 'validating'
+  | 'detecting'
+  | 'replaying'
+  | 'deduplicating'
+  | 'storing';
+
 /** Named processing stages. Maps to `detection_status` values in the DB. */
 export enum PipelineStage {
   Validate = 'validate',
