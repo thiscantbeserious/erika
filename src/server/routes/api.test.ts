@@ -21,7 +21,7 @@ import {
   handleRedetect,
 } from './sessions.js';
 import { waitForPipelines } from '../processing/index.js';
-import { initVt } from '../../../packages/vt-wasm/index.js';
+import { initVt } from '#vt-wasm';
 
 describe('API Routes', () => {
   let testDir: string;

@@ -22,10 +22,10 @@ import { logger } from '../logger.js';
 
 const log = logger.child({ module: 'pipeline' });
 import { normalizeHeader } from '../../shared/asciicast.js';
-import { NdjsonStream } from './ndjson-stream.js';
-import { SectionDetector, type SectionBoundary } from './section-detector.js';
-import { createVt, initVt, type TerminalSnapshot } from '../../../packages/vt-wasm/index.js';
-import { buildCleanDocument, type EpochBoundary } from './scrollback-dedup.js';
+import { NdjsonStream } from './ndjson_stream.js';
+import { SectionDetector, type SectionBoundary } from './section_detector.js';
+import { createVt, initVt, type TerminalSnapshot } from '#vt-wasm';
+import { buildCleanDocument, type EpochBoundary } from './scrollback_dedup.js';
 import type { ProcessedSession } from './types.js';
 
 /**

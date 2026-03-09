@@ -13,8 +13,8 @@
 
 import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
-import { processSessionPipeline } from '../processing/session-pipeline.js';
-import { NdjsonStream } from '../processing/ndjson-stream.js';
+import { processSessionPipeline } from '../processing/session_pipeline.js';
+import { NdjsonStream } from '../processing/ndjson_stream.js';
 import { extractMarkers, computeCumulativeTimes } from '../../shared/asciicast.js';
 import type { AsciicastEvent, AsciicastHeader, Marker } from '../../shared/asciicast-types.js';
 import { loadConfig } from '../config.js';

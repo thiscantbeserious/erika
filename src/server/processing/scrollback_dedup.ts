@@ -19,7 +19,7 @@
  * may match content from any previous epoch (not just the immediately preceding one).
  */
 
-import type { TerminalSnapshot, SnapshotLine } from '../../../packages/vt-wasm/types.js';
+import type { TerminalSnapshot, SnapshotLine } from '#vt-wasm/types';
 
 /**
  * Epoch boundary marker.
