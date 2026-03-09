@@ -8,6 +8,7 @@ import { mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { migrate002Sections } from './migrations/002_sections.js';
 import { migrate003UnifiedSnapshot } from './migrations/003_unified_snapshot.js';
+import { migrate004PipelineJobsEvents } from './migrations/004_pipeline_jobs_events.js';
 import { SqliteSessionImpl } from './sqlite_session_impl.js';
 import { SqliteSectionImpl } from './sqlite_section_impl.js';
 import { FsStorageImpl } from '../../storage/fs_storage_impl.js';
@@ -70,6 +71,7 @@ export class SqliteDatabaseImpl implements DatabaseAdapter {
       // Run migrations
       migrate002Sections(db);
       migrate003UnifiedSnapshot(db);
+      migrate004PipelineJobsEvents(db);
     } catch (err) {
       db.close();
       throw err;

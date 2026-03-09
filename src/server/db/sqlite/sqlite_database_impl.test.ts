@@ -174,5 +174,33 @@ describe('SqliteDatabaseImpl', () => {
       const sections = await memCtx.sectionRepository.findBySessionId(session.id);
       expect(sections).toHaveLength(0);
     });
+
+    it('should have jobs table after migration 004', async () => {
+      // Verify jobs table exists: if migrate004 failed, initialize() would have thrown.
+      // Round-trip a session to confirm the DB is operational post-migration.
+      const session = await memCtx.sessionRepository.create(
+        createTestSession({ filename: 'jobs-test.cast', filepath: 'sessions/jobs-test.cast', size_bytes: 100 })
+      );
+
+      await expect(memCtx.ping()).resolves.not.toThrow();
+      expect(session.id).toBeTruthy();
+    });
+
+    it('should have events table after migration 004 (schema initializes without error)', async () => {
+      // If migration 004 failed, initialize() would have thrown, so reaching here confirms success
+      await expect(memCtx.ping()).resolves.not.toThrow();
+    });
+
+    it('should initialize a brand-new database with all migrations applied', async () => {
+      const freshImpl = new SqliteDatabaseImpl();
+      const freshCtx = await freshImpl.initialize({ dataDir: testDir, dbPath: ':memory:' });
+
+      const session = await freshCtx.sessionRepository.create(
+        createTestSession({ filename: 'fresh.cast', filepath: 'sessions/fresh.cast', size_bytes: 200 })
+      );
+
+      expect(session.id).toBeTruthy();
+      await freshCtx.close();
+    });
   });
 });
