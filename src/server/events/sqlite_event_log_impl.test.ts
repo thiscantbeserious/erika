@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import Database from 'better-sqlite3';
+import { SqliteDatabaseImpl, BASE_SCHEMA } from '../db/sqlite/sqlite_database_impl.js';
+import { migrate002Sections } from '../db/sqlite/migrations/002_sections.js';
+import { migrate003UnifiedSnapshot } from '../db/sqlite/migrations/003_unified_snapshot.js';
+import { migrate004PipelineJobsEvents } from '../db/sqlite/migrations/004_pipeline_jobs_events.js';
+import { SqliteEventLogImpl } from './sqlite_event_log_impl.js';
 import type { DatabaseContext } from '../db/database_adapter.js';
 import type { EventLogAdapter } from './event_log_adapter.js';
 import { createTestSession } from '../db/sqlite/test_fixtures.js';
@@ -78,6 +83,35 @@ describe('SqliteEventLogImpl', () => {
 
       const entries = await eventLog.findBySessionId(sessionId);
       expect(entries[0]!.stage).toBeNull();
+    });
+  });
+
+  describe('findBySessionId — null payload path', () => {
+    it('returns null for payload when the DB row has a NULL payload column', async () => {
+      // Set up a minimal in-memory DB with just the events table
+      const rawDb = new Database(':memory:');
+      rawDb.exec(BASE_SCHEMA);
+      migrate002Sections(rawDb);
+      migrate003UnifiedSnapshot(rawDb);
+      migrate004PipelineJobsEvents(rawDb);
+
+      // Insert a session for FK constraint
+      rawDb.prepare(
+        `INSERT INTO sessions (id, filename, filepath, size_bytes, uploaded_at) VALUES (?, ?, ?, ?, ?)`
+      ).run('s-null-payload', 'null.cast', 'sessions/null.cast', 10, new Date().toISOString());
+
+      // Insert an event row with NULL payload directly, bypassing the log() method
+      rawDb.prepare(
+        `INSERT INTO events (session_id, event_type, stage, payload) VALUES (?, ?, ?, ?)`
+      ).run('s-null-payload', 'session.uploaded', null, null);
+
+      const impl = new SqliteEventLogImpl(rawDb);
+      const entries = await impl.findBySessionId('s-null-payload');
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0]!.payload).toBeNull();
+
+      rawDb.close();
     });
   });
 

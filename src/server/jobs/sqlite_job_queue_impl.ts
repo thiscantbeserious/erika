@@ -86,7 +86,6 @@ export class SqliteJobQueueImpl implements JobQueueAdapter {
       SET status = 'pending',
           current_stage = ?,
           last_error = NULL,
-          attempts = attempts + 1,
           started_at = NULL,
           completed_at = NULL
       WHERE id = ?

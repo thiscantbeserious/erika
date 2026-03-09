@@ -169,15 +169,15 @@ describe('SqliteJobQueueImpl', () => {
       expect(updated!.lastError).toBeNull();
     });
 
-    it('increments attempt count on retry', async () => {
+    it('preserves attempt count on retry (only start() increments)', async () => {
       const job = await queue.create(sessionId);
       await queue.start(job.id); // attempts: 1
       await queue.fail(job.id, 'err');
-      await queue.retry(job.id, PipelineStage.Validate); // attempts: 2
+      await queue.retry(job.id, PipelineStage.Validate); // state reset — attempts stays at 1
 
       const updated = await queue.findBySessionId(sessionId);
-      // retry increments attempts so the orchestrator can detect exhaustion
-      expect(updated!.attempts).toBe(2);
+      // retry is a state reset; start() is the only counter increment
+      expect(updated!.attempts).toBe(1);
     });
   });
 

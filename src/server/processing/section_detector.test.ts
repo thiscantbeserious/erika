@@ -184,6 +184,26 @@ describe('SectionDetector', () => {
       expect(boundaries.length).toBe(1);
     });
 
+    it('merges candidates within 50 events, keeping later boundary when it has higher score', () => {
+      // screen_clear at 100 (lower score), then large timing gap at 110 (higher score)
+      // Both within 50 events → merge; next.score > current.score → next wins
+      const events: AsciicastEvent[] = [
+        ...Array.from({ length: 100 }, (_, i) => [0.1, 'o', `line ${i}\n`] as AsciicastEvent),
+        [0.1, 'o', '\x1b[2J'] as AsciicastEvent, // screen clear at 100 (lower score)
+        ...Array.from({ length: 9 }, (_, i) => [0.1, 'o', `line ${i}\n`] as AsciicastEvent),
+        [15.0, 'o', 'large gap\n'] as AsciicastEvent, // timing gap at 110 (higher score)
+        ...Array.from({ length: 150 }, (_, i) => [0.1, 'o', `line ${i}\n`] as AsciicastEvent),
+      ];
+
+      const detector = new SectionDetector(events);
+      const boundaries = detector.detect();
+
+      // Merged into one boundary; higher-scoring (timing gap) wins position
+      expect(boundaries.length).toBe(1);
+      // The merged boundary should have the timing_gap signal (higher scorer kept)
+      expect(boundaries[0]!.signals).toContain('timing_gap');
+    });
+
     it('merges candidates within 50 events, keeping first when scores are equal', () => {
       // Two screen clears close together (same signal type = same score)
       const events: AsciicastEvent[] = [

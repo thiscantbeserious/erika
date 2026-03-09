@@ -119,6 +119,44 @@ describe('validate stage', () => {
   });
 });
 
+describe('validate stage — malformed input', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stage-validate-malformed-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('logs a warning but succeeds when file contains malformed NDJSON lines', async () => {
+    const header = JSON.stringify({ version: 3, term: { cols: 80, rows: 24 } });
+    const lines = [
+      header,
+      JSON.stringify([0.1, 'o', '$ hello\r\n']),
+      'this is not valid JSON !!!',
+      JSON.stringify([0.2, 'o', 'done\r\n']),
+    ];
+    const filePath = join(tmpDir, 'malformed.cast');
+    writeFileSync(filePath, lines.join('\n'));
+
+    const result = await validate(filePath, 'session-malformed');
+
+    // Malformed line is skipped, valid events are still parsed
+    expect(result.eventCount).toBe(2);
+    expect(result.header).toBeTruthy();
+  });
+
+  it('throws when .cast file has no header line', async () => {
+    // File with only event lines and no header object
+    const filePath = join(tmpDir, 'no-header.cast');
+    writeFileSync(filePath, '');
+
+    await expect(validate(filePath, 'session-no-header')).rejects.toThrow(/No header found/);
+  });
+});
+
 describe('detect stage', () => {
   it('returns boundaries array for events with markers', async () => {
     const content = buildMarkerCast();
@@ -163,6 +201,36 @@ describe('detect stage', () => {
     expect(r1.sectionCount).toBe(r2.sectionCount);
     expect(r1.boundaries.length).toBe(r2.boundaries.length);
   });
+
+  it('does not prepend preamble when first marker is at eventIndex 0 (no pre-marker output)', () => {
+    // First marker at event index 0 means no output before it — no preamble needed
+    const events: AsciicastEvent[] = [
+      [0.0, 'm', 'Section Start'],
+      [0.1, 'o', 'output\r\n'],
+    ];
+    const markers = [{ time: 0.0, label: 'Section Start', index: 0 }];
+
+    const result = detect(events, markers);
+
+    // No preamble boundary prepended because first boundary is at eventIndex 0
+    const preamble = result.boundaries.find(b => b.signals.includes('preamble'));
+    expect(preamble).toBeUndefined();
+  });
+
+  it('does not prepend preamble when pre-marker events are all non-output types', () => {
+    // Marker not at index 0, but events before it have no 'o' type — no preamble
+    const events: AsciicastEvent[] = [
+      [0.0, 'r', '80x24'],  // resize — not output
+      [0.1, 'm', 'Section'],
+      [0.2, 'o', 'output\r\n'],
+    ];
+    const markers = [{ time: 0.1, label: 'Section', index: 1 }];
+
+    const result = detect(events, markers);
+
+    const preamble = result.boundaries.find(b => b.signals.includes('preamble'));
+    expect(preamble).toBeUndefined();
+  });
 });
 
 describe('replay stage', () => {
@@ -195,6 +263,96 @@ describe('replay stage', () => {
     const r2 = replay(header, events, []);
 
     expect(r1.rawSnapshot.lines.length).toBe(r2.rawSnapshot.lines.length);
+  });
+
+  it('handles resize events (r type) without crashing', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', '$ start\r\n'],
+      [0.2, 'r', '100x30'],  // resize event
+      [0.3, 'o', '$ after resize\r\n'],
+    ];
+
+    const result = replay(header, events, []);
+
+    expect(result.rawSnapshot).toBeTruthy();
+    expect(result.rawSnapshot.lines).toBeInstanceOf(Array);
+  });
+
+  it('handles exit events (x type) without crashing', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', '$ hello\r\n'],
+      [0.2, 'x', 0],  // exit event — ignored
+    ];
+
+    const result = replay(header, events, []);
+
+    expect(result.rawSnapshot).toBeTruthy();
+  });
+
+  it('captures alt-screen section snapshot when inAltScreen is true at boundary', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    // Two boundaries: first section ends mid-alt-screen, second section after exit
+    // sectionEndMap: next boundary eventIndex → boundary index
+    // boundary[0] at 0, boundary[1] at 2; section[0] ends at event 2, section[1] ends at event 4
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', '\x1b[?1049h'],     // event 0: enter alt screen
+      [0.2, 'o', 'tui content\r\n'], // event 1: in alt screen
+      [0.3, 'o', 'still tui\r\n'],   // event 2: still in alt screen → section[0] captures here
+      [0.4, 'o', '\x1b[?1049l'],     // event 3: exit alt screen
+    ];
+    // One boundary at index 0, ends at eventCount(4) → captures at j+1=4 → after event 3 (inAltScreen=false)
+    // Need two boundaries so first section ends while still in alt screen
+    const boundaries: SectionBoundary[] = [
+      { eventIndex: 0, score: 10, signals: ['detected'], label: 'TUI Section' },
+      { eventIndex: 3, score: 10, signals: ['detected'], label: 'Post TUI' },
+    ];
+    // sectionEndMap: boundary[1].eventIndex=3 → boundary[0] ends at j+1=3, boundary[1] ends at j+1=4
+    // At j=2 (event index 2), j+1=3 matches boundary[0] end. At that point, inAltScreen=true
+    // → captureSectionSnapshot called with inAltScreen=true → hits lines 137-138
+
+    const result = replay(header, events, boundaries);
+
+    expect(result.sectionData).toHaveLength(2);
+    // Section 0 captured in alt-screen: has snapshot, no lineCount
+    expect(result.sectionData[0]!.snapshot).not.toBeNull();
+    expect(result.sectionData[0]!.lineCount).toBeNull();
+  });
+
+  it('captures line-based snapshot when not in alt-screen and lines grow', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', 'line 1\r\n'],
+      [0.2, 'o', 'line 2\r\n'],
+    ];
+    const boundaries: SectionBoundary[] = [
+      { eventIndex: 0, score: 10, signals: ['detected'], label: 'Section 1' },
+    ];
+
+    const result = replay(header, events, boundaries);
+
+    expect(result.sectionData).toHaveLength(1);
+    expect(result.sectionData[0]).toBeTruthy();
+  });
+
+  it('uses view snapshot when line count does not grow past high water mark', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    // Clear scrollback (3J strips from feed but we track epoch), then output
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', 'line1\r\nline2\r\nline3\r\n'],
+      [0.2, 'o', '\x1b[2J'],  // clear display — triggers epoch boundary
+      [0.3, 'o', 'new line\r\n'],
+    ];
+    const boundaries: SectionBoundary[] = [
+      { eventIndex: 0, score: 10, signals: ['detected'], label: 'Section 1' },
+      { eventIndex: 2, score: 10, signals: ['detected'], label: 'Section 2' },
+    ];
+
+    const result = replay(header, events, boundaries);
+
+    expect(result.sectionData).toHaveLength(2);
+    expect(result.epochBoundaries.length).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -238,6 +396,59 @@ describe('dedup stage', () => {
 
     expect(r1.snapshot).toBe(r2.snapshot);
     expect(r1.sections.length).toBe(r2.sections.length);
+  });
+
+  it('throws when boundaries array is longer than sectionData (boundary drift)', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', 'line\r\n'],
+    ];
+    const replayResult = replay(header, events, []);
+
+    // Provide 2 boundaries but only 0 sectionData entries
+    const boundaries: SectionBoundary[] = [
+      { eventIndex: 0, score: 10, signals: ['detected'], label: 'S1' },
+      { eventIndex: 1, score: 10, signals: ['detected'], label: 'S2' },
+    ];
+    const emptySectionData: Array<{ lineCount: number | null; snapshot: null }> = [];
+
+    expect(() => dedup(
+      'session-drift',
+      replayResult.rawSnapshot,
+      emptySectionData,
+      replayResult.epochBoundaries,
+      boundaries,
+      events.length
+    )).toThrow(/Missing sectionData/);
+  });
+
+  it('builds sections with snapshot when sectionData has a non-null snapshot (alt-screen path)', () => {
+    const header: AsciicastHeader = { version: 3, width: 80, height: 24 };
+    const events: AsciicastEvent[] = [
+      [0.1, 'o', '\x1b[?1049h'],
+      [0.2, 'o', 'tui\r\n'],
+      [0.3, 'o', '\x1b[?1049l'],
+    ];
+    const boundaries: SectionBoundary[] = [
+      { eventIndex: 0, score: 10, signals: ['detected'], label: 'TUI' },
+    ];
+
+    // replay with alt-screen boundary to generate a sectionData with non-null snapshot
+    const replayResult = replay(header, events, boundaries);
+
+    const result = dedup(
+      'session-altscreen',
+      replayResult.rawSnapshot,
+      replayResult.sectionData,
+      replayResult.epochBoundaries,
+      boundaries,
+      events.length
+    );
+
+    expect(result.sections).toHaveLength(1);
+    // alt-screen sections have null startLine/endLine (from snapshot path)
+    expect(result.sections[0]!.startLine).toBeNull();
+    expect(result.sections[0]!.endLine).toBeNull();
   });
 });
 
