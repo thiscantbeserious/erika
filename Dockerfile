@@ -14,9 +14,7 @@ RUN npm run build && \
       --target ES2022 --declaration --skipLibCheck
 
 # Production dependencies only
-# --ignore-scripts skips husky prepare hook, then rebuild native addons
-RUN rm -rf node_modules && npm ci --omit=dev --ignore-scripts && \
-    npm rebuild better-sqlite3
+RUN rm -rf node_modules && npm pkg delete scripts.prepare && npm ci --omit=dev
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
