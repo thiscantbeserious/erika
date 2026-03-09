@@ -38,13 +38,15 @@ export class SseService {
   /**
    * Register event bus handlers for a session synchronously, buffering events into pending.
    * Must be called synchronously before any awaits to avoid missing events emitted during
-   * async session lookup.
+   * async session lookup. Calls notify() after each push so the SSE drain loop wakes
+   * up immediately.
    */
   registerSessionHandlers(
     sessionId: string,
-    pending: PendingEvent[]
+    pending: PendingEvent[],
+    notify: () => void
   ): Map<PipelineEventType, (event: PipelineEvent) => void> {
-    return registerSessionHandlers(this.eventBus, sessionId, pending);
+    return registerSessionHandlers(this.eventBus, sessionId, pending, notify);
   }
 
   /** Remove all registered event bus handlers. */
@@ -64,11 +66,13 @@ export class SseService {
  * Register event bus handlers for a session synchronously, buffering events into pending.
  * Each buffered entry includes the event log row ID (set by the log handler in index.ts
  * before this handler fires) so the SSE stream can include it as the `id` field.
+ * Calls notify() after each push so the SSE drain loop wakes up immediately.
  */
 export function registerSessionHandlers(
   eventBus: EventBusAdapter,
   sessionId: string,
-  pending: PendingEvent[]
+  pending: PendingEvent[],
+  notify: () => void
 ): Map<PipelineEventType, (event: PipelineEvent) => void> {
   const handlers = new Map<PipelineEventType, (event: PipelineEvent) => void>();
   for (const type of ALL_PIPELINE_EVENT_TYPES) {
@@ -76,6 +80,7 @@ export function registerSessionHandlers(
       if (event.sessionId === sessionId) {
         const logId = (event as Record<string, unknown>)['logId'];
         pending.push({ event, logId: typeof logId === 'number' ? logId : 0 });
+        notify();
       }
     };
     handlers.set(type, handler);

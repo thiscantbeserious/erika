@@ -52,8 +52,9 @@ export async function handleSseEvents(
 ): Promise<Response> {
   const id = c.req.param('id');
 
+  const { notify, waitForEvent } = createNotifier();
   const pendingLive: PendingEvent[] = [];
-  const handlers = registerSessionHandlers(eventBus, id, pendingLive);
+  const handlers = registerSessionHandlers(eventBus, id, pendingLive, notify);
 
   const session = await sessionRepository.findById(id);
   if (!session) {
@@ -91,7 +92,7 @@ export async function handleSseEvents(
         }
       }
 
-      await drainAndListen(stream, pendingLive, () => unregisterSessionHandlers(eventBus, handlers));
+      await drainAndListen(stream, pendingLive, () => unregisterSessionHandlers(eventBus, handlers), waitForEvent);
     } catch {
       unregisterSessionHandlers(eventBus, handlers);
     }
@@ -99,13 +100,30 @@ export async function handleSseEvents(
 }
 
 /**
+ * Creates a notifier pair: notify() resolves the next waitForEvent() promise.
+ * Used to wake the SSE drain loop instantly when a new event is pushed.
+ */
+function createNotifier(): { notify: () => void; waitForEvent: () => Promise<void> } {
+  let resolve: (() => void) | null = null;
+
+  return {
+    notify: () => { if (resolve) { resolve(); resolve = null; } },
+    waitForEvent: () => {
+      if (resolve) return Promise.resolve();
+      return new Promise<void>((r) => { resolve = r; });
+    },
+  };
+}
+
+/**
  * Drain buffered live events and keep listening until terminal state or disconnect.
- * Processes all buffered events first, then polls for more until terminal state.
+ * Processes all buffered events first, then waits for event-driven wakeup (no polling).
  */
 async function drainAndListen(
   stream: { writeSSE: (msg: SseMessage) => Promise<void>; closed: boolean },
   pending: PendingEvent[],
-  cleanup: () => void
+  cleanup: () => void,
+  waitForEvent: () => Promise<void>
 ): Promise<void> {
   const stopKeepalive = startKeepalive(stream, cleanup);
 
@@ -121,28 +139,10 @@ async function drainAndListen(
       }
 
       if (stream.closed) break;
-      await waitForNextEvent(pending, stream);
+      await waitForEvent();
     }
   } finally {
     stopKeepalive();
     cleanup();
   }
-}
-
-/**
- * Resolves when a new event is pushed into the pending array or the stream closes.
- * Uses short-interval polling to avoid blocking the event loop.
- */
-function waitForNextEvent(
-  pending: PendingEvent[],
-  stream: { closed: boolean }
-): Promise<void> {
-  return new Promise<void>((resolve) => {
-    const interval = setInterval(() => {
-      if (pending.length > 0 || stream.closed) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 50);
-  });
 }

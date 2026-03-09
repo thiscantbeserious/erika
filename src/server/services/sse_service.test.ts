@@ -30,8 +30,9 @@ describe('registerSessionHandlers', () => {
   it('buffers events for the matching sessionId', () => {
     const eventBus = new EmitterEventBusImpl();
     const pending: PendingEvent[] = [];
+    const notify = vi.fn();
 
-    registerSessionHandlers(eventBus, 'session-A', pending);
+    registerSessionHandlers(eventBus, 'session-A', pending, notify);
 
     const event: PipelineEvent = { type: 'session.ready', sessionId: 'session-A' };
     eventBus.emit(event);
@@ -43,8 +44,9 @@ describe('registerSessionHandlers', () => {
   it('ignores events for a different sessionId', () => {
     const eventBus = new EmitterEventBusImpl();
     const pending: PendingEvent[] = [];
+    const notify = vi.fn();
 
-    registerSessionHandlers(eventBus, 'session-A', pending);
+    registerSessionHandlers(eventBus, 'session-A', pending, notify);
 
     eventBus.emit({ type: 'session.ready', sessionId: 'session-B' });
     expect(pending).toHaveLength(0);
@@ -53,8 +55,9 @@ describe('registerSessionHandlers', () => {
   it('uses 0 as logId fallback when logId is not a number on the event', () => {
     const eventBus = new EmitterEventBusImpl();
     const pending: PendingEvent[] = [];
+    const notify = vi.fn();
 
-    registerSessionHandlers(eventBus, 'session-A', pending);
+    registerSessionHandlers(eventBus, 'session-A', pending, notify);
 
     // Emit an event without a logId property (no logId on the shape)
     const event: PipelineEvent = { type: 'session.ready', sessionId: 'session-A' };
@@ -66,8 +69,9 @@ describe('registerSessionHandlers', () => {
   it('uses the numeric logId when present on the event', () => {
     const eventBus = new EmitterEventBusImpl();
     const pending: PendingEvent[] = [];
+    const notify = vi.fn();
 
-    registerSessionHandlers(eventBus, 'session-A', pending);
+    registerSessionHandlers(eventBus, 'session-A', pending, notify);
 
     // Attach a logId to the emitted event (as the index.ts middleware does)
     const event = { type: 'session.ready', sessionId: 'session-A', logId: 42 } as unknown as PipelineEvent;
@@ -75,14 +79,37 @@ describe('registerSessionHandlers', () => {
 
     expect(pending[0]!.logId).toBe(42);
   });
+
+  it('calls notify when an event matching the sessionId is pushed', () => {
+    const eventBus = new EmitterEventBusImpl();
+    const pending: PendingEvent[] = [];
+    const notify = vi.fn();
+
+    registerSessionHandlers(eventBus, 'session-A', pending, notify);
+
+    eventBus.emit({ type: 'session.ready', sessionId: 'session-A' });
+    expect(notify).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call notify when the event is for a different sessionId', () => {
+    const eventBus = new EmitterEventBusImpl();
+    const pending: PendingEvent[] = [];
+    const notify = vi.fn();
+
+    registerSessionHandlers(eventBus, 'session-A', pending, notify);
+
+    eventBus.emit({ type: 'session.ready', sessionId: 'session-B' });
+    expect(notify).not.toHaveBeenCalled();
+  });
 });
 
 describe('unregisterSessionHandlers', () => {
   it('removes all registered handlers so no more events are buffered', () => {
     const eventBus = new EmitterEventBusImpl();
     const pending: PendingEvent[] = [];
+    const notify = vi.fn();
 
-    const handlers = registerSessionHandlers(eventBus, 'session-A', pending);
+    const handlers = registerSessionHandlers(eventBus, 'session-A', pending, notify);
     unregisterSessionHandlers(eventBus, handlers);
 
     eventBus.emit({ type: 'session.ready', sessionId: 'session-A' });
@@ -116,7 +143,8 @@ describe('SseService class', () => {
     const service = new SseService({ eventBus, eventLog });
 
     const pending: PendingEvent[] = [];
-    service.registerSessionHandlers('session-A', pending);
+    const notify = vi.fn();
+    service.registerSessionHandlers('session-A', pending, notify);
 
     eventBus.emit({ type: 'session.ready', sessionId: 'session-A' });
     expect(pending).toHaveLength(1);
@@ -128,7 +156,8 @@ describe('SseService class', () => {
     const service = new SseService({ eventBus, eventLog });
 
     const pending: PendingEvent[] = [];
-    const handlers = service.registerSessionHandlers('session-A', pending);
+    const notify = vi.fn();
+    const handlers = service.registerSessionHandlers('session-A', pending, notify);
     service.unregisterSessionHandlers(handlers);
 
     eventBus.emit({ type: 'session.ready', sessionId: 'session-A' });
