@@ -14,7 +14,7 @@ import type { EventBusAdapter, EventHandler } from '../events/event_bus_adapter.
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
-import { PipelineStage, type PipelineEvent, type DetectionStatus } from '../../shared/pipeline_events.js';
+import { PipelineStage, type PipelineEvent, type DetectionStatus } from '../../shared/types/pipeline.js';
 import { validate } from './stages/validate.js';
 import { detect } from './stages/detect.js';
 import { replay } from './stages/replay.js';

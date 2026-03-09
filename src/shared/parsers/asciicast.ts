@@ -14,7 +14,7 @@ import type {
   ParsedEvent,
   Marker,
   ValidationResult,
-} from './asciicast-types.js';
+} from '../types/asciicast.js';
 
 /**
  * Normalize an asciicast header: copy term.cols/term.rows to width/height

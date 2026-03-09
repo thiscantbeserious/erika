@@ -9,7 +9,7 @@
  */
 
 import { nanoid } from 'nanoid';
-import { validateAsciicast } from '../../shared/asciicast.js';
+import { validateAsciicast } from '../../shared/parsers/asciicast.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';

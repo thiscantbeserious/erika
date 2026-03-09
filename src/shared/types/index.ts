@@ -24,3 +24,7 @@ export type {
 
 export { ServiceError } from './errors.js';
 export type { ServiceErrorCode } from './errors.js';
+
+export type { Section } from './section.js';
+
+export type { SessionDetailResponse, SessionStatusResponse } from './api.js';

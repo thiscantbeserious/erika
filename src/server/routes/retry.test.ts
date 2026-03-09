@@ -13,7 +13,7 @@ import type { DatabaseContext } from '../db/database_adapter.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import { EmitterEventBusImpl } from '../events/emitter_event_bus_impl.js';
-import { PipelineStage } from '../../shared/pipeline_events.js';
+import { PipelineStage } from '../../shared/types/pipeline.js';
 import { RetryService } from '../services/index.js';
 import { handleRetry } from './retry.js';
 

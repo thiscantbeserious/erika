@@ -9,7 +9,7 @@
 
 import type { EventBusAdapter, EventHandler } from '../events/event_bus_adapter.js';
 import type { EventLogAdapter, EventLogEntry } from '../events/event_log_adapter.js';
-import type { PipelineEvent, PipelineEventType } from '../../shared/pipeline_events.js';
+import type { PipelineEvent, PipelineEventType } from '../../shared/types/pipeline.js';
 
 /** All pipeline event types to subscribe to. */
 export const ALL_PIPELINE_EVENT_TYPES: PipelineEventType[] = [

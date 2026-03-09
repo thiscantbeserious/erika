@@ -8,13 +8,14 @@
  * StorageAdapter (storage/), JobQueueAdapter (jobs/), EventBusAdapter (events/).
  */
 
-import { parseAsciicast } from '../../shared/asciicast.js';
+import { parseAsciicast } from '../../shared/parsers/asciicast.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { SectionAdapter } from '../db/section_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
-import { PipelineStage } from '../../shared/pipeline_events.js';
+import { PipelineStage } from '../../shared/types/pipeline.js';
+import type { Section } from '../../shared/types/section.js';
 import { logger } from '../logger.js';
 
 const log = logger.child({ module: 'services/session' });
@@ -148,8 +149,8 @@ function parseSnapshotJson(value: string | null | undefined, context: string, id
   }
 }
 
-/** Transform a DB section row into the API response shape. */
-function transformSection(section: {
+/** Raw DB section row shape. */
+type DbSectionRow = {
   id: string;
   type: string;
   label: string | null;
@@ -158,15 +159,20 @@ function transformSection(section: {
   start_line: number | null;
   end_line: number | null;
   snapshot: string | null;
-}): Record<string, unknown> {
+};
+
+/** Transform a DB section row into the shared API response shape. */
+function transformSection(section: DbSectionRow): Section {
   return {
     id: section.id,
-    type: section.type,
-    label: section.label,
+    type: section.type as Section['type'],
+    label: section.label ?? '',
     startEvent: section.start_event,
-    endEvent: section.end_event,
+    endEvent: section.end_event ?? 0,
     startLine: section.start_line,
     endLine: section.end_line,
-    snapshot: section.snapshot ? parseSnapshotJson(section.snapshot, 'section', section.id) : null,
+    snapshot: section.snapshot
+      ? parseSnapshotJson(section.snapshot, 'section', section.id) as Section['snapshot']
+      : null,
   };
 }

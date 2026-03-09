@@ -10,8 +10,8 @@ import { join } from 'path';
 import { Hono } from 'hono';
 import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
 import type { DatabaseContext } from '../db/database_adapter.js';
-import type { PipelineEvent } from '../../shared/pipeline_events.js';
-import { PipelineStage } from '../../shared/pipeline_events.js';
+import type { PipelineEvent } from '../../shared/types/pipeline.js';
+import { PipelineStage } from '../../shared/types/pipeline.js';
 import { EventLogService } from '../services/index.js';
 import { handleGetEventLog } from './events.js';
 

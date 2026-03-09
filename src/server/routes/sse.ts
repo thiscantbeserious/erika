@@ -17,7 +17,7 @@ import { streamSSE } from 'hono/streaming';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
 import type { EventLogAdapter } from '../events/event_log_adapter.js';
-import type { PipelineEvent, PipelineEventType } from '../../shared/pipeline_events.js';
+import type { PipelineEvent, PipelineEventType } from '../../shared/types/pipeline.js';
 import {
   registerSessionHandlers,
   unregisterSessionHandlers,

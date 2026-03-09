@@ -14,7 +14,7 @@ import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
 import type { DatabaseContext } from '../db/database_adapter.js';
 import { EmitterEventBusImpl } from '../events/emitter_event_bus_impl.js';
 import { PipelineOrchestrator, type StageDependencies } from './pipeline_orchestrator.js';
-import { PipelineStage } from '../../shared/pipeline_events.js';
+import { PipelineStage } from '../../shared/types/pipeline.js';
 
 function buildShortCast(): string {
   const header = JSON.stringify({ version: 3, term: { cols: 80, rows: 24 } });

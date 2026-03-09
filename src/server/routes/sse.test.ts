@@ -13,7 +13,7 @@ import type { DatabaseContext } from '../db/database_adapter.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { EventLogAdapter } from '../events/event_log_adapter.js';
 import { EmitterEventBusImpl } from '../events/emitter_event_bus_impl.js';
-import type { PipelineEvent } from '../../shared/pipeline_events.js';
+import type { PipelineEvent } from '../../shared/types/pipeline.js';
 import { handleSseEvents } from './sse.js';
 
 /** Parse raw SSE text into structured event objects. */
@@ -173,7 +173,7 @@ describe('GET /api/sessions/:id/events (SSE)', () => {
   });
 
   it('closes the stream when session reaches failed state', async () => {
-    const { PipelineStage } = await import('../../shared/pipeline_events.js');
+    const { PipelineStage } = await import('../../shared/types/pipeline.js');
     setImmediate(() => {
       eventBus.emit({
         type: 'session.failed',

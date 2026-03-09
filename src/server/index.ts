@@ -6,7 +6,7 @@ import { logger } from './logger.js';
 import { DatabaseFactory } from './db/database_factory.js';
 import { EmitterEventBusImpl } from './events/emitter_event_bus_impl.js';
 import { PipelineOrchestrator } from './processing/pipeline_orchestrator.js';
-import type { PipelineEvent } from '../shared/pipeline_events.js';
+import type { PipelineEvent } from '../shared/types/pipeline.js';
 import {
   UploadService,
   SessionService,

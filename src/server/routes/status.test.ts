@@ -12,7 +12,7 @@ import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
 import type { DatabaseContext } from '../db/database_adapter.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
-import { PipelineStage } from '../../shared/pipeline_events.js';
+import { PipelineStage } from '../../shared/types/pipeline.js';
 import { StatusService } from '../services/index.js';
 import { handleGetStatus } from './status.js';
 

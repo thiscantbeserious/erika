@@ -7,7 +7,7 @@
  * Connections: persists to the `events` table created by migration 004.
  */
 
-import type { PipelineEvent } from '../../shared/pipeline_events.js';
+import type { PipelineEvent } from '../../shared/types/pipeline.js';
 
 /** A persisted pipeline event entry from the events table. */
 export interface EventLogEntry {

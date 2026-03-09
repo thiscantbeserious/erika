@@ -16,7 +16,7 @@ import { dedup } from './dedup.js';
 import { store } from './store.js';
 import { SqliteDatabaseImpl } from '../../db/sqlite/sqlite_database_impl.js';
 import type { DatabaseContext } from '../../db/database_adapter.js';
-import type { AsciicastEvent, AsciicastHeader } from '../../../shared/asciicast-types.js';
+import type { AsciicastEvent, AsciicastHeader } from '../../../shared/types/asciicast.js';
 import type { SectionBoundary } from '../section_detector.js';
 
 // --- Helpers ---

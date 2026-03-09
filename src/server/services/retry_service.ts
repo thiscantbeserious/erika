@@ -10,7 +10,7 @@
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
-import { PipelineStage } from '../../shared/pipeline_events.js';
+import { PipelineStage } from '../../shared/types/pipeline.js';
 
 export interface RetryServiceDeps {
   sessionRepository: SessionAdapter;

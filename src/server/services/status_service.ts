@@ -9,22 +9,15 @@
 
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
+import type { SessionStatusResponse } from '../../shared/types/api.js';
 
 export interface StatusServiceDeps {
   sessionRepository: SessionAdapter;
   jobQueue: JobQueueAdapter;
 }
 
-export interface SessionStatusResult {
-  sessionId: string;
-  status: string;
-  currentStage: string | null;
-  attempts: number;
-  maxAttempts: number;
-  lastError: string | null;
-  startedAt: string | null;
-  completedAt: string | null;
-}
+/** Alias for the shared SessionStatusResponse type. */
+export type SessionStatusResult = SessionStatusResponse;
 
 export type StatusResult =
   | { ok: true; data: SessionStatusResult }
