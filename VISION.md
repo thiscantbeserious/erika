@@ -131,15 +131,15 @@ flowchart TD
     subgraph Team["Asynchronous Learning"]
         H1(["👤 Human 1"])
         H2(["👤 Human 2"])
-        H3(["👤 Human 3"])
+        A1(["🤖 Agent"])
     end
 
     S1@{ shape: brace, label: '"Wrong pattern here"' }
     S2@{ shape: brace, label: '"Ah I understand now"' }
-    S3@{ shape: brace, label: '"Not a good choice"' }
+    S3@{ shape: brace, label: '"Pattern matches issue #42"' }
     H1 -.- S1
     H2 -.- S2
-    H3 -.- S3
+    A1 -.- S3
 
     Platform <--> Team
 
@@ -148,8 +148,8 @@ flowchart TD
     Curated -.->|structured context| Agent
 ```
 
-Each cycle sharpens both sides. Humans browse sessions, curate what matters, share with the team — on their own time, not blocking the agent. Curated insights flow back as structured context, replacing the self-written, uncurated files from Step 4.
+Each cycle sharpens both sides. Humans browse sessions, curate what matters, share with the team — on their own time, not blocking the agent. Agents contribute too: flagging patterns, linking related sessions, suggesting refinements. Both feed back into the platform asynchronously. Curated insights flow back as structured context, replacing the self-written, uncurated files from Step 4.
 
-The loop is **asynchronous** — humans refine at their own pace. It's **compounding** — every curation pass improves the next session. And it's **collaborative** — the whole team contributes, not just whoever happened to be watching.
+The loop is **asynchronous** — humans and agents refine at their own pace. It's **compounding** — every curation pass improves the next session. And it's **collaborative** — the whole team contributes, humans and agents alike.
 
-The loop doesn't replace human judgment. It scales it.
+The loop doesn't replace human judgment. It scales it — and lets agents help.
