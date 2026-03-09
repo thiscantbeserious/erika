@@ -52,6 +52,10 @@ When a task involves visual/CSS/design work, spawn or defer to the **Frontend De
 3. **Only update** after the user confirms the new output is correct
 4. Commits with snapshot changes require `[snapshot-update]` in the commit message (enforced by git hook)
 
+## Research
+
+Iterative architecture and competitive research lives in `.research/`. See `.research/AGENTS.md` for how to trigger re-evaluation of findings across steps.
+
 ## License
 
 This project is licensed under AGPL-3.0. Be aware of its implications when contributing or integrating.
