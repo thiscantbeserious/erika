@@ -45,6 +45,16 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'lcov'],
       reportsDirectory: 'coverage',
+      exclude: [
+        'tests/helpers/**',
+        'packages/vt-wasm/pkg/**',
+      ],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 80,
+        statements: 90,
+      },
     },
   },
 });
