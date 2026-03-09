@@ -16,7 +16,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import type { Database as DatabaseType } from 'better-sqlite3';
-import { BASE_SCHEMA } from '../../src/server/db/sqlite/migrations/base_schema.js';
+import { BASE_SCHEMA } from '../../src/server/db/sqlite/sqlite_database_impl.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '../..');

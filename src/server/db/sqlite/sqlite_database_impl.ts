@@ -6,7 +6,6 @@
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { BASE_SCHEMA } from './migrations/base_schema.js';
 import { migrate002Sections } from './migrations/002_sections.js';
 import { migrate003UnifiedSnapshot } from './migrations/003_unified_snapshot.js';
 import { SqliteSessionImpl } from './sqlite_session_impl.js';
@@ -14,6 +13,19 @@ import { SqliteSectionImpl } from './sqlite_section_impl.js';
 import { FsStorageImpl } from '../../storage/fs_storage_impl.js';
 import type { DatabaseAdapter, DatabaseContext } from '../database_adapter.js';
 
+// Schema source: src/server/db/sqlite/sql/schema.sql (kept for documentation)
+export const BASE_SCHEMA = `
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  filename TEXT NOT NULL,
+  filepath TEXT NOT NULL UNIQUE,
+  size_bytes INTEGER NOT NULL,
+  marker_count INTEGER DEFAULT 0,
+  uploaded_at TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_uploaded_at ON sessions(uploaded_at DESC);
+`.trim();
 
 /**
  * SQLite-backed database implementation.
