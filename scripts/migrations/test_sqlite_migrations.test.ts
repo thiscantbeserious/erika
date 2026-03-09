@@ -2,8 +2,9 @@
  * Schema snapshot test for SQLite migrations.
  *
  * Auto-discovers migration files from src/server/db/sqlite/migrations/,
- * runs base schema + each migration sequentially on a fresh in-memory DB,
- * and snapshots the full schema state after each step.
+ * applies base schema + each migration sequentially on a single in-memory DB
+ * (mirroring the production migration path), and snapshots the full schema
+ * state after each step.
  *
  * The committed .snap file serves as the schema record — git diff shows
  * exactly what each migration changes.
@@ -168,6 +169,7 @@ function log_schema_summary(label: string, schema: SchemaSnapshot): void {
 
 describe('SQLite schema migrations', () => {
   const migration_files = discover_migration_files();
+  const db = new Database(':memory:');
 
   console.log(`\nDiscovered ${migration_files.length} migrations:`);
   for (const f of migration_files) {
@@ -175,36 +177,24 @@ describe('SQLite schema migrations', () => {
   }
 
   afterAll(() => {
+    db.close();
     console.log(`\n[OK] ${migration_files.length + 1} schema snapshots verified\n`);
   });
 
-  it('base schema matches snapshot', () => {
-    const db = new Database(':memory:');
+  it('step 0: base schema', () => {
     db.exec(BASE_SCHEMA);
     const schema = capture_schema(db);
     expect(schema).toMatchSnapshot();
     log_schema_summary('base schema', schema);
-    db.close();
   });
 
-  for (const file_name of migration_files) {
-    it(`after ${file_name} matches snapshot`, async () => {
-      const db = new Database(':memory:');
-      db.exec(BASE_SCHEMA);
-
-      // Run all migrations up to and including this one
-      const current_index = migration_files.indexOf(file_name);
-      const migrations_to_run = migration_files.slice(0, current_index + 1);
-
-      for (const mf of migrations_to_run) {
-        const migrate = await load_migration_fn(mf);
-        migrate(db);
-      }
-
+  for (const [index, file_name] of migration_files.entries()) {
+    it(`step ${index + 1}: ${file_name}`, async () => {
+      const migrate = await load_migration_fn(file_name);
+      migrate(db);
       const schema = capture_schema(db);
       expect(schema).toMatchSnapshot();
       log_schema_summary(`after ${file_name}`, schema);
-      db.close();
     });
   }
 });
