@@ -372,6 +372,6 @@ Updated by implementer as work progresses.
 |-------|--------|--------|----|-------|
 | 1 | merged | `feat/server-async-io-cleanup` | #47 | |
 | 2 | merged | `feat/server-pipeline-concurrency` | #48 | |
-| 3 | in-review | `feat/server-pipeline-refactor` | #49 | |
-| 4 | pending | `chore/production-build` | | |
+| 3 | merged | `feat/server-pipeline-refactor` | #49 | |
+| 4 | in-review | `chore/production-build` | #51 | |
 | 5 | pending | `chore/container-ci-hardening` | | |
