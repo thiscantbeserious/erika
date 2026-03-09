@@ -9,6 +9,8 @@ import assert from 'node:assert';
 import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { SqliteDatabaseImpl } from '../../../src/server/db/sqlite/sqlite_database_impl.js';
 import type { DatabaseContext } from '../../../src/server/db/database_adapter.js';
 import type { SessionAdapter } from '../../../src/server/db/session_adapter.js';
@@ -17,7 +19,8 @@ import type { JobQueueAdapter } from '../../../src/server/jobs/job_queue_adapter
 import { EmitterEventBusImpl } from '../../../src/server/events/emitter_event_bus_impl.js';
 import { UploadService } from '../../../src/server/services/upload_service.js';
 
-const FIXTURES_DIR = join(new URL('.', import.meta.url).pathname, '../../../tests/fixtures');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const FIXTURES_DIR = resolve(__dirname, '../../fixtures');
 
 /** Build a minimal valid asciicast file string. */
 function buildValidCast(): string {
