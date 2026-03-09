@@ -106,7 +106,7 @@ function log_schema_summary(label: string, schema: SchemaSnapshot): void {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('SQLite schema migrations', () => {
+describe.sequential('SQLite schema migrations', () => {
   const migration_files = discover_migration_files();
   const db = new Database(':memory:');
 
