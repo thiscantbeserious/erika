@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SqliteDatabaseImpl } from './sqlite_database_impl.js';
-import type { DatabaseContext } from '../database_adapter.js';
-import type { EventLogAdapter } from '../event_log_adapter.js';
-import { createTestSession } from './test_fixtures.js';
+import { SqliteDatabaseImpl } from '../db/sqlite/sqlite_database_impl.js';
+import type { DatabaseContext } from '../db/database_adapter.js';
+import type { EventLogAdapter } from './event_log_adapter.js';
+import { createTestSession } from '../db/sqlite/test_fixtures.js';
 
 describe('SqliteEventLogImpl', () => {
   let ctx: DatabaseContext;

@@ -8,7 +8,7 @@ import type { SessionAdapter } from './session_adapter.js';
 import type { SectionAdapter } from './section_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
-import type { EventLogAdapter } from './event_log_adapter.js';
+import type { EventLogAdapter } from '../events/event_log_adapter.js';
 
 /**
  * All live persistence objects returned by a DatabaseAdapter.
