@@ -30,6 +30,8 @@ These are hardening changes -- no new features, no new abstractions. The goal is
 
 7. **No type checking in CI.** `tsc --noEmit` is not in the CI pipeline, so type errors can reach main undetected.
 
+8. **C1 has two path resolution problems.** The production build (`tsc` output in `dist/`) breaks at runtime because (a) `session-pipeline.ts:28` imports from `../../../packages/vt-wasm/index.js` using a fragile relative path that only works when running from the project root, and (b) `sqlite_database_impl.ts:57` reads `schema.sql` via `readFileSync(join(__dirname, 'sql', 'schema.sql'))` which fails when `__dirname` changes to `dist/server/db/sqlite/` and the `.sql` file is not copied. Both must be solved without post-build file copying hacks.
+
 ### Current Pipeline DB Writes
 
 The pipeline currently writes to the database through 7+ individual adapter calls with no atomicity:
@@ -118,7 +120,7 @@ The five-stage sequential split was chosen after an adversarial review process i
 flowchart LR
     S1["Stage 1<br/>Async I/O +<br/>WASM guard +<br/>dead code"] --> S2["Stage 2<br/>Semaphore +<br/>NdjsonStream logging"]
     S2 --> S3["Stage 3<br/>ProcessingResult +<br/>saveProcessingResult"]
-    S3 --> S4["Stage 4<br/>Build chain +<br/>CI + health check"]
+    S3 --> S4["Stage 4<br/>Build chain +<br/>subpath imports +<br/>CI + health check"]
     S4 --> S5["Stage 5<br/>Dockerfile +<br/>coverage +<br/>Dependabot"]
 ```
 
@@ -254,27 +256,64 @@ Key properties:
 
 #### Build and deploy architecture
 
+The production build has two path resolution challenges. Both are solved with proper Node.js/TypeScript mechanisms -- no post-build file copying.
+
+**Problem 1: WASM import path.** `session-pipeline.ts:28` imports `from '../../../packages/vt-wasm/index.js'` using a deep relative path. This works in development (running from project root) because the relative path from `src/server/processing/` reaches `packages/vt-wasm/`. After `tsc` compiles to `dist/server/processing/session-pipeline.js`, the same relative path `../../../packages/vt-wasm/index.js` resolves back to the project root -- which works locally but fails in a Docker container where only selective directories are copied.
+
+**Solution: Node.js subpath imports.** The `"imports"` field in `package.json` provides stable, location-independent module aliases that Node.js resolves at runtime relative to the nearest `package.json`. TypeScript 5.4+ supports `#imports` with `moduleResolution: "bundler"` and `"nodenext"`.
+
+Add to `package.json`:
+```json
+{
+  "imports": {
+    "#vt-wasm": "./packages/vt-wasm/index.js",
+    "#vt-wasm/types": "./packages/vt-wasm/types.js"
+  }
+}
+```
+
+Add matching TypeScript paths to `tsconfig.json`:
+```json
+{
+  "paths": {
+    "#vt-wasm": ["./packages/vt-wasm/index.ts"],
+    "#vt-wasm/types": ["./packages/vt-wasm/types.ts"]
+  }
+}
+```
+
+All 10 import sites (after dead code deletion in Stage 1) change from `../../../packages/vt-wasm/index.js` to `#vt-wasm` or `#vt-wasm/types`. The resolution chain:
+
+1. Node sees `import ... from '#vt-wasm'`
+2. Finds `"imports"` in the nearest ancestor `package.json`
+3. Resolves `./packages/vt-wasm/index.js` relative to that `package.json`
+4. Works identically whether the importing file is in `src/` or `dist/` because the resolution anchor is `package.json`, not the importing file
+
+For Docker, `packages/vt-wasm/` is copied into the container alongside `dist/`, `node_modules/`, and `package.json`. It is a first-class internal package, not a build artifact.
+
+**Problem 2: SQL schema file read.** `sqlite_database_impl.ts:57` reads `schema.sql` via `readFileSync(join(__dirname, 'sql', 'schema.sql'))`. After `tsc`, `__dirname` is `dist/server/db/sqlite/` and the `sql/` subdirectory does not exist there.
+
+**Solution: Inline the schema as a string constant.** The base schema is 16 lines (one `CREATE TABLE IF NOT EXISTS` + one `CREATE INDEX IF NOT EXISTS`). Both migration files (`002-sections.ts` and `003-unified-snapshot.ts`) already use inline SQL exclusively -- all `ALTER TABLE`, `CREATE TABLE`, `CREATE INDEX`, and `db.exec()` calls are string literals in TypeScript. The base schema is the only SQL loaded from a file. Inlining it as a constant eliminates the `readFileSync` call, the `__dirname` dependency, and the `join`/`dirname`/`fileURLToPath` imports for path construction.
+
+The `schema.sql` file is retained in the repository for documentation but is no longer read at runtime. A code comment in `sqlite_database_impl.ts` references its location.
+
 ```mermaid
 flowchart TB
     subgraph Source["Source tree"]
         SrcServer["src/server/**"]
         SrcShared["src/shared/**"]
         SrcClient["src/client/**"]
-        Packages["packages/vt-wasm/"]
-        SQL["src/server/db/sqlite/sql/"]
+        VtWasm["packages/vt-wasm/<br/>(internal package)"]
     end
 
     subgraph Build["Build steps"]
         TSC["tsc -p tsconfig.build.json"]
         Vite["vite build"]
-        Copy["Post-build copy"]
     end
 
     subgraph Dist["dist/"]
         DistServer["dist/server/<br/>(compiled TS)"]
         DistClient["dist/client/<br/>(bundled Vue)"]
-        DistWasm["dist/packages/vt-wasm/<br/>(copied, not compiled)"]
-        DistSQL["dist/server/db/sqlite/sql/<br/>(copied schema.sql)"]
     end
 
     SrcServer --> TSC
@@ -282,40 +321,35 @@ flowchart TB
     SrcClient --> Vite
     TSC --> DistServer
     Vite --> DistClient
-    Packages -->|"cp -r"| Copy --> DistWasm
-    SQL -->|"cp -r"| Copy --> DistSQL
 ```
 
-The WASM package must be copied because:
-- `session-pipeline.ts:28` imports `from '../../../packages/vt-wasm/index.js'` using a relative path
-- After compilation to `dist/server/processing/session-pipeline.js`, this path resolves to `dist/packages/vt-wasm/index.js`
-- `tsc` does not copy non-TS files, so the WASM package needs explicit copying
-
-The SQL schema must be copied because:
-- `sqlite_database_impl.ts:57` uses `join(__dirname, 'sql', 'schema.sql')` with runtime `__dirname` resolution
-- After compilation, `__dirname` is `dist/server/db/sqlite/`, so `schema.sql` must exist at `dist/server/db/sqlite/sql/schema.sql`
+No post-build copy steps. The build produces `dist/server/` (tsc) and `dist/client/` (Vite). `packages/vt-wasm/` is resolved at runtime via Node subpath imports from the project root `package.json`.
 
 ```mermaid
 flowchart TB
     subgraph Dockerfile["Multi-stage Dockerfile"]
         subgraph BuildStage["Build stage (Node 24 Alpine)"]
             Install["npm ci + build-base + python3<br/>(for better-sqlite3 native compilation)"]
-            BuildCmd["npm run build<br/>(tsc + vite + copy)"]
+            BuildCmd["npm run build<br/>(tsc + vite)"]
             Install --> BuildCmd
         end
 
         subgraph RuntimeStage["Runtime stage (Node 24 Alpine)"]
+            CopyPkg["COPY package.json"]
             CopyDist["COPY dist/"]
+            CopyWasm["COPY packages/vt-wasm/<br/>(resolved via #vt-wasm subpath import)"]
             CopyModules["COPY node_modules/<br/>(production only)"]
             CopyData["VOLUME /data"]
             Start["CMD node dist/server/start.js"]
             Health["HEALTHCHECK wget -q --spider<br/>http://localhost:3000/api/health"]
-            CopyDist --> CopyModules --> Start
+            CopyPkg --> CopyDist --> CopyWasm --> CopyModules --> Start
         end
 
         BuildStage -->|"multi-stage copy"| RuntimeStage
     end
 ```
+
+Key difference from a `cp -r` approach: `packages/vt-wasm/` lives at its original path in the container. Node resolves `#vt-wasm` via `package.json` `"imports"` to `./packages/vt-wasm/index.js`. No path rewriting, no duplicated files in `dist/`.
 
 ## Consequences
 
@@ -326,6 +360,7 @@ flowchart TB
 - Detecting file corruption (NdjsonStream logs malformed lines)
 - Future PostgreSQL migration (`saveProcessingResult` interface works with real async transactions)
 - Pipeline testing (pipeline produces a result object, testable without DB)
+- Importing vt-wasm (stable `#vt-wasm` alias instead of fragile deep relative paths)
 
 ### What becomes harder
 - Nothing measurably harder. These are pure improvements with no trade-offs against current capabilities.
@@ -336,6 +371,14 @@ flowchart TB
 - Error sanitization in API responses (M9 -- belongs in A4)
 - Upload triple-parse reduction (M3 -- belongs in later optimization)
 
+**Out of scope (tracked in `.research/step1/ARCHITECTURE-REVIEW.md`, belongs to Variant A stages 3-6):**
+- C3 (no authentication), C4 (no virtual scrolling), C5 (full in-memory event buffering)
+- H5 (API types not shared), H6 (no real-time processing status), H7 (zero ARIA), H8 (fire-and-forget pipeline errors), H10 (toast singleton)
+- M1 (anemic domain model), M2 (no migration framework), M4 (unbounded findAll), M5 (per-render style allocation), M6 (dead CSS), M7 (design system disconnected), M10 (no HTTP client abstraction), M17 (no network error recovery), M18 (no upload progress), M19 (composables untested)
+
+### Accepted limitations
+- **M16 (redetect race condition):** The semaphore (Stage 2) bounds concurrency and `saveProcessingResult` (Stage 3) makes each pipeline's writes atomic, preventing data corruption. However, two concurrent redetects for the *same session* can still both run to completion -- the semaphore does not check session identity. This wastes computation but does not corrupt data (the second `saveProcessingResult` atomically overwrites the first). A per-session deduplication guard is deferred to a future stage.
+
 ## Decision History
 
 1. **Five-stage sequential split** chosen over parallel stages or mega-PR, driven by merge conflict analysis showing Stages 1 and 2 both modify `session-pipeline.ts`.
@@ -345,3 +388,5 @@ flowchart TB
 5. **`.ts` import extension concern dismissed** -- the codebase uses `.js` extensions throughout, making the build config straightforward.
 6. **Variant split** (backend vs chore) is handled by using separate branches with appropriate prefixes for each stage group.
 7. **SQL duplication in SessionAdapter** accepted -- the SQLite implementation of `saveProcessingResult` prepares its own section INSERT and DELETE statements rather than depending on `SqliteSectionImpl`. This avoids coupling between adapter implementations.
+8. **Node subpath imports for vt-wasm** chosen over `cp -r` post-build copy. The `"imports"` field in `package.json` provides stable, location-independent module resolution that works identically in `src/` (development) and `dist/` (production). TypeScript 5.4+ supports `#imports` with both `moduleResolution: "bundler"` and `"nodenext"`. This eliminates all deep relative paths (`../../../packages/vt-wasm/...`) across 10 import sites.
+9. **Inline SQL schema** chosen over `cp -r` post-build copy of `schema.sql`. The 16-line base schema becomes a string constant in `sqlite_database_impl.ts`, consistent with both migration files (002, 003) which already use inline SQL exclusively. The `schema.sql` file is retained for documentation.
