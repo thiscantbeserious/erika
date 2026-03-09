@@ -64,6 +64,14 @@ describe('validateAsciicast', () => {
     expect(result.error).toContain('empty');
   });
 
+  it('rejects whitespace-only content (treated as empty)', () => {
+    // Content with only whitespace and newlines → content.trim().length === 0 → 'File is empty'
+    const result = validateAsciicast('   \n  \n   ');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('empty');
+    expect(result.line).toBe(0);
+  });
+
   it('rejects missing header', () => {
     const result = validateAsciicast('[0.5,"o","test"]');
     expect(result.valid).toBe(false);
