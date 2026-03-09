@@ -144,7 +144,7 @@ jobs:
       - if: steps.node-modules.outputs.cache-hit != 'true'
         run: npm ci
 
-      - run: npx tsx scripts/test_migrations.ts
+      - run: npx tsx scripts/test_sqlite_migrations.ts
 
   typecheck:
     name: Type Check
