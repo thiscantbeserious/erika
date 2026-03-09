@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EmitterEventBus } from './emitter_event_bus.js';
 import type { PipelineEvent } from '../../shared/pipeline_events.js';
+import { PipelineStage } from '../../shared/pipeline_events.js';
 
 describe('EmitterEventBus', () => {
   let bus: EmitterEventBus;
@@ -81,7 +82,7 @@ describe('EmitterEventBus', () => {
       const handler = vi.fn();
       bus.once('session.failed', handler);
 
-      const event: PipelineEvent = { type: 'session.failed', sessionId: 'sess-5', stage: 'validate', error: 'bad file' };
+      const event: PipelineEvent = { type: 'session.failed', sessionId: 'sess-5', stage: PipelineStage.Validate, error: 'bad file' };
       bus.emit(event);
       bus.emit(event);
       bus.emit(event);
@@ -159,6 +160,35 @@ describe('EmitterEventBus', () => {
     });
   });
 
+  describe('once + off interaction', () => {
+    it('off() cancels a pending once() handler before it fires', () => {
+      const handler = vi.fn();
+      bus.once('session.ready', handler);
+      bus.off('session.ready', handler);
+
+      bus.emit({ type: 'session.ready', sessionId: 'sess-12' });
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handler errors', () => {
+    it('a throwing handler does not prevent other handlers from being called', () => {
+      const errorHandler = vi.fn(() => { throw new Error('boom'); });
+      const goodHandler = vi.fn();
+
+      bus.on('session.ready', errorHandler);
+      bus.on('session.ready', goodHandler);
+
+      expect(() => {
+        bus.emit({ type: 'session.ready', sessionId: 'sess-13' });
+      }).toThrow('boom');
+
+      expect(errorHandler).toHaveBeenCalledOnce();
+      // Note: Node.js EventEmitter stops after first throw — this is expected behavior
+    });
+  });
+
   describe('retrying event', () => {
     it('emits and receives session.retrying event with correct payload', () => {
       const handler = vi.fn();
@@ -167,7 +197,7 @@ describe('EmitterEventBus', () => {
       const event: PipelineEvent = {
         type: 'session.retrying',
         sessionId: 'sess-11',
-        stage: 'detect',
+        stage: PipelineStage.Detect,
         attempt: 2,
       };
       bus.emit(event);

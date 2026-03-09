@@ -25,8 +25,8 @@ export type PipelineEvent =
   | { type: 'session.replayed';  sessionId: string; lineCount: number }
   | { type: 'session.deduped';   sessionId: string; rawLines: number; cleanLines: number }
   | { type: 'session.ready';     sessionId: string }
-  | { type: 'session.failed';    sessionId: string; stage: string; error: string }
-  | { type: 'session.retrying';  sessionId: string; stage: string; attempt: number };
+  | { type: 'session.failed';    sessionId: string; stage: PipelineStage; error: string }
+  | { type: 'session.retrying';  sessionId: string; stage: PipelineStage; attempt: number };
 
 /** All possible `type` string values — useful for type-safe handler maps. */
 export type PipelineEventType = PipelineEvent['type'];
