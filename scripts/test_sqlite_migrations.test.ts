@@ -1,4 +1,3 @@
-// @vitest-environment node
 /**
  * Schema snapshot test for SQLite migrations.
  *

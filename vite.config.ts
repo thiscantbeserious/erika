@@ -32,7 +32,6 @@ export default defineConfig({
       'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'tests/**/*.{test,spec}.{js,ts}',
       'packages/**/*.{test,spec}.{js,ts}',
-      'scripts/**/*.{test,spec}.{js,ts}',
     ],
     exclude: [
       'tests/visual/**',
@@ -42,7 +41,6 @@ export default defineConfig({
       ['packages/**', 'node'],
       ['src/server/**', 'node'],
       ['tests/snapshots/backend/**', 'node'],
-      ['scripts/**', 'node'],
     ],
     coverage: {
       reporter: ['text', 'lcov'],
