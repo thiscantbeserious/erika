@@ -183,7 +183,7 @@ export function extractMarkers(events: ParsedEvent[]): Marker[] {
 
   for (let i = 0; i < events.length; i++) {
     const event = events[i];
-    if (event !== undefined && event.type === 'm') {
+    if (event?.type === 'm') {
       markers.push({
         time: event.time,
         label: String(event.data),
