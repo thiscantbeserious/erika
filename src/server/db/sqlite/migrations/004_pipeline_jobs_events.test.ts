@@ -94,7 +94,7 @@ describe('migrate004PipelineJobsEvents', () => {
       expect(cols).toContain('updated_at');
     });
 
-    it('jobs table defaults: current_stage=validate, status=queued, attempts=0, max_attempts=3', () => {
+    it('jobs table defaults: current_stage=validate, status=pending, attempts=0, max_attempts=3', () => {
       migrate004PipelineJobsEvents(db);
 
       db.exec(
@@ -107,7 +107,7 @@ describe('migrate004PipelineJobsEvents', () => {
 
       const job = db.prepare('SELECT * FROM jobs WHERE id=?').get('j1') as Record<string, unknown>;
       expect(job['current_stage']).toBe('validate');
-      expect(job['status']).toBe('queued');
+      expect(job['status']).toBe('pending');
       expect(job['attempts']).toBe(0);
       expect(job['max_attempts']).toBe(3);
     });
@@ -147,9 +147,9 @@ describe('migrate004PipelineJobsEvents', () => {
   });
 
   describe('indexes', () => {
-    it('creates idx_jobs_session_id on jobs', () => {
+    it('does not create a redundant idx_jobs_session_id (UNIQUE constraint covers it)', () => {
       migrate004PipelineJobsEvents(db);
-      expect(getIndexes(db, 'jobs')).toContain('idx_jobs_session_id');
+      expect(getIndexes(db, 'jobs')).not.toContain('idx_jobs_session_id');
     });
 
     it('creates idx_jobs_status on jobs', () => {
@@ -160,6 +160,81 @@ describe('migrate004PipelineJobsEvents', () => {
     it('creates idx_events_session_id on events', () => {
       migrate004PipelineJobsEvents(db);
       expect(getIndexes(db, 'events')).toContain('idx_events_session_id');
+    });
+  });
+
+  describe('CHECK constraints', () => {
+    beforeEach(() => {
+      migrate004PipelineJobsEvents(db);
+      db.exec(
+        "INSERT INTO sessions (id, filename, filepath, size_bytes, uploaded_at) VALUES ('sc1', 'chk.cast', 'sessions/chk.cast', 100, '2026-01-01T00:00:00Z')"
+      );
+    });
+
+    it('rejects invalid current_stage value', () => {
+      expect(() =>
+        db.exec("INSERT INTO jobs (id, session_id, current_stage) VALUES ('jc1', 'sc1', 'invalid_stage')")
+      ).toThrow();
+    });
+
+    it('rejects invalid status value', () => {
+      expect(() =>
+        db.exec("INSERT INTO jobs (id, session_id, status) VALUES ('jc2', 'sc1', 'bogus_status')")
+      ).toThrow();
+    });
+
+    it('accepts all valid current_stage values', () => {
+      const stages = ['validate', 'detect', 'replay', 'dedup', 'store'];
+      stages.forEach((stage, i) => {
+        db.exec(
+          `INSERT INTO sessions (id, filename, filepath, size_bytes, uploaded_at) VALUES ('ss${i}', 'f${i}.cast', 'sessions/f${i}.cast', 100, '2026-01-01T00:00:00Z')`
+        );
+        expect(() =>
+          db.exec(`INSERT INTO jobs (id, session_id, current_stage) VALUES ('jv${i}', 'ss${i}', '${stage}')`)
+        ).not.toThrow();
+      });
+    });
+
+    it('accepts all valid status values', () => {
+      const statuses = ['pending', 'running', 'completed', 'failed'];
+      statuses.forEach((status, i) => {
+        db.exec(
+          `INSERT INTO sessions (id, filename, filepath, size_bytes, uploaded_at) VALUES ('sq${i}', 'g${i}.cast', 'sessions/g${i}.cast', 100, '2026-01-01T00:00:00Z')`
+        );
+        expect(() =>
+          db.exec(`INSERT INTO jobs (id, session_id, status) VALUES ('js${i}', 'sq${i}', '${status}')`)
+        ).not.toThrow();
+      });
+    });
+  });
+
+  describe('UNIQUE constraint on jobs.session_id', () => {
+    it('rejects two jobs with the same session_id', () => {
+      migrate004PipelineJobsEvents(db);
+      db.exec(
+        "INSERT INTO sessions (id, filename, filepath, size_bytes, uploaded_at) VALUES ('su1', 'u.cast', 'sessions/u.cast', 100, '2026-01-01T00:00:00Z')"
+      );
+      db.exec("INSERT INTO jobs (id, session_id) VALUES ('ju1', 'su1')");
+      expect(() =>
+        db.exec("INSERT INTO jobs (id, session_id) VALUES ('ju2', 'su1')")
+      ).toThrow();
+    });
+  });
+
+  describe('updated_at trigger', () => {
+    it('updates updated_at when a job row is updated', () => {
+      migrate004PipelineJobsEvents(db);
+      db.exec(
+        "INSERT INTO sessions (id, filename, filepath, size_bytes, uploaded_at) VALUES ('st1', 't.cast', 'sessions/t.cast', 100, '2026-01-01T00:00:00Z')"
+      );
+      db.exec(
+        "INSERT INTO jobs (id, session_id, created_at, updated_at) VALUES ('jt1', 'st1', '2026-01-01T00:00:00', '2026-01-01T00:00:00')"
+      );
+
+      db.exec("UPDATE jobs SET status = 'running' WHERE id = 'jt1'");
+
+      const job = db.prepare("SELECT updated_at FROM jobs WHERE id='jt1'").get() as Record<string, unknown>;
+      expect(job['updated_at']).not.toBe('2026-01-01T00:00:00');
     });
   });
 
@@ -182,8 +257,8 @@ describe('migrate004PipelineJobsEvents', () => {
       migrate004PipelineJobsEvents(db);
       migrate004PipelineJobsEvents(db);
       const jobIndexes = getIndexes(db, 'jobs');
-      const jobSessionIdCount = jobIndexes.filter((n) => n === 'idx_jobs_session_id').length;
-      expect(jobSessionIdCount).toBe(1);
+      const jobStatusCount = jobIndexes.filter((n) => n === 'idx_jobs_status').length;
+      expect(jobStatusCount).toBe(1);
     });
   });
 
