@@ -9,7 +9,7 @@ import { deleteAllSessions } from '../helpers/seed-visual-data';
 
 test('error: 404 — invalid session ID', async ({ page }) => {
   await page.goto('/session/invalid-session-id-does-not-exist');
-  await page.waitForSelector('.session-detail-page__error', { timeout: 10000 });
+  await page.waitForSelector('.session-detail-page__state--error', { timeout: 10000 });
 
   await expect(page).toHaveScreenshot('error-404-invalid-session.png', {
     mask: [page.locator('.app-header')],
@@ -47,13 +47,13 @@ test('error: upload of non-.cast file shows error', async ({ page }) => {
     buffer: Buffer.from('This is not a cast file'),
   });
 
-  await page.waitForSelector('.upload-zone__error', { timeout: 10000 });
+  await page.waitForSelector('.upload-zone__error-bar', { timeout: 10000 });
   await expect(page.locator('.upload-zone')).toHaveScreenshot('error-invalid-file-upload.png');
 });
 
 test('error: direct navigation to session detail without data', async ({ page }) => {
   await page.goto('/session/aaaaaaaaa');
-  await page.waitForSelector('.session-detail-page__error', { timeout: 10000 });
+  await page.waitForSelector('.session-detail-page__state--error', { timeout: 10000 });
 
   await expect(page).toHaveScreenshot('error-session-not-found.png', {
     mask: [page.locator('.app-header')],

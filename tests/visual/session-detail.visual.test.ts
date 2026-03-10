@@ -81,9 +81,9 @@ test.describe('Session Detail Page', () => {
   });
 
   test('section badge types visible', async ({ page }) => {
-    await gotoSession(page, sessionId, '.section-header__badge');
+    await gotoSession(page, sessionId, '.badge');
 
-    const badges = page.locator('.section-header__badge');
+    const badges = page.locator('.section-header .badge');
     const count = await badges.count();
     expect(count).toBeGreaterThan(0);
 
@@ -91,9 +91,9 @@ test.describe('Session Detail Page', () => {
   });
 
   test('section meta line range info', async ({ page }) => {
-    await gotoSession(page, sessionId, '.section-header__meta');
+    await gotoSession(page, sessionId, '.section-header__range');
 
-    const meta = page.locator('.section-header__meta');
+    const meta = page.locator('.section-header__range');
     await expect(meta.first()).toBeVisible();
     await expect(meta.first()).toHaveScreenshot('section-meta-lines.png');
   });

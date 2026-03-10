@@ -118,7 +118,7 @@ function getSpanStyle(span: { fg?: string | number; bg?: string | number }): Rec
 
 .terminal-line {
   display: flex;
-  min-height: var(--leading-mono);
+  min-height: calc(var(--leading-mono) * 1em);
 }
 
 .terminal-line__number {

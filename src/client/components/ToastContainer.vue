@@ -74,7 +74,6 @@ const emit = defineEmits<{
 
 .toast {
   animation: toast-in var(--duration-normal) var(--easing-default);
-  border-radius: var(--radius-lg);
   font-size: var(--text-sm);
 }
 </style>

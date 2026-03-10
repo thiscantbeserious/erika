@@ -39,9 +39,9 @@ test.describe('Terminal Rendering', () => {
   });
 
   test('section header marker badge', async ({ page }) => {
-    await gotoSession(page, sessionId, '.section-header__badge');
+    await gotoSession(page, sessionId, '.badge');
 
-    const markerBadges = page.locator('.section-header__badge');
+    const markerBadges = page.locator('.section-header .badge');
     const count = await markerBadges.count();
     expect(count).toBeGreaterThan(0);
 
@@ -61,7 +61,7 @@ test.describe('Terminal Rendering', () => {
 
   test('empty terminal state message', async ({ page }) => {
     await page.goto('/session/nonexistent-id-12345');
-    await page.waitForSelector('.session-detail-page__error', { timeout: 10000 });
+    await page.waitForSelector('.session-detail-page__state--error', { timeout: 10000 });
 
     await expect(page).toHaveScreenshot('terminal-error-state.png', {
       mask: [page.locator('.app-header')],
@@ -93,7 +93,7 @@ test.describe('Terminal Rendering', () => {
     const chevron = header.locator('.section-header__chevron');
     const label = header.locator('.section-header__label');
 
-    expect(await chevron.textContent()).toBeTruthy();
+    await expect(chevron).toBeVisible();
     expect(await label.textContent()).toBeTruthy();
 
     await expect(header).toHaveScreenshot('section-header-with-label.png');

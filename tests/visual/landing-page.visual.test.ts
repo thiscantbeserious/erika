@@ -71,7 +71,7 @@ test.describe('Landing Page', () => {
       buffer: Buffer.from('{"version":3,"term":{"cols":80,"rows":24}}\n[0.1,"o","hello\\n"]\n'),
     });
 
-    const spinner = page.locator('.upload-zone__spinner');
+    const spinner = page.locator('.upload-zone__spinner-text');
     await expect(spinner).toBeVisible({ timeout: 3000 });
     await expect(page.locator('.upload-zone')).toHaveScreenshot('upload-zone-uploading.png');
   });
