@@ -57,12 +57,17 @@
   --accent-secondary-glow: rgba(255, 77, 106, 0.35);
 
   /* --- Status — semantic colors --- */
-  --status-success: #78e3bd;
-  --status-success-subtle: color-mix(in srgb, var(--status-success) 7%, transparent);
+  /* Success: analogous teal from primary cyan, 15% darker toward bg
+     #00dbd2 = harmony(#00d4ff, analogous -30°)
+     #00bac6 = mix(#00dbd2, #1a1a2e, 15%) in OKLCH — 9.8:1 contrast, AAA */
+  --status-success: #00bac6;
+  --status-success-subtle: rgba(0, 186, 198, 0.08);
   --status-warning: #ffcc00;
   --status-warning-subtle: color-mix(in srgb, var(--status-warning) 7%, transparent);
-  --status-error: #ffc0bd;
-  --status-error-subtle: color-mix(in srgb, var(--status-error) 7%, transparent);
+  /* Error: secondary pink, 15% darker toward bg
+     #d7457b = mix(#ff4d6a, #1a1a2e, 15%) in OKLCH — 4.08:1 contrast */
+  --status-error: #d7457b;
+  --status-error-subtle: rgba(215, 69, 123, 0.08);
   --status-info: #8fdafc;
   --status-info-subtle: color-mix(in srgb, var(--status-info) 7%, transparent);
 
@@ -228,18 +233,21 @@ body {
     /* Grid — repeating CSS lines */
     repeating-linear-gradient(
       0deg,
-      rgba(0, 212, 255, 0.12) 0px,
-      rgba(0, 212, 255, 0.12) 1px,
+      rgba(0, 212, 255, 0.06) 0px,
+      rgba(0, 212, 255, 0.06) 1px,
       transparent 1px,
-      transparent 40px
+      transparent 80px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(0, 212, 255, 0.12) 0px,
-      rgba(0, 212, 255, 0.12) 1px,
+      rgba(0, 212, 255, 0.06) 0px,
+      rgba(0, 212, 255, 0.06) 1px,
       transparent 1px,
-      transparent 40px
+      transparent 80px
     ),
+    /* Radial highlights — give backdrop-filter something to blur */
+    radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(255, 77, 106, 0.05) 0%, transparent 50%),
     /* Gradient — deep navy to subtle pink tint */
     linear-gradient(to bottom right, #1a1a2e 30%, #3a1a2e);
   background-attachment: fixed;
