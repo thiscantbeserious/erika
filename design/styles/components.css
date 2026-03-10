@@ -52,7 +52,7 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 212, 255, 0.25);
@@ -321,7 +321,7 @@
   width: 100%;
   height: var(--input-height-sm);
   padding: var(--space-1) var(--space-3);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
@@ -374,7 +374,7 @@
 .textarea {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
@@ -485,7 +485,7 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 212, 255, 0.25);
@@ -571,7 +571,7 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 212, 255, 0.25);
@@ -942,7 +942,7 @@
   padding: 0 var(--space-3);
   padding-left: var(--space-8);
   padding-right: var(--space-8);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
@@ -1011,7 +1011,7 @@
   padding: var(--space-12) var(--space-8);
   border: 1px solid rgba(0, 212, 255, 0.25);
   border-radius: var(--radius-xl);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.6),
@@ -1116,7 +1116,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-default);
@@ -1371,7 +1371,7 @@ html:has(.modal-backdrop) body {
 
 .skeleton--card {
   padding: var(--space-4) var(--space-5);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   border: 1px solid rgba(0, 212, 255, 0.15);
   border-radius: var(--radius-xl);
   display: flex;
@@ -1798,7 +1798,7 @@ html:has(.modal-backdrop) body {
   width: 100%;
   height: var(--input-height-sm);
   padding: var(--space-1) var(--space-3);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
@@ -2055,7 +2055,7 @@ html:has(.modal-backdrop) body {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
-  background: rgba(10, 10, 25, 0.79);
+  background: rgba(10, 10, 25, 0.55);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-full);
   cursor: pointer;

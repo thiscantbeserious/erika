@@ -57,11 +57,9 @@
   --accent-secondary-glow: rgba(255, 77, 106, 0.35);
 
   /* --- Status — semantic colors --- */
-  /* Success: analogous teal from primary cyan, 15% darker toward bg
-     #00dbd2 = harmony(#00d4ff, analogous -30°)
-     #00bac6 = mix(#00dbd2, #1a1a2e, 15%) in OKLCH — 9.8:1 contrast, AAA */
-  --status-success: #00bac6;
-  --status-success-subtle: rgba(0, 186, 198, 0.08);
+  /* Success: neon green — 12.59:1 contrast, AAA */
+  --status-success: #00ff66;
+  --status-success-subtle: rgba(0, 255, 102, 0.08);
   --status-warning: #ffcc00;
   --status-warning-subtle: color-mix(in srgb, var(--status-warning) 7%, transparent);
   /* Error: secondary pink, 15% darker toward bg
@@ -79,8 +77,8 @@
   --text-inverse: var(--bg-page);
 
   /* --- Borders --- */
-  --border-default: #28283e;
-  --border-strong: #323349;
+  --border-default: #323349;
+  --border-strong: #3d3d55;
   --border-accent: var(--accent-primary);
 
   /* --- Terminal --- */
@@ -230,27 +228,22 @@ body { position: relative; width: 100%; min-height: 100%; }
 body {
   font-family: var(--font-body);
   background:
-    /* Grid — repeating CSS lines */
     repeating-linear-gradient(
       0deg,
       rgba(0, 212, 255, 0.06) 0px,
       rgba(0, 212, 255, 0.06) 1px,
       transparent 1px,
-      transparent 80px
+      transparent 48px
     ),
     repeating-linear-gradient(
       90deg,
       rgba(0, 212, 255, 0.06) 0px,
       rgba(0, 212, 255, 0.06) 1px,
       transparent 1px,
-      transparent 80px
+      transparent 48px
     ),
-    /* Radial highlights — give backdrop-filter something to blur */
-    radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(255, 77, 106, 0.05) 0%, transparent 50%),
-    /* Gradient — deep navy to subtle pink tint */
-    linear-gradient(to bottom right, #1a1a2e 30%, #3a1a2e);
-  background-attachment: fixed;
+    var(--bg-page);
+  background-position: 0 -11px, 0 0;
   color: var(--text-primary);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
