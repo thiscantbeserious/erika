@@ -60,6 +60,45 @@ describe('useSessionList', () => {
       expect(loading.value).toBe(false);
     });
 
+    it('sets loading to true on initial fetch when sessions array is empty', async () => {
+      let resolveJson!: (v: unknown) => void;
+      const jsonPromise = new Promise((res) => { resolveJson = res; });
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => jsonPromise,
+      } as unknown as Response);
+
+      const { loading, fetchSessions } = useSessionList();
+      const fetchPromise = fetchSessions();
+      expect(loading.value).toBe(true);
+      resolveJson([]);
+      await fetchPromise;
+    });
+
+    it('does not set loading to true on refetch when sessions already exist', async () => {
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(makeOkJsonResponse([SESSION_A]))
+        .mockResolvedValueOnce(makeOkJsonResponse([SESSION_A, SESSION_B]));
+
+      const { loading, sessions, fetchSessions } = useSessionList();
+      await fetchSessions();
+      expect(sessions.value).toHaveLength(1);
+
+      let resolveJson!: (v: unknown) => void;
+      const jsonPromise = new Promise((res) => { resolveJson = res; });
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => jsonPromise,
+      } as unknown as Response);
+
+      const fetchPromise = fetchSessions();
+      expect(loading.value).toBe(false);
+      resolveJson([SESSION_A, SESSION_B]);
+      await fetchPromise;
+    });
+
     it('sets error when fetch returns non-ok response', async () => {
       vi.mocked(fetch).mockResolvedValue(makeErrorResponse(500, {}));
       const { error, fetchSessions } = useSessionList();

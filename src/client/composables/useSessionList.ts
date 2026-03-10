@@ -6,8 +6,15 @@ export function useSessionList() {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  /**
+   * Fetches the session list from the API.
+   * Sets loading=true only on the initial fetch (when no sessions are loaded yet);
+   * subsequent calls do a silent refresh to avoid disrupting visible cards.
+   */
   async function fetchSessions(): Promise<void> {
-    loading.value = true;
+    if (sessions.value.length === 0) {
+      loading.value = true;
+    }
     error.value = null;
     try {
       const res = await fetch('/api/sessions');
