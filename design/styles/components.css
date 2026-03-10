@@ -844,12 +844,12 @@
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
-  color: var(--accent-primary);
+  color: var(--accent-secondary);
   transition: box-shadow var(--duration-normal) var(--easing-default);
 }
 
 .app-header__brand:hover .app-header__logo {
-  box-shadow: 0 0 12px var(--accent-primary-glow);
+  box-shadow: 0 0 12px var(--accent-secondary-glow);
 }
 
 .app-header__name {
@@ -922,7 +922,7 @@
   border: none;
   height: var(--btn-height-sm);
   padding: var(--space-1) var(--space-3);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
 }
