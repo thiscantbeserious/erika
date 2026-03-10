@@ -327,7 +327,7 @@
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   letter-spacing: var(--tracking-normal);
   outline: none;
   transition: border-color var(--duration-fast) var(--easing-default),
@@ -361,13 +361,13 @@
 .input-group__helper {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  line-height: var(--leading-relaxed);
+  line-height: var(--lh-sm);
 }
 
 .input-group__error {
   font-size: var(--text-sm);
   color: var(--status-error);
-  line-height: var(--leading-relaxed);
+  line-height: var(--lh-sm);
 }
 
 /* Textarea */
@@ -380,7 +380,7 @@
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   outline: none;
   resize: vertical;
   min-height: calc(5 * var(--space-4));
@@ -415,7 +415,7 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   border-radius: var(--radius-full);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   letter-spacing: var(--tracking-wide);
   white-space: nowrap;
 }
@@ -423,7 +423,7 @@
 .badge--sm {
   padding: var(--space-0\.5) var(--space-1\.5);
   font-size: var(--text-xs);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
 }
 
 .badge--accent {
@@ -606,7 +606,7 @@
 .toast__message {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  line-height: var(--leading-relaxed);
+  line-height: var(--lh-sm);
 }
 
 .toast__close {
@@ -948,7 +948,7 @@
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   outline: none;
   transition: border-color var(--duration-fast) var(--easing-default),
               box-shadow var(--duration-fast) var(--easing-default);
@@ -1308,7 +1308,7 @@ html:has(.modal-backdrop) body {
 
 .empty-state__icon {
   color: var(--text-muted);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--rhythm-1);
 }
 
 .empty-state__icon svg {
@@ -1329,8 +1329,8 @@ html:has(.modal-backdrop) body {
   font-size: var(--text-base);
   color: var(--text-secondary);
   max-width: 400px;
-  line-height: var(--leading-normal);
-  margin-bottom: var(--space-6);
+  line-height: var(--lh-base);
+  margin-bottom: var(--rhythm-1);
 }
 
 /* ======================
@@ -1634,7 +1634,7 @@ html:has(.modal-backdrop) body {
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   cursor: pointer;
   transition: all var(--duration-normal) cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1804,7 +1804,7 @@ html:has(.modal-backdrop) body {
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   letter-spacing: var(--tracking-normal);
   outline: none;
   transition: border-color var(--duration-fast) var(--easing-default),
@@ -1946,7 +1946,7 @@ html:has(.modal-backdrop) body {
   padding: var(--space-4);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  line-height: var(--leading-mono);
+  line-height: var(--lh-mono);
   color: var(--terminal-text);
   min-height: calc(8 * var(--space-8));
 }
@@ -2178,7 +2178,7 @@ html:has(.modal-backdrop) body {
   border-bottom: 1px solid var(--border-default);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  line-height: var(--leading-mono);
+  line-height: var(--lh-mono);
   color: var(--terminal-text);
   background: var(--terminal-bg);
 }
