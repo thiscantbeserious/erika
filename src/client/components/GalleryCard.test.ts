@@ -201,3 +201,44 @@ describe('GalleryCard — no agent badges', () => {
     expect(wrapper.find('.badge--agent').exists()).toBe(false);
   });
 });
+
+describe('GalleryCard — delete button', () => {
+  it('renders a delete button in the card footer for ready state', () => {
+    const wrapper = mountCard(makeSession());
+    expect(wrapper.find('.landing__card-delete').exists()).toBe(true);
+  });
+
+  it('renders a delete button in the card footer for processing state', () => {
+    const wrapper = mountCard(makeSession({ detection_status: 'processing' }));
+    expect(wrapper.find('.landing__card-delete').exists()).toBe(true);
+  });
+
+  it('renders a delete button in the card footer for failed state', () => {
+    const wrapper = mountCard(makeSession({ detection_status: 'failed' }));
+    expect(wrapper.find('.landing__card-delete').exists()).toBe(true);
+  });
+
+  it('delete button has aria-label "Delete session"', () => {
+    const wrapper = mountCard(makeSession());
+    const btn = wrapper.find('.landing__card-delete');
+    expect(btn.attributes('aria-label')).toBe('Delete session');
+  });
+
+  it('emits "delete" with session id when delete button is clicked', async () => {
+    const session = makeSession({ id: 'abc-123' });
+    const wrapper = mountCard(session);
+    await wrapper.find('.landing__card-delete').trigger('click');
+    const emitted = wrapper.emitted('delete');
+    expect(emitted).toBeTruthy();
+    expect(emitted![0]).toEqual(['abc-123']);
+  });
+
+  it('clicking delete button does not propagate to router-link', async () => {
+    const wrapper = mountCard(makeSession());
+    const btn = wrapper.find('.landing__card-delete');
+    // The button has @click.prevent.stop — triggering click should emit delete
+    // and NOT cause navigation (the router-link click won't fire)
+    await btn.trigger('click');
+    expect(wrapper.emitted('delete')).toBeTruthy();
+  });
+});

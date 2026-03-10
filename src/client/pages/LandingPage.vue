@@ -18,7 +18,7 @@ import { useSessionSSE } from '../composables/useSessionSSE';
 import { useUpload } from '../composables/useUpload';
 import { useToast } from '../composables/useToast';
 
-const { sessions, loading, fetchSessions, updateSession } = useSessionList();
+const { sessions, loading, fetchSessions, updateSession, deleteSession } = useSessionList();
 const { searchQuery, activeFilter, filteredSessions } = useSessionFilter(sessions);
 const { connectionStates } = useSessionSSE(sessions, updateSession);
 const { toasts, addToast, removeToast } = useToast();
@@ -62,6 +62,12 @@ function clearFilters(): void {
 /** Updates the active filter from toolbar emit, typed to SessionFilterGroup. */
 function onActiveFilterUpdate(value: string): void {
   activeFilter.value = value as SessionFilterGroup;
+}
+
+/** Deletes a session by id and shows a success toast. */
+async function onDeleteSession(id: string): Promise<void> {
+  await deleteSession(id);
+  addToast('Session deleted', 'success');
 }
 
 // Body class management — suppress CSS body grid in empty state
@@ -243,6 +249,7 @@ watch(isEmpty, applyBodyClass);
       :loading="loading"
       :connection-states="connectionStates"
       @clear-filters="clearFilters"
+      @delete-session="onDeleteSession"
     />
   </div>
 

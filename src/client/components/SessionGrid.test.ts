@@ -132,3 +132,15 @@ describe('SessionGrid — connectionStates passthrough', () => {
     expect(dot.exists()).toBe(true);
   });
 });
+
+describe('SessionGrid — delete-session emit', () => {
+  it('emits "delete-session" with session id when GalleryCard emits delete', async () => {
+    const sessions = [makeSession('del-1')];
+    const wrapper = mountGrid({ sessions });
+    // Trigger the delete button inside the rendered GalleryCard
+    await wrapper.find('.landing__card-delete').trigger('click');
+    const emitted = wrapper.emitted('delete-session');
+    expect(emitted).toBeTruthy();
+    expect(emitted![0]).toEqual(['del-1']);
+  });
+});

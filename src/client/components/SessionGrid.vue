@@ -19,6 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'clear-filters': [];
+  'delete-session': [id: string];
 }>();
 </script>
 
@@ -38,6 +39,7 @@ const emit = defineEmits<{
         :key="session.id"
         :session="session"
         :connection-state="connectionStates?.get(session.id)"
+        @delete="emit('delete-session', $event)"
       />
     </template>
 

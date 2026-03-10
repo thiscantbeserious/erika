@@ -13,6 +13,10 @@ const props = defineProps<{
   connectionState?: SseConnectionState;
 }>();
 
+const emit = defineEmits<{
+  delete: [id: string];
+}>();
+
 const PROCESSING_STATUSES = new Set([
   'pending', 'queued', 'processing', 'validating',
   'detecting', 'replaying', 'deduplicating', 'storing',
@@ -155,6 +159,13 @@ function showConnectionDot(): boolean {
       <div class="landing__card-footer">
         <span class="landing__card-date">{{ formatRelativeTime(session.uploaded_at) }}</span>
         <span class="landing__card-size">{{ formatSize(session.size_bytes) }}</span>
+        <button
+          class="landing__card-delete"
+          aria-label="Delete session"
+          @click.prevent.stop="emit('delete', session.id)"
+        >
+          <span class="icon icon--xs icon-close" />
+        </button>
       </div>
     </div>
   </router-link>
@@ -189,5 +200,25 @@ function showConnectionDot(): boolean {
 /* Ensure the router-link is positioned for the dot */
 .landing__gallery-card {
   position: relative;
+}
+
+.landing__card-delete {
+  background: none;
+  border: none;
+  color: var(--text-disabled);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.landing__card-delete:hover {
+  color: var(--status-error);
+}
+
+.landing__gallery-card:hover .landing__card-delete {
+  opacity: 1;
 }
 </style>
