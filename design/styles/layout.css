@@ -34,26 +34,29 @@
 
 :root {
   /* ============================================================
-     COLORS
+     COLORS — Midnight Neon palette
      ============================================================ */
 
   /* --- Backgrounds --- */
-  --bg-page: #484850;
-  --bg-surface: #4e4e56;
-  --bg-elevated: #58585f;
+  --bg-page: #1a1a2e;
+  --bg-surface: #212136;
+  --bg-elevated: #28283e;
   --bg-overlay: rgba(0, 0, 0, 0.55);
 
-  /* --- Primary accent — mint green H153 S100% L50% --- */
-  --accent-primary: #00ff9f;
-  --accent-primary-hover: color-mix(in srgb, var(--accent-primary) 80%, white);
+  /* --- Primary accent — cyan H195 --- */
+  --accent-primary: #00d4ff;
+  --accent-primary-hover: #33ddff;
   --accent-primary-dim: color-mix(in srgb, var(--accent-primary) 55%, var(--bg-page));
-  --accent-primary-subtle: color-mix(in srgb, var(--accent-primary) 7%, transparent);
+  --accent-primary-subtle: rgba(0, 212, 255, 0.08);
+  --accent-primary-glow: rgba(0, 212, 255, 0.4);
+  --accent-primary-glow-strong: rgba(0, 212, 255, 0.7);
 
-  /* --- Secondary accent — warm orange, WCAG AA on elevated --- */
-  --accent-secondary: #ffc48a;
-  --accent-secondary-hover: #ffd0a1;
-  --accent-secondary-dim: #ad8c70;
-  --accent-secondary-subtle: color-mix(in srgb, var(--accent-secondary) 7%, transparent);
+  /* --- Secondary accent — neon pink, WCAG AA on elevated --- */
+  --accent-secondary: #ff4d6a;
+  --accent-secondary-hover: #ff6b83;
+  --accent-secondary-dim: color-mix(in srgb, var(--accent-secondary) 55%, var(--bg-page));
+  --accent-secondary-subtle: rgba(255, 77, 106, 0.08);
+  --accent-secondary-glow: rgba(255, 77, 106, 0.35);
 
   /* --- Status — semantic colors --- */
   --status-success: #78e3bd;
@@ -62,24 +65,24 @@
   --status-warning-subtle: color-mix(in srgb, var(--status-warning) 7%, transparent);
   --status-error: #ffc0bd;
   --status-error-subtle: color-mix(in srgb, var(--status-error) 7%, transparent);
-  --status-error-dim: #ad8a8c;
+  --status-error-dim: color-mix(in srgb, var(--status-error) 55%, var(--bg-page));
   --status-info: #8fdafc;
   --status-info-subtle: color-mix(in srgb, var(--status-info) 7%, transparent);
 
   /* --- Text hierarchy --- */
-  --text-primary: #f8f8f8;
-  --text-secondary: #d5d9e0;
-  --text-muted: #ccd0d5;
-  --text-disabled: #a7abaf;
+  --text-primary: #f1f1f7;
+  --text-secondary: #d3d4d9;
+  --text-muted: #aaaab0;
+  --text-disabled: #55556a;
   --text-inverse: var(--bg-page);
 
   /* --- Borders --- */
-  --border-default: #aaaab0;
-  --border-strong: #adaeb4;
+  --border-default: #28283e;
+  --border-strong: #323349;
   --border-accent: var(--accent-primary);
 
   /* --- Terminal --- */
-  --terminal-bg: #1e1e22;
+  --terminal-bg: #12122a;
   --terminal-text: #dcdcdc;
 
   /* Terminal ANSI palette */
@@ -203,7 +206,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.65);
-  --glow-accent: 0 0 20px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  --glow-accent: 0 0 20px rgba(0, 212, 255, 0.25);
   --glow-error: 0 0 20px color-mix(in srgb, var(--status-error) 25%, transparent);
 
   /* ============================================================
