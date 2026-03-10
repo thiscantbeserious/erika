@@ -39,6 +39,82 @@
    ================================================================ */
 
 /* ======================
+   ANIMATION: TRON BORDER TRAIL
+   ======================
+   Animated conic-gradient that rotates around focused inputs,
+   dropdowns, and upload zones — creating a TRON light-cycle
+   trail effect on the element perimeter.
+
+   Uses @property for animatable CSS custom property.
+   Applied via border-box/padding-box background layering on :focus states.
+   ====================== */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-rotate {
+  from { --border-angle: 0deg; }
+  to   { --border-angle: 360deg; }
+}
+
+/* Trail dot — travels along the rectangular border at constant speed */
+@keyframes tron-trail {
+  0%   { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+/* Trail wrapper — wraps any bordered element that needs the TRON trail.
+   The trail dot travels along the element's rectangular border at constant speed.
+   Apply .tron-trail around: <input>, <textarea>, .search-bar__input,
+   .dropdown__trigger, .upload-zone */
+.tron-trail {
+  position: relative;
+  display: block;
+}
+
+.tron-trail:focus-within::before,
+.tron-trail--active::before,
+.search-bar:focus-within::before,
+.dropdown--open::before,
+.upload-zone--drag-over::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px 2px var(--accent-primary-glow),
+              0 0 20px 4px rgba(0, 212, 255, 0.3);
+  offset-path: rect(0% 100% 100% 0% round var(--radius-lg));
+  animation: tron-trail 4s linear infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Error variant — red trail */
+.tron-trail--error:focus-within::before {
+  background: var(--status-error);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--status-error) 40%, transparent),
+              0 0 20px 4px color-mix(in srgb, var(--status-error) 30%, transparent);
+}
+
+/* Valid variant — green trail */
+.tron-trail--valid:focus-within::before {
+  background: var(--status-success);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--status-success) 40%, transparent),
+              0 0 20px 4px color-mix(in srgb, var(--status-success) 30%, transparent);
+}
+
+/* Dropdown uses --radius-md */
+.tron-trail--dropdown:focus-within::before,
+.tron-trail--dropdown.tron-trail--active::before,
+.dropdown--open::before {
+  offset-path: rect(0% 100% 100% 0% round var(--radius-md));
+}
+
+/* ======================
    BASE: CARD
    ======================
    Reusable card foundation. Use alone or extend with modifiers.
@@ -143,6 +219,7 @@
    COMPONENT: BUTTON
    ====================== */
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -162,12 +239,58 @@
   white-space: nowrap;
 }
 
+/* TRON trail on hover and focus — uses border-color which stays semantic */
+.btn:hover::before,
+.btn:focus-visible::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px 2px var(--accent-primary-glow),
+              0 0 20px 4px rgba(0, 212, 255, 0.3);
+  offset-path: rect(0% 100% 100% 0% round var(--radius-md));
+  animation: tron-trail 4s linear infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.btn:focus-visible {
+  outline: none;
+}
+
+/* Destructive trail — red */
+.btn--destructive:hover::before,
+.btn--destructive:focus-visible::before {
+  background: var(--status-error);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--status-error) 40%, transparent),
+              0 0 20px 4px color-mix(in srgb, var(--status-error) 30%, transparent);
+}
+
+/* Secondary trail — muted */
+.btn--secondary:hover::before,
+.btn--secondary:focus-visible::before {
+  background: var(--text-secondary);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--text-secondary) 40%, transparent),
+              0 0 20px 4px color-mix(in srgb, var(--text-secondary) 30%, transparent);
+}
+
+/* Ghost trail — muted */
+.btn--ghost:hover::before,
+.btn--ghost:focus-visible::before {
+  background: var(--text-secondary);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--text-secondary) 40%, transparent),
+              0 0 20px 4px color-mix(in srgb, var(--text-secondary) 30%, transparent);
+}
+
 /* Primary */
 .btn--primary {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
 }
 .btn--primary:hover,
+.btn--primary:focus-visible,
 .btn--primary-hover {
   background: rgba(0, 212, 255, 0.12);
   color: var(--accent-primary);
@@ -201,6 +324,7 @@
   color: var(--text-secondary);
 }
 .btn--secondary:hover,
+.btn--secondary:focus-visible,
 .btn--secondary-hover {
   border-color: var(--text-secondary);
   color: var(--text-primary);
@@ -226,6 +350,7 @@
   border-color: transparent;
 }
 .btn--ghost:hover,
+.btn--ghost:focus-visible,
 .btn--ghost-hover {
   background: var(--bg-elevated);
   color: var(--text-primary);
@@ -248,6 +373,7 @@
   color: var(--status-error);
 }
 .btn--destructive:hover,
+.btn--destructive:focus-visible,
 .btn--destructive-hover {
   background: var(--status-error);
   color: var(--text-inverse);
@@ -345,10 +471,13 @@
               0 0 12px var(--accent-primary-glow);
 }
 
-.input--error {
+.input--error,
+.input--error:focus {
   border-color: var(--status-error);
-  box-shadow: 0 0 0 var(--space-0\.5) var(--status-error-subtle);
+  box-shadow: 0 0 0 var(--space-0\.5) var(--status-error-subtle),
+              0 0 12px color-mix(in srgb, var(--status-error) 40%, transparent);
 }
+
 
 .input--disabled,
 .input:disabled {
@@ -399,10 +528,13 @@
               0 0 12px var(--accent-primary-glow);
 }
 
-.textarea--error {
+.textarea--error,
+.textarea--error:focus {
   border-color: var(--status-error);
-  box-shadow: 0 0 0 var(--space-0\.5) var(--status-error-subtle);
+  box-shadow: 0 0 0 var(--space-0\.5) var(--status-error-subtle),
+              0 0 12px color-mix(in srgb, var(--status-error) 40%, transparent);
 }
+
 
 /* ======================
    COMPONENT: BADGE
@@ -2172,8 +2304,11 @@ html:has(.modal-backdrop) body {
 /* ======================
    COMPONENT: INPUT — Valid state
    ====================== */
-.input--valid {
+.input--valid,
+.input--valid:focus {
   border-color: var(--status-success);
+  box-shadow: 0 0 0 var(--space-0\.5) var(--status-success-subtle),
+              0 0 12px color-mix(in srgb, var(--status-success) 40%, transparent);
 }
 
 .input-group__helper--valid {

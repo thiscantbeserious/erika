@@ -329,7 +329,7 @@
               <state-showcase label="default">
                 <div class="input-group">
                   <label class="input-group__label">Session Name</label>
-                  <input class="input" type="text" placeholder="Enter session name...">
+                  <div class="tron-trail"><input class="input" type="text" placeholder="Enter session name..."></div>
                   <span class="input-group__helper">Give your session a descriptive name</span>
                 </div>
               </state-showcase>
@@ -339,7 +339,7 @@
               <state-showcase label="focused">
                 <div class="input-group">
                   <label class="input-group__label">Session Name</label>
-                  <input class="input input--focused" type="text" placeholder="Enter session name..." value="debug-api-auth">
+                  <div class="tron-trail"><input class="input input--focused" type="text" placeholder="Enter session name..." value="debug-api-auth"></div>
                   <span class="input-group__helper">Give your session a descriptive name</span>
                 </div>
               </state-showcase>
@@ -349,7 +349,7 @@
               <state-showcase label="error">
                 <div class="input-group">
                   <label class="input-group__label">Session Name</label>
-                  <input class="input input--error" type="text" value="">
+                  <div class="tron-trail tron-trail--error"><input class="input input--error" type="text" value=""></div>
                   <span class="input-group__error">Session name is required</span>
                 </div>
               </state-showcase>
@@ -359,7 +359,7 @@
               <state-showcase label="disabled">
                 <div class="input-group">
                   <label class="input-group__label">Session Name</label>
-                  <input class="input input--disabled" type="text" value="locked-session" disabled>
+                  <div class="tron-trail"><input class="input input--disabled" type="text" value="locked-session" disabled></div>
                   <span class="input-group__helper">This field cannot be edited</span>
                 </div>
               </state-showcase>
@@ -374,7 +374,7 @@
               <state-showcase label="default">
                 <div class="input-group">
                   <label class="input-group__label">Notes</label>
-                  <textarea class="textarea" placeholder="Add notes about this session..."></textarea>
+                  <div class="tron-trail"><textarea class="textarea" placeholder="Add notes about this session..."></textarea></div>
                 </div>
               </state-showcase>
             </div>
@@ -382,7 +382,7 @@
               <state-showcase label="focused">
                 <div class="input-group">
                   <label class="input-group__label">Notes</label>
-                  <textarea class="textarea textarea--focused">Fixed the auth token refresh issue by adding retry logic with exponential backoff.</textarea>
+                  <div class="tron-trail"><textarea class="textarea textarea--focused">Fixed the auth token refresh issue by adding retry logic with exponential backoff.</textarea></div>
                 </div>
               </state-showcase>
             </div>
@@ -1197,7 +1197,7 @@
               <state-showcase label="default">
                 <div class="input-group">
                   <label class="input-group__label">Email</label>
-                  <div class="email-input-wrap">
+                  <div class="email-input-wrap tron-trail">
                     <input class="input" type="email" placeholder="you@example.com">
                   </div>
                   <span class="input-group__helper">We will send account confirmations here</span>
@@ -1209,7 +1209,7 @@
               <state-showcase label="focused">
                 <div class="input-group">
                   <label class="input-group__label">Email</label>
-                  <div class="email-input-wrap">
+                  <div class="email-input-wrap tron-trail">
                     <input class="input input--focused" type="email" value="admin@erika.dev">
                   </div>
                 </div>
@@ -1220,7 +1220,7 @@
               <state-showcase label="valid">
                 <div class="input-group">
                   <label class="input-group__label">Email</label>
-                  <div class="email-input-wrap">
+                  <div class="email-input-wrap tron-trail tron-trail--valid">
                     <input class="input input--valid" type="email" value="admin@erika.dev">
                     <span class="email-input__status email-input__status--valid">
                       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4 4 6-6"/></svg>
@@ -1235,7 +1235,7 @@
               <state-showcase label="invalid">
                 <div class="input-group">
                   <label class="input-group__label">Email</label>
-                  <div class="email-input-wrap">
+                  <div class="email-input-wrap tron-trail tron-trail--error">
                     <input class="input input--error" type="email" value="not-an-email">
                     <span class="email-input__status email-input__status--invalid">
                       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>
@@ -1250,7 +1250,7 @@
               <state-showcase label="disabled">
                 <div class="input-group">
                   <label class="input-group__label">Email</label>
-                  <div class="email-input-wrap">
+                  <div class="email-input-wrap tron-trail">
                     <input class="input input--disabled" type="email" value="admin@erika.dev" disabled>
                   </div>
                   <span class="input-group__helper">Email cannot be changed</span>
