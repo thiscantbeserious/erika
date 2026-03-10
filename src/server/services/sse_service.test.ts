@@ -24,6 +24,7 @@ function makeEventLog(entries: EventLogEntry[] = []): EventLogAdapter {
     logSync: vi.fn().mockReturnValue(1),
     findBySessionId: vi.fn().mockResolvedValue(entries),
     findBySessionIdAfterId: vi.fn().mockResolvedValue(entries),
+    deleteOlderThan: vi.fn().mockResolvedValue(0),
   };
 }
 
