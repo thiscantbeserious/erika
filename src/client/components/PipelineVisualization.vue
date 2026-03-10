@@ -52,12 +52,54 @@
 
     <!-- Decorative anchor dots — BUG FIX 1: start hidden via CSS -->
     <!-- Copied from design/drafts/theme-tron-v1.html lines 1322-1327 -->
-    <circle class="landing-empty__anchor-dot" cx="100" cy="90" r="1" stroke="#00d4ff" data-target-opacity="0.08"/>
-    <circle class="landing-empty__anchor-dot" cx="320" cy="90" r="1" stroke="#00d4ff" data-target-opacity="0.08"/>
-    <circle class="landing-empty__anchor-dot" cx="560" cy="85" r="1" stroke="#00d4ff" data-target-opacity="0.08"/>
-    <circle class="landing-empty__anchor-dot" cx="700" cy="470" r="1" stroke="#ff4d6a" data-target-opacity="0.06"/>
-    <circle class="landing-empty__anchor-dot" cx="920" cy="470" r="1" stroke="#ff4d6a" data-target-opacity="0.06"/>
-    <circle class="landing-empty__anchor-dot" cx="1140" cy="460" r="1" stroke="#ff4d6a" data-target-opacity="0.06"/>
+    <circle
+      class="landing-empty__anchor-dot"
+      cx="100"
+      cy="90"
+      r="1"
+      stroke="#00d4ff"
+      data-target-opacity="0.08"
+    />
+    <circle
+      class="landing-empty__anchor-dot"
+      cx="320"
+      cy="90"
+      r="1"
+      stroke="#00d4ff"
+      data-target-opacity="0.08"
+    />
+    <circle
+      class="landing-empty__anchor-dot"
+      cx="560"
+      cy="85"
+      r="1"
+      stroke="#00d4ff"
+      data-target-opacity="0.08"
+    />
+    <circle
+      class="landing-empty__anchor-dot"
+      cx="700"
+      cy="470"
+      r="1"
+      stroke="#ff4d6a"
+      data-target-opacity="0.06"
+    />
+    <circle
+      class="landing-empty__anchor-dot"
+      cx="920"
+      cy="470"
+      r="1"
+      stroke="#ff4d6a"
+      data-target-opacity="0.06"
+    />
+    <circle
+      class="landing-empty__anchor-dot"
+      cx="1140"
+      cy="460"
+      r="1"
+      stroke="#ff4d6a"
+      data-target-opacity="0.06"
+    />
 
     <!-- Full pipeline path: record -> validate -> detect -> replay -> ready -->
     <!-- Copied from design/drafts/theme-tron-v1.html lines 1336-1337 -->
@@ -73,19 +115,28 @@
     <g>
       <circle
         class="landing-empty__node-fill landing-empty__node-fill--cyan landing-empty__node-fill--n1"
-        cx="12.5%" cy="13.33%" r="6"
+        cx="12.5%"
+        cy="13.33%"
+        r="6"
       />
       <circle
         class="landing-empty__node-ring landing-empty__node-ring--cyan landing-empty__node-ring--n1"
-        cx="12.5%" cy="13.33%" r="10"
+        cx="12.5%"
+        cy="13.33%"
+        r="10"
       />
       <circle
         class="landing-empty__node-outer-ring landing-empty__node-outer-ring--n1"
-        cx="12.5%" cy="13.33%" r="16" stroke="#00d4ff" stroke-dasharray="4 4"
+        cx="12.5%"
+        cy="13.33%"
+        r="16"
+        stroke="#00d4ff"
+        stroke-dasharray="4 4"
       />
       <text
         class="landing-empty__node-label landing-empty__node-label--n1"
-        x="12.5%" y="19.67%"
+        x="12.5%"
+        y="19.67%"
       >record</text>
     </g>
 
@@ -93,19 +144,28 @@
     <g>
       <circle
         class="landing-empty__node-fill landing-empty__node-fill--pink landing-empty__node-fill--n2"
-        cx="31.25%" cy="86.67%" r="6"
+        cx="31.25%"
+        cy="86.67%"
+        r="6"
       />
       <circle
         class="landing-empty__node-ring landing-empty__node-ring--pink landing-empty__node-ring--n2"
-        cx="31.25%" cy="86.67%" r="10"
+        cx="31.25%"
+        cy="86.67%"
+        r="10"
       />
       <circle
         class="landing-empty__node-outer-ring landing-empty__node-outer-ring--n2"
-        cx="31.25%" cy="86.67%" r="16" stroke="#ff4d6a" stroke-dasharray="4 4"
+        cx="31.25%"
+        cy="86.67%"
+        r="16"
+        stroke="#ff4d6a"
+        stroke-dasharray="4 4"
       />
       <text
         class="landing-empty__node-label landing-empty__node-label--n2"
-        x="31.25%" y="93%"
+        x="31.25%"
+        y="93%"
       >validate</text>
     </g>
 
@@ -113,19 +173,28 @@
     <g>
       <circle
         class="landing-empty__node-fill landing-empty__node-fill--cyan landing-empty__node-fill--n3"
-        cx="50%" cy="13.33%" r="6"
+        cx="50%"
+        cy="13.33%"
+        r="6"
       />
       <circle
         class="landing-empty__node-ring landing-empty__node-ring--cyan landing-empty__node-ring--n3"
-        cx="50%" cy="13.33%" r="10"
+        cx="50%"
+        cy="13.33%"
+        r="10"
       />
       <circle
         class="landing-empty__node-outer-ring landing-empty__node-outer-ring--n3"
-        cx="50%" cy="13.33%" r="16" stroke="#00d4ff" stroke-dasharray="4 4"
+        cx="50%"
+        cy="13.33%"
+        r="16"
+        stroke="#00d4ff"
+        stroke-dasharray="4 4"
       />
       <text
         class="landing-empty__node-label landing-empty__node-label--n3"
-        x="50%" y="19.67%"
+        x="50%"
+        y="19.67%"
       >detect</text>
     </g>
 
@@ -133,19 +202,28 @@
     <g>
       <circle
         class="landing-empty__node-fill landing-empty__node-fill--pink landing-empty__node-fill--n4"
-        cx="68.75%" cy="86.67%" r="6"
+        cx="68.75%"
+        cy="86.67%"
+        r="6"
       />
       <circle
         class="landing-empty__node-ring landing-empty__node-ring--pink landing-empty__node-ring--n4"
-        cx="68.75%" cy="86.67%" r="10"
+        cx="68.75%"
+        cy="86.67%"
+        r="10"
       />
       <circle
         class="landing-empty__node-outer-ring landing-empty__node-outer-ring--n4"
-        cx="68.75%" cy="86.67%" r="16" stroke="#ff4d6a" stroke-dasharray="4 4"
+        cx="68.75%"
+        cy="86.67%"
+        r="16"
+        stroke="#ff4d6a"
+        stroke-dasharray="4 4"
       />
       <text
         class="landing-empty__node-label landing-empty__node-label--n4"
-        x="68.75%" y="93%"
+        x="68.75%"
+        y="93%"
       >replay</text>
     </g>
 
@@ -153,26 +231,38 @@
     <g>
       <circle
         class="landing-empty__node-fill landing-empty__node-fill--final landing-empty__node-fill--n5"
-        cx="87.5%" cy="13.33%" r="8"
+        cx="87.5%"
+        cy="13.33%"
+        r="8"
       />
       <circle
         class="landing-empty__node-ring landing-empty__node-ring--final landing-empty__node-ring--n5"
-        cx="87.5%" cy="13.33%" r="13"
+        cx="87.5%"
+        cy="13.33%"
+        r="13"
       />
       <circle
         class="landing-empty__node-outer-ring landing-empty__node-outer-ring--n5"
-        cx="87.5%" cy="13.33%" r="20" stroke="#00d4ff" stroke-dasharray="5 5"
+        cx="87.5%"
+        cy="13.33%"
+        r="20"
+        stroke="#00d4ff"
+        stroke-dasharray="5 5"
       />
       <text
         class="landing-empty__node-label landing-empty__node-label--n5"
-        x="87.5%" y="20.33%"
+        x="87.5%"
+        y="20.33%"
       >curate</text>
     </g>
   </svg>
 
   <!-- Blinking terminal cursor — decorative giant >_ prompt -->
   <!-- Copied from design/drafts/theme-tron-v1.html lines 1421-1423 -->
-  <div class="landing-empty__cursor-prompt" aria-hidden="true">
+  <div
+    class="landing-empty__cursor-prompt"
+    aria-hidden="true"
+  >
     <span class="landing-empty__cursor-chevron">&gt;</span><span class="landing-empty__cursor-blink">_</span>
   </div>
 </template>

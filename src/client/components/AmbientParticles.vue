@@ -9,23 +9,50 @@
 <!-- Copied from design/drafts/theme-tron-v1.html lines 1410-1418 (HTML), 670-676 (base CSS), 814-876 (keyframes), 1097-1199 (motion-allowed particle styles), 925 (reduced-motion override) -->
 <template>
   <!-- Ambient data particles — predominantly cyan, sparse pink -->
-  <div class="landing-empty__ambient-particles" aria-hidden="true">
+  <div
+    class="landing-empty__ambient-particles"
+    aria-hidden="true"
+  >
     <!-- Particle 1: cyan, 4px, top-left -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--1" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--1"
+      aria-hidden="true"
+    />
     <!-- Particle 2: pink, 4px, top-right -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--2" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--2"
+      aria-hidden="true"
+    />
     <!-- Particle 3: cyan, 4px, mid-left -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--3" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--3"
+      aria-hidden="true"
+    />
     <!-- Particle 4: cyan, 5px, mid-right -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--4" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--4"
+      aria-hidden="true"
+    />
     <!-- Particle 5: cyan, 6px (larger), bottom-left -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--5" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--5"
+      aria-hidden="true"
+    />
     <!-- Particle 6: cyan, 4px, bottom-right -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--6" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--6"
+      aria-hidden="true"
+    />
     <!-- Particle 7: pink, 4px, upper-center-left -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--7" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--7"
+      aria-hidden="true"
+    />
     <!-- Particle 8: cyan, 5px, lower-center-right -->
-    <div class="landing-empty__ambient-particle landing-empty__ambient-particle--8" aria-hidden="true"></div>
+    <div
+      class="landing-empty__ambient-particle landing-empty__ambient-particle--8"
+      aria-hidden="true"
+    />
   </div>
 </template>
 

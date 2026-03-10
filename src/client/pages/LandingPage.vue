@@ -87,7 +87,6 @@ watch(isEmpty, applyBodyClass);
   >
     <!-- MAIN: SVG Pipeline + atmosphere + content overlay -->
     <main class="landing-empty__main">
-
       <!-- Background atmosphere layers — absolutely positioned, non-interactive -->
       <BackgroundGrid />
       <AmbientParticles />
@@ -118,7 +117,10 @@ watch(isEmpty, applyBodyClass);
           />
 
           <!-- Upload icon with single thin disc ring, gentle bob animation -->
-          <div class="landing-empty__upload-icon" style="position: relative;">
+          <div
+            class="landing-empty__upload-icon"
+            style="position: relative;"
+          >
             <div
               class="landing-empty__disc-ring landing-empty__disc-ring--1"
               aria-hidden="true"
@@ -131,14 +133,16 @@ watch(isEmpty, applyBodyClass);
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M12 30v6h24v-6"/>
-              <path d="M24 10v18"/>
-              <path d="M16 18l8-8 8 8"/>
+              <path d="M12 30v6h24v-6" />
+              <path d="M24 10v18" />
+              <path d="M16 18l8-8 8 8" />
             </svg>
           </div>
 
           <!-- Heading -->
-          <h1 class="landing-empty__heading">No sessions yet. Fix that.</h1>
+          <h1 class="landing-empty__heading">
+            No sessions yet. Fix that.
+          </h1>
 
           <!-- Subtitle -->
           <p class="landing-empty__subtitle">
@@ -147,7 +151,12 @@ watch(isEmpty, applyBodyClass);
           </p>
 
           <!-- CTA — TRON styled -->
-          <button type="button" class="landing-empty__cta">Browse Files</button>
+          <button
+            type="button"
+            class="landing-empty__cta"
+          >
+            Browse Files
+          </button>
         </div>
 
         <!-- AGR hint -->

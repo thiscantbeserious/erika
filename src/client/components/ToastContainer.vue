@@ -26,11 +26,21 @@ const typeIconMap: Record<Toast['type'], string> = {
       :class="`toast--${toast.type}`"
     >
       <div class="toast__icon">
-        <span class="icon icon--md" :class="typeIconMap[toast.type]" />
+        <span
+          class="icon icon--md"
+          :class="typeIconMap[toast.type]"
+        />
       </div>
       <div class="toast__content">
-        <div v-if="toast.title" class="toast__title">{{ toast.title }}</div>
-        <div class="toast__message">{{ toast.message }}</div>
+        <div
+          v-if="toast.title"
+          class="toast__title"
+        >
+          {{ toast.title }}
+        </div>
+        <div class="toast__message">
+          {{ toast.message }}
+        </div>
       </div>
       <button
         class="toast__close"
