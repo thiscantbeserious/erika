@@ -20,6 +20,8 @@
      6. Showcase grids  — .component-grid, .input-demo, .card-demo
      7. Inline utilities — extracted from inline styles
 
+   Vertical rhythm: all vertical spacing is a multiple of --baseline (21px).
+
    Naming convention: BEM (.block__element--modifier)
    ================================================================ */
 
@@ -29,7 +31,7 @@
 .page {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: var(--space-12) var(--container-padding);
+  padding: var(--rhythm-2) var(--container-padding);  /* 42px top/bottom */
 }
 
 /* ================================================================
@@ -39,47 +41,49 @@
   font-size: var(--text-3xl);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-tight);
+  line-height: var(--lh-3xl);    /* 42px — 2 baseline units */
   color: var(--text-primary);
-  margin-bottom: var(--space-1);
+  margin-bottom: 0;              /* subtitle follows immediately */
 }
 
 .page__subtitle {
   font-size: var(--text-base);
+  line-height: var(--lh-base);   /* 21px */
   color: var(--text-secondary);
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--rhythm-2);  /* 42px before first section */
 }
 
 /* ================================================================
    3. SECTIONS
    ================================================================ */
 .section {
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--rhythm-2);  /* 42px between sections */
 }
 
 .section__title {
   font-size: var(--text-xl);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-snug);
+  line-height: var(--lh-xl);      /* 21px — 1 baseline unit */
   color: var(--text-primary);
-  margin-bottom: var(--space-2);
-  padding-bottom: var(--space-2);
+  margin-bottom: calc(var(--rhythm-1) - 1px); /* 20px + 1px border = 21px total below text */
+  padding-bottom: 0;
   border-bottom: 1px solid var(--border-default);
 }
 
 .section__description {
   font-size: var(--text-sm);
+  line-height: var(--lh-sm);      /* 21px */
   color: var(--text-muted);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--rhythm-1); /* 21px before content */
 }
 
 /* Section body text — long-form paragraph within a section */
 .section__body-text {
   color: var(--text-secondary);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  margin-bottom: var(--space-4);
+  line-height: var(--lh-base);    /* 21px */
+  margin-bottom: var(--rhythm-1); /* 21px */
   max-width: var(--breakpoint-sm);
 }
 
@@ -89,14 +93,14 @@
 .divider {
   border: none;
   border-top: 1px solid var(--border-default);
-  margin: var(--space-12) 0;
+  margin-block: calc(var(--rhythm-2) - 1px) var(--rhythm-2); /* 41px + 1px border + 42px = 84px total */
 }
 
 /* ================================================================
    5. STATE SHOWCASE
    ================================================================ */
 .state-group {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--rhythm-1);  /* 21px between state groups */
 }
 
 .state-group__title {
@@ -106,14 +110,15 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider);
-  margin-bottom: var(--space-3);
+  line-height: var(--lh-xs);      /* 21px */
+  margin-bottom: var(--rhythm-1); /* 21px */
 }
 
 .state-row {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--rhythm-1); /* 21px between rows */
 }
 
 .state-row--wrap {
@@ -131,7 +136,7 @@
   min-width: 80px;
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider);
-  line-height: var(--leading-relaxed);
+  line-height: var(--lh-xs);      /* 21px */
   flex-shrink: 0;
 }
 
@@ -145,7 +150,7 @@
 .component-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-6);
+  gap: var(--rhythm-1);           /* 21px grid gap */
 }
 
 .component-grid--2col {
@@ -186,7 +191,7 @@
 
 /* Subsection title with top spacing (for non-first subsections) */
 .subsection-title--spaced {
-  margin-top: var(--space-8);
+  margin-top: var(--rhythm-2);    /* 42px */
 }
 
 /* Type specimen — larger font-size variant for previews */
@@ -203,19 +208,21 @@
 }
 
 /* ================================================================
-   RESPONSIVE
+   RESPONSIVE — MOBILE
    ================================================================ */
 @media (max-width: 767px) {
   .page {
-    padding: var(--space-8) var(--space-4);
+    padding: var(--rhythm-1) var(--space-4);  /* 21px top/bottom on mobile */
   }
 
   .page__title {
     font-size: var(--text-xl);
+    line-height: var(--lh-xl);
   }
 
   .section__title {
     font-size: var(--text-lg);
+    line-height: var(--lh-lg);
   }
 
   .component-grid--2col,
@@ -234,5 +241,37 @@
   .input-demo {
     width: 100%;
     max-width: 100%;
+  }
+}
+
+/* ================================================================
+   RESPONSIVE — WIDE SCREEN (2-column section layout)
+   ================================================================
+   On viewports >= 1440px the page container widens to hold two
+   content columns side-by-side. Each column is --container-max wide
+   with a --rhythm-2 (42px) gap between them.
+
+   The page header spans both columns. Dividers are hidden since
+   the section__title border-bottom provides sufficient visual
+   separation within the 2-column grid.
+   ================================================================ */
+@media (min-width: 1440px) {
+  .page {
+    max-width: calc(var(--container-max) * 2 + var(--rhythm-4));
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--rhythm-4);  /* 84px between columns — 4 baseline units */
+  }
+
+  /* Page header spans full width */
+  .page__title,
+  .page__subtitle {
+    grid-column: 1 / -1;
+  }
+
+  /* Hide dividers — they break the 2-column flow by forcing new rows.
+     Section title border-bottom provides enough visual separation. */
+  .divider {
+    display: none;
   }
 }

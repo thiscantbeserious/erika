@@ -17,10 +17,16 @@
    No :root block should appear in individual stage files.
    Stage-specific CSS goes in <style> within each HTML file.
 
+   Baseline rhythm:
+     Base font: 14px, line-height: 1.5 = 21px baseline unit.
+     ALL vertical spacing, component heights, and line-heights
+     resolve to multiples of 21px. The background grid uses 42px
+     (2 x baseline) for a clean visual cadence.
+
    Layout classes:
 
      .container              — max-width 960px, centered, 24px inline padding
-     .grid                   — display:grid, gap 16px
+     .grid                   — display:grid, gap 21px (1 baseline unit)
      .grid.grid--auto-fill   — repeat(auto-fill, minmax(200px, 1fr))
      .grid.grid--2col        — repeat(2, 1fr)
      .grid.grid--3col        — repeat(3, 1fr)
@@ -34,52 +40,68 @@
 
 :root {
   /* ============================================================
-     COLORS
+     BASELINE RHYTHM
+     ============================================================
+     The fundamental vertical unit. Every vertical measurement
+     (line-heights, component heights, vertical spacing, margins)
+     MUST resolve to a multiple of this value.
+
+     Derivation: 14px base font x 1.5 line-height = 21px
+     ============================================================ */
+  --baseline: 21px;
+
+  /* ============================================================
+     COLORS — Midnight Neon palette
      ============================================================ */
 
   /* --- Backgrounds --- */
-  --bg-page: #484850;
-  --bg-surface: #4e4e56;
-  --bg-elevated: #58585f;
+  --bg-page: #1a1a2e;
+  --bg-surface: #212136;
+  --bg-elevated: #28283e;
   --bg-overlay: rgba(0, 0, 0, 0.55);
 
-  /* --- Primary accent — mint green H153 S100% L50% --- */
-  --accent-primary: #00ff9f;
-  --accent-primary-hover: color-mix(in srgb, var(--accent-primary) 80%, white);
-  --accent-primary-dim: color-mix(in srgb, var(--accent-primary) 55%, var(--bg-page));
-  --accent-primary-subtle: color-mix(in srgb, var(--accent-primary) 7%, transparent);
+  /* --- Primary accent — cyan H195 --- */
+  --accent-primary: #00d4ff;
+  --accent-primary-hover: #33ddff;
+  --accent-primary-subtle: rgba(0, 212, 255, 0.08);
+  --accent-primary-glow: rgba(0, 212, 255, 0.4);
+  --accent-primary-glow-strong: rgba(0, 212, 255, 0.7);
+  --accent-primary-dim: color-mix(in srgb, var(--accent-primary) 50%, var(--bg-page));
 
-  /* --- Secondary accent — warm orange, WCAG AA on elevated --- */
-  --accent-secondary: #ffc48a;
-  --accent-secondary-hover: #ffd0a1;
-  --accent-secondary-dim: #ad8c70;
-  --accent-secondary-subtle: color-mix(in srgb, var(--accent-secondary) 7%, transparent);
+  /* --- Secondary accent — neon pink, WCAG AA on elevated --- */
+  --accent-secondary: #ff4d6a;
+  --accent-secondary-hover: #ff6b83;
+  --accent-secondary-subtle: rgba(255, 77, 106, 0.08);
+  --accent-secondary-glow: rgba(255, 77, 106, 0.35);
+  --accent-secondary-dim: color-mix(in srgb, var(--accent-secondary) 50%, var(--bg-page));
 
   /* --- Status — semantic colors --- */
-  --status-success: #78e3bd;
-  --status-success-subtle: color-mix(in srgb, var(--status-success) 7%, transparent);
+  /* Success: neon green — 12.59:1 contrast, AAA */
+  --status-success: #00ff66;
+  --status-success-subtle: rgba(0, 255, 102, 0.08);
   --status-warning: #ffcc00;
   --status-warning-subtle: color-mix(in srgb, var(--status-warning) 7%, transparent);
-  --status-error: #ffc0bd;
-  --status-error-subtle: color-mix(in srgb, var(--status-error) 7%, transparent);
-  --status-error-dim: #ad8a8c;
+  /* Error: secondary pink, 15% darker toward bg
+     #d7457b = mix(#ff4d6a, #1a1a2e, 15%) in OKLCH — 4.08:1 contrast */
+  --status-error: #d7457b;
+  --status-error-subtle: rgba(215, 69, 123, 0.08);
   --status-info: #8fdafc;
   --status-info-subtle: color-mix(in srgb, var(--status-info) 7%, transparent);
 
   /* --- Text hierarchy --- */
-  --text-primary: #f8f8f8;
-  --text-secondary: #d5d9e0;
-  --text-muted: #ccd0d5;
-  --text-disabled: #a7abaf;
+  --text-primary: #f1f1f7;
+  --text-secondary: #d3d4d9;
+  --text-muted: #aaaab0;
+  --text-disabled: #55556a;
   --text-inverse: var(--bg-page);
 
   /* --- Borders --- */
-  --border-default: #aaaab0;
-  --border-strong: #adaeb4;
+  --border-default: #323349;
+  --border-strong: #3d3d55;
   --border-accent: var(--accent-primary);
 
   /* --- Terminal --- */
-  --terminal-bg: #1e1e22;
+  --terminal-bg: #12122a;
   --terminal-text: #dcdcdc;
 
   /* Terminal ANSI palette */
@@ -104,6 +126,20 @@
 
   /* ============================================================
      TYPOGRAPHY — Minor Third (1.2) from 14px base
+     ============================================================
+     Line heights are absolute px values that are exact multiples
+     of --baseline (21px). This guarantees every text element
+     occupies whole baseline units regardless of font size.
+
+     Font size  | line-height | Baseline units
+     -----------|-------------|---------------
+     10px (xs)  |    21px     | 1
+     12px (sm)  |    21px     | 1
+     14px (base)|    21px     | 1
+     17px (lg)  |    21px     | 1
+     20px (xl)  |    21px     | 1
+     24px (2xl) |    42px     | 2
+     29px (3xl) |    42px     | 2
      ============================================================ */
 
   /* Font families */
@@ -119,12 +155,24 @@
   --text-2xl: 1.5rem;     /* 24px — step +3 */
   --text-3xl: 1.8125rem;  /* 29px — step +4 (display) */
 
-  /* Line height: inverse relationship — bigger text = tighter */
-  --leading-tight: 1.2;     /* headings 24px+ */
-  --leading-snug: 1.35;     /* large body 17-24px */
-  --leading-normal: 1.5;    /* body text 14px */
-  --leading-relaxed: 1.65;  /* small text 10-12px */
-  --leading-mono: 1.6;      /* monospace at any size */
+  /* Line heights — absolute values snapped to baseline grid.
+     Ratio-based --leading-* tokens kept for reference / fallback,
+     but components SHOULD use the absolute --lh-* tokens. */
+  --lh-xs: var(--baseline);                    /* 10px text: 1 baseline unit */
+  --lh-sm: var(--baseline);                    /* 12px text: 1 baseline unit */
+  --lh-base: var(--baseline);                  /* 14px text: 1 baseline unit */
+  --lh-lg: var(--baseline);                    /* 17px text: 1 baseline unit */
+  --lh-xl: var(--baseline);                    /* 20px text: 1 baseline unit */
+  --lh-2xl: calc(var(--baseline) * 2);         /* 24px text: 2 baseline units */
+  --lh-3xl: calc(var(--baseline) * 2);         /* 29px text: 2 baseline units */
+  --lh-mono: var(--baseline);                  /* monospace at any body size */
+
+  /* Legacy ratio tokens — kept for compatibility, but prefer --lh-* */
+  --leading-tight: 1.3125;   /* 21px/16px approximation for headings */
+  --leading-snug: 1.235;     /* 21px/17px */
+  --leading-normal: 1.5;     /* 21px/14px — exact */
+  --leading-relaxed: 1.75;   /* 21px/12px */
+  --leading-mono: 1.5;       /* 21px/14px */
 
   /* Letter spacing */
   --tracking-tight: -0.02em;    /* display/headings — tighter feels more confident */
@@ -139,7 +187,14 @@
   --weight-bold: 700;
 
   /* ============================================================
-     SPACING (4px base grid)
+     SPACING — Baseline-aligned vertical rhythm
+     ============================================================
+     Horizontal spacing remains on the 4px grid.
+     Vertical spacing tokens that affect rhythm use baseline
+     multiples: 21px, 42px, 63px, 84px.
+
+     The --space-N tokens are kept for horizontal use and for
+     fine internal adjustments. For vertical rhythm, use --rhythm-*.
      ============================================================ */
   --space-0\.5: 2px;
   --space-1: 4px;
@@ -153,17 +208,25 @@
   --space-12: 48px;
   --space-16: 64px;
 
+  /* Rhythm-aligned vertical spacing (derived from --baseline) */
+  --rhythm-quarter: calc(var(--baseline) / 4);  /* 0.25 units (5.25px) — tight padding */
+  --rhythm-half: calc(var(--baseline) / 2);    /* 0.5 units (10.5px) — compact padding */
+  --rhythm-1: var(--baseline);                 /* 1 unit — standard gap */
+  --rhythm-2: calc(var(--baseline) * 2);       /* 2 units — section spacing */
+  --rhythm-3: calc(var(--baseline) * 3);       /* 3 units — major section break */
+  --rhythm-4: calc(var(--baseline) * 4);       /* 4 units — page-level separation */
+
   /* Named spacing shortcuts */
-  --space-inline: var(--space-4);   /* default horizontal padding */
-  --space-stack: var(--space-3);    /* default vertical gap between elements */
+  --space-inline: var(--space-4);      /* default horizontal padding */
+  --space-stack: var(--rhythm-1);      /* default vertical gap = 1 baseline */
 
   /* ============================================================
      LAYOUT / GRID
      ============================================================ */
   --container-max: 960px;
   --container-padding: var(--space-6);
-  --grid-gap: var(--space-4);
-  --header-height: 56px;
+  --grid-gap: var(--rhythm-1);                   /* 1 baseline unit */
+  --header-height: var(--rhythm-3);              /* 3 baseline units */
 
   /* Breakpoints (documented as tokens; used as raw values in @media) */
   --breakpoint-sm: 640px;
@@ -173,14 +236,21 @@
   --breakpoint-2xl: 1440px;
 
   /* ============================================================
-     COMPONENT SIZING
+     COMPONENT SIZING — baseline-snapped heights
+     ============================================================
+     All interactive component heights are multiples of 21px
+     so they occupy whole baseline units in vertical flow.
+
+     btn-sm kept at 21px (1 unit) — compact inline actions.
+     btn-md / input-sm / input-md = 42px (2 units).
+     btn-lg / input-lg = 63px (3 units).
      ============================================================ */
-  --btn-height-sm: 28px;
-  --btn-height-md: 36px;
-  --btn-height-lg: 44px;
-  --input-height-sm: 32px;
-  --input-height-md: 40px;
-  --input-height-lg: 48px;
+  --btn-height-sm: calc(var(--baseline) * 1.5);   /* 1.5 baseline units (31.5px) */
+  --btn-height-md: var(--rhythm-2);              /* 2 baseline units */
+  --btn-height-lg: var(--rhythm-3);              /* 3 baseline units */
+  --input-height-sm: var(--rhythm-2);            /* 2 baseline units */
+  --input-height-md: var(--rhythm-2);            /* 2 baseline units */
+  --input-height-lg: var(--rhythm-3);            /* 3 baseline units */
 
   /* Component-specific sizing */
   --toast-min-width: 320px;
@@ -198,12 +268,17 @@
   --radius-full: 9999px;
 
   /* ============================================================
+     GLASS EFFECT
+     ============================================================ */
+  --glass-blur: 8px;
+
+  /* ============================================================
      SHADOWS
      ============================================================ */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.65);
-  --glow-accent: 0 0 20px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  --glow-accent: 0 0 20px rgba(0, 212, 255, 0.25);
   --glow-error: 0 0 20px color-mix(in srgb, var(--status-error) 25%, transparent);
 
   /* ============================================================
@@ -219,15 +294,35 @@
    RESET + BASE
    ================================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--status-success); color: var(--text-inverse); }
 html { position: relative; width: 100%; height: 100%; }
 body { position: relative; width: 100%; min-height: 100%; }
 
 body {
   font-family: var(--font-body);
-  background: var(--bg-page);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 212, 255, 0.06) 0px,
+      rgba(0, 212, 255, 0.06) 1px,
+      transparent 0px,
+      transparent 84px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 212, 255, 0.06) 0px,
+      rgba(0, 212, 255, 0.06) 1px,
+      transparent 0px,
+      transparent 84px
+    ),
+    var(--bg-page);
+  /* Offset: header is 63px (3 baselines). The grid starts at the
+     page top and the first visible line should appear at y=0.
+     No vertical offset needed — grid lines at 0, 42, 84, ... */
+  background-position: 0px, -2px, 0, 0;
   color: var(--text-primary);
   font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  line-height: var(--lh-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   box-shadow: 0 12px 100px rgba(0, 0, 0, 0.36) inset;

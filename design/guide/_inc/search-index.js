@@ -53,7 +53,7 @@ window.GUIDE_SEARCH_INDEX = [
       {
         "section": "1. Card (Base)",
         "sectionId": "1-card-base",
-        "text": "1. Card (Base) 1. Card (Base) Foundational surface container. Four modifiers and structured children (.card__title, .card__label, .card__value, .card__desc, .card__body, .card__media). .card — Default --space-5 padding Column layout, radius-xl. The standard container for grouped content. --space-3 / --space-4 .card--compact Tighter padding, smaller radius. For dense lists and token grids. Leading Whitespace Detection 12 sections · 8m 34s Normal --duration-normal 250ms Media Card --accent-primary #00ff9f Terminal BG --terminal-bg #1e1e22 Gradient Custom media Full-bleed visual area Cards compose with child classes. Session Card extends this base. Sessions 127 Total Duration 48h 12m"
+        "text": "1. Card (Base) 1. Card (Base) Foundational surface container. Four modifiers and structured children (.card__title, .card__label, .card__value, .card__desc, .card__body, .card__media). .card — Default --space-5 padding Column layout, radius-xl. The standard container for grouped content. --space-3 / --space-4 .card--compact Tighter padding, smaller radius. For dense lists and token grids. Leading Whitespace Detection 12 sections · 8m 34s Normal --duration-normal 250ms Media Card --accent-primary #00d4ff Terminal BG --terminal-bg #12122a Gradient Custom media Full-bleed visual area Cards compose with child classes. Session Card extends this base. Sessions 127 Total Duration 48h 12m"
       },
       {
         "section": "2. Button",
