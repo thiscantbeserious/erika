@@ -993,51 +993,124 @@
    COMPONENT: UPLOAD ZONE
    ====================== */
 .upload-zone {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--rhythm-half);
-  padding: var(--rhythm-2) var(--space-8);
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-12) var(--space-8);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  background: rgba(10, 10, 25, 0.79);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5));
   border: 1px solid rgba(0, 212, 255, 0.25);
-  border-radius: var(--radius-xl);
-  background: rgba(10, 10, 25, 0.55);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.6),
               0 0 8px rgba(0, 212, 255, 0.15),
               inset 0 0 8px rgba(0, 212, 255, 0.05);
-  transition: all var(--duration-normal) var(--easing-default);
-  cursor: pointer;
+  overflow: hidden;
   text-align: center;
+  transition: transform var(--duration-normal) var(--easing-default),
+              box-shadow var(--duration-normal) var(--easing-default),
+              border-color var(--duration-normal) var(--easing-default);
+}
+
+/* Hover: lift + intensify glow */
+.upload-zone:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7),
+              0 0 14px rgba(0, 212, 255, 0.25),
+              inset 0 0 12px rgba(0, 212, 255, 0.08);
+}
+
+/* Focus visible ring */
+.upload-zone:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: var(--space-1);
 }
 
 .upload-zone__icon {
-  color: var(--text-muted);
-  margin-bottom: var(--rhythm-half);
+  width: 44px;
+  height: 44px;
+  color: var(--accent-primary);
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 8px var(--accent-primary-glow));
 }
 
 .upload-zone__icon svg {
-  width: var(--space-12);
-  height: var(--space-12);
+  width: 100%;
+  height: 100%;
+}
+
+/* Disc ring — thin circle around the icon */
+.upload-zone__disc-ring {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .upload-zone__title {
-  font-size: var(--text-lg);
-  font-weight: var(--weight-medium);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-2xl);
   color: var(--text-primary);
+  position: relative;
+  z-index: 2;
 }
 
 .upload-zone__subtitle {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--lh-base);
+  max-width: 400px;
+  position: relative;
+  z-index: 2;
 }
 
-.upload-zone__browse {
-  font-size: var(--text-sm);
+.upload-zone__subtitle code {
   color: var(--accent-primary);
-  text-decoration: underline;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--accent-primary-subtle);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+
+/* CTA browse button — TRON geometric style */
+.upload-zone__browse {
+  color: var(--accent-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-mono);
+  text-decoration: none;
   cursor: pointer;
+  margin-top: var(--space-2);
+  position: relative;
+  z-index: 2;
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: all var(--duration-fast) var(--easing-default);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+}
+
+.upload-zone__browse:hover {
+  background: var(--accent-primary-subtle);
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.12),
+              inset 0 0 16px rgba(0, 212, 255, 0.04);
 }
 
 /* Drag over */
@@ -1060,7 +1133,6 @@
 /* Uploading */
 .upload-zone--uploading {
   border-color: var(--accent-primary);
-  border-style: solid;
 }
 
 .upload-zone__progress {
@@ -1081,21 +1153,29 @@
 /* Success */
 .upload-zone--success {
   border-color: var(--status-success);
-  border-style: solid;
 }
 
 .upload-zone--success .upload-zone__icon {
   color: var(--status-success);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--status-success) 40%, transparent));
+}
+
+.upload-zone--success .upload-zone__disc-ring {
+  border-color: color-mix(in srgb, var(--status-success) 15%, transparent);
 }
 
 /* Error */
 .upload-zone--error {
   border-color: var(--status-error);
-  border-style: solid;
 }
 
 .upload-zone--error .upload-zone__icon {
   color: var(--status-error);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--status-error) 40%, transparent));
+}
+
+.upload-zone--error .upload-zone__disc-ring {
+  border-color: color-mix(in srgb, var(--status-error) 15%, transparent);
 }
 
 /* ======================
