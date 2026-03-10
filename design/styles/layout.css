@@ -328,6 +328,13 @@ body {
   box-shadow: 0 12px 100px rgba(0, 0, 0, 0.36) inset;
 }
 
+/* Removes the cyan grid overlay for the empty/no-content state.
+   Toggled via JS in LandingPage.vue when no sessions are present. */
+body.no-body-grid {
+  background: var(--bg-page);
+  box-shadow: none;
+}
+
 /* ================================================================
    LAYOUT UTILITIES
    ================================================================
