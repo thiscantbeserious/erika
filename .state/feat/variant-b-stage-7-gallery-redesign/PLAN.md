@@ -91,24 +91,24 @@
 3. **REFACTOR:** Extract event mapping logic, clean up lifecycle management.
 
 **Acceptance criteria:**
-- [ ] Opens an `EventSource` for each session whose `detection_status` is not `completed` or `failed`
-- [ ] Registers `addEventListener` for each event type in `ALL_PIPELINE_EVENT_TYPES` -- does NOT use `onmessage`
-- [ ] Parses incoming `PipelineEvent` messages and calls an `updateSession(id, patch)` callback
-- [ ] Maps `session.detected` -> `{ detected_sections_count: event.sectionCount, detection_status: 'detecting' }` explicitly
-- [ ] Maps `session.ready` -> `{ detection_status: 'completed' }` and closes the EventSource
-- [ ] Maps `session.failed` -> `{ detection_status: 'failed' }` and closes the EventSource
-- [ ] Maps `session.retrying` -> `{ detection_status: 'processing' }`
-- [ ] Maps other intermediate events to their corresponding `detection_status` value
-- [ ] Exposes `connectionStates` as `Readonly<ShallowRef<Map<string, SseConnectionState>>>`
-- [ ] Uses `shallowRef` with replace-on-mutation pattern for Vue reactivity (creates new Map on each state change)
-- [ ] Sets state to `'connecting'` on EventSource creation
-- [ ] Sets state to `'connected'` on `onopen` event
-- [ ] Sets state to `'connecting'` on `onerror` when `readyState === CONNECTING` (browser auto-reconnecting)
-- [ ] Sets state to `'disconnected'` on `onerror` when `readyState === CLOSED`
-- [ ] Removes connection state entry when EventSource is closed (terminal event or cleanup)
-- [ ] Closes all EventSource connections on component unmount (`onUnmounted`)
-- [ ] Watches sessions list reactively: new processing sessions get subscribed, removed sessions get unsubscribed
-- [ ] All unit tests pass (mock `addEventListener` pattern, not `onmessage`)
+- [x] Opens an `EventSource` for each session whose `detection_status` is not `completed` or `failed`
+- [x] Registers `addEventListener` for each event type in `ALL_PIPELINE_EVENT_TYPES` -- does NOT use `onmessage`
+- [x] Parses incoming `PipelineEvent` messages and calls an `updateSession(id, patch)` callback
+- [x] Maps `session.detected` -> `{ detected_sections_count: event.sectionCount, detection_status: 'detecting' }` explicitly
+- [x] Maps `session.ready` -> `{ detection_status: 'completed' }` and closes the EventSource
+- [x] Maps `session.failed` -> `{ detection_status: 'failed' }` and closes the EventSource
+- [x] Maps `session.retrying` -> `{ detection_status: 'processing' }`
+- [x] Maps other intermediate events to their corresponding `detection_status` value
+- [x] Exposes `connectionStates` as `Readonly<ShallowRef<Map<string, SseConnectionState>>>`
+- [x] Uses `shallowRef` with replace-on-mutation pattern for Vue reactivity (creates new Map on each state change)
+- [x] Sets state to `'connecting'` on EventSource creation
+- [x] Sets state to `'connected'` on `onopen` event
+- [x] Sets state to `'connecting'` on `onerror` when `readyState === CONNECTING` (browser auto-reconnecting)
+- [x] Sets state to `'disconnected'` on `onerror` when `readyState === CLOSED`
+- [x] Removes connection state entry when EventSource is closed (terminal event or cleanup)
+- [x] Closes all EventSource connections on component unmount (`onUnmounted`)
+- [x] Watches sessions list reactively: new processing sessions get subscribed, removed sessions get unsubscribed
+- [x] All unit tests pass (mock `addEventListener` pattern, not `onmessage`)
 
 **Commit:** `feat(client): add useSessionSSE composable with named event listeners and connection state`
 
@@ -291,32 +291,32 @@
 **Acceptance criteria:**
 
 ### BackgroundGrid.vue
-- [ ] `<!-- Copied from design/drafts/theme-tron-v1.html lines 1298-1308 (HTML, from <defs> to </rect>), 241-243, 891-894, 940-942 (CSS) -->` comment present
-- [ ] SVG pattern definition, grid lines, intersection dots, opacity values, stroke widths are pixel-exact copies from the reference
-- [ ] Pattern ID uses unique identifier: `background-grid-${uid}` (avoids SVG ID collisions with multiple instances)
-- [ ] `uid` generated via `Math.random().toString(36).slice(2, 8)` or similar on component setup
-- [ ] SVG fills its parent container (position absolute, inset 0, width/height 100%)
-- [ ] `viewBox` set appropriately with `preserveAspectRatio="xMidYMid slice"`
-- [ ] Grid rect fills 100% using `url(#background-grid-${uid})`
-- [ ] Fade-in animation on mount (1.5s ease-out, matching `gridFadeIn` from line 891-894)
-- [ ] `prefers-reduced-motion: reduce`: grid shown at full opacity immediately, no animation (copied from line 911)
-- [ ] Component is `pointer-events: none` (does not interfere with overlaid interactive elements)
-- [ ] `aria-hidden="true"` on the SVG element
-- [ ] No props (standardized pattern)
+- [x] `<!-- Copied from design/drafts/theme-tron-v1.html lines 1298-1308 (HTML, from <defs> to </rect>), 241-243, 891-894, 940-942 (CSS) -->` comment present
+- [x] SVG pattern definition, grid lines, intersection dots, opacity values, stroke widths are pixel-exact copies from the reference
+- [x] Pattern ID uses unique identifier: `background-grid-${uid}` (avoids SVG ID collisions with multiple instances)
+- [x] `uid` generated via `Math.random().toString(36).slice(2, 8)` or similar on component setup
+- [x] SVG fills its parent container (position absolute, inset 0, width/height 100%)
+- [x] `viewBox` set appropriately with `preserveAspectRatio="xMidYMid slice"`
+- [x] Grid rect fills 100% using `url(#background-grid-${uid})`
+- [x] Fade-in animation on mount (1.5s ease-out, matching `gridFadeIn` from line 891-894)
+- [x] `prefers-reduced-motion: reduce`: grid shown at full opacity immediately, no animation (copied from line 911)
+- [x] Component is `pointer-events: none` (does not interfere with overlaid interactive elements)
+- [x] `aria-hidden="true"` on the SVG element
+- [x] No props (standardized pattern)
 
 ### AmbientParticles.vue
-- [ ] `<!-- Copied from design/drafts/theme-tron-v1.html lines 1411-1418 (HTML), 670-676, 814-876, 1098-1199 (CSS) -->` comment present
-- [ ] Renders exactly 8 absolutely-positioned particle divs -- copied from lines 1411-1418
-- [ ] No `count` prop -- particle count is hardcoded to match theme-tron-v1.html exactly
-- [ ] Particle positions, sizes, colors, animation durations, and delays are EXACT copies from lines 1098-1199 (per-particle CSS in `@media no-preference`)
-- [ ] Color distribution: 6 cyan (`var(--accent-primary)`, particles 1/3/4/5/6/8) + 2 pink (`var(--accent-secondary)`, particles 2/7)
-- [ ] Particle sizes: 4-6px as defined per particle in the reference (4px for 1/2/3/6/7, 5px for 4/8, 6px for 5)
-- [ ] Each particle has `box-shadow` glow matching its color -- exact values from lines 1098-1199
-- [ ] Drift keyframes `particleDrift1` through `particleDrift8` are EXACT copies from lines 814-876
-- [ ] Drift durations match reference: 12s, 15s, 10s, 13s, 16s, 9s, 14s, 17s (from lines 1106, 1119, 1132, 1145, 1158, 1171, 1184, 1197)
-- [ ] Animation delays match reference: -3s, -7s, -1s, -5s, -9s, -2s, -6s, -11s (from lines 1107, 1120, 1133, 1146, 1159, 1172, 1185, 1198)
-- [ ] `prefers-reduced-motion: reduce`: particles hidden (`display: none`) -- copied from line 925
-- [ ] All particles are `aria-hidden="true"` and `pointer-events: none`
+- [x] `<!-- Copied from design/drafts/theme-tron-v1.html lines 1411-1418 (HTML), 670-676, 814-876, 1098-1199 (CSS) -->` comment present
+- [x] Renders exactly 8 absolutely-positioned particle divs -- copied from lines 1411-1418
+- [x] No `count` prop -- particle count is hardcoded to match theme-tron-v1.html exactly
+- [x] Particle positions, sizes, colors, animation durations, and delays are EXACT copies from lines 1098-1199 (per-particle CSS in `@media no-preference`)
+- [x] Color distribution: 6 cyan (`var(--accent-primary)`, particles 1/3/4/5/6/8) + 2 pink (`var(--accent-secondary)`, particles 2/7)
+- [x] Particle sizes: 4-6px as defined per particle in the reference (4px for 1/2/3/6/7, 5px for 4/8, 6px for 5)
+- [x] Each particle has `box-shadow` glow matching its color -- exact values from lines 1098-1199
+- [x] Drift keyframes `particleDrift1` through `particleDrift8` are EXACT copies from lines 814-876
+- [x] Drift durations match reference: 12s, 15s, 10s, 13s, 16s, 9s, 14s, 17s (from lines 1106, 1119, 1132, 1145, 1158, 1171, 1184, 1197)
+- [x] Animation delays match reference: -3s, -7s, -1s, -5s, -9s, -2s, -6s, -11s (from lines 1107, 1120, 1133, 1146, 1159, 1172, 1185, 1198)
+- [x] `prefers-reduced-motion: reduce`: particles hidden (`display: none`) -- copied from line 925
+- [x] All particles are `aria-hidden="true"` and `pointer-events: none`
 
 **Commit:** `feat(client): add reusable BackgroundGrid and AmbientParticles atmosphere components`
 
