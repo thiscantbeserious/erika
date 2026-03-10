@@ -18,7 +18,7 @@ const typeIconMap: Record<Toast['type'], string> = {
 </script>
 
 <template>
-  <div class="toast-stack">
+  <div class="landing__toast-stack toast-stack">
     <div
       v-for="toast in toasts"
       :key="toast.id"

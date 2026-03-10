@@ -126,7 +126,7 @@ watch(isEmpty, applyBodyClass);
           <input
             ref="emptyFileInputRef"
             type="file"
-            accept=".cast"
+            accept=".cast" multiple
             style="display: none"
             @change="handleFileInput"
           />
@@ -221,7 +221,7 @@ watch(isEmpty, applyBodyClass);
       <input
         ref="fileInputRef"
         type="file"
-        accept=".cast"
+        accept=".cast" multiple
         style="display: none"
         @change="handleFileInput"
       />
@@ -605,8 +605,13 @@ watch(isEmpty, applyBodyClass);
   }
 }
 
+</style>
+
+<style>
 /* ================================================================
    Landing Page — Populated State
+   Non-scoped so SessionToolbar, SessionGrid, GalleryCard, SkeletonCard
+   can all resolve these classes.
    ================================================================ */
 
 /* Main content area — wider than default container for grid */
@@ -765,6 +770,14 @@ watch(isEmpty, applyBodyClass);
   background: var(--accent-primary-subtle);
 }
 
+/* Toast stack — fixed bottom-right positioning */
+.landing__toast-stack {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  z-index: 1000;
+}
+
 /* ================================================================
    RESPONSIVE
    ================================================================ */
@@ -812,9 +825,7 @@ watch(isEmpty, applyBodyClass);
     padding: var(--space-2) var(--space-3);
   }
 }
-</style>
 
-<style>
 /* ================================================================
    Gallery card styles — non-scoped so child components can use them.
    These styles apply to classes used by GalleryCard.vue and SkeletonCard.vue.

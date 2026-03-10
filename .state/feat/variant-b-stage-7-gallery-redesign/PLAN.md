@@ -470,13 +470,13 @@
 3. **REFACTOR:** Organize screenshot baselines, add descriptive test names, document the 5% threshold rationale.
 
 **Acceptance criteria:**
-- [ ] Playwright visual regression tests exist for empty state (desktop + mobile)
-- [ ] Playwright visual regression tests exist for populated state (desktop + mobile)
-- [ ] Playwright visual regression tests exist for skeleton loading state
-- [ ] Playwright visual regression tests exist for `prefers-reduced-motion: reduce` (empty state)
+- [x] Playwright visual regression tests exist for empty state (desktop + mobile)
+- [x] Playwright visual regression tests exist for populated state (desktop + mobile)
+- [x] Playwright visual regression tests exist for skeleton loading state
+- [x] Playwright visual regression tests exist for `prefers-reduced-motion: reduce` (empty state)
 - [ ] All screenshots are within 5% pixel drift of reference HTML baselines
 - [ ] Baselines are captured from `design/drafts/theme-tron-v1.html` (empty) and `design/drafts/landing-populated.html` (populated)
-- [ ] Tests run as part of `npx playwright test`
+- [x] Tests run as part of `npx playwright test`
 
 **Commit:** `test(client): add visual regression tests for gallery page against HTML prototypes`
 

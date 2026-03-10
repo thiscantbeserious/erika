@@ -1,6 +1,6 @@
 <script setup lang="ts">
 function triggerUpload(): void {
-  document.dispatchEvent(new CustomEvent('app:upload'));
+  document.dispatchEvent(new Event('app:upload'));
 }
 </script>
 
@@ -35,6 +35,9 @@ function triggerUpload(): void {
         <span class="icon icon--sm icon-upload" />
         Upload
       </button>
+      <div class="app-header__avatar">
+        S
+      </div>
     </div>
   </header>
 </template>
@@ -47,13 +50,5 @@ function triggerUpload(): void {
   position: sticky;
   top: 0;
   z-index: 100;
-}
-
-.app-header__logo {
-  background: var(--accent-primary);
-  color: var(--text-inverse);
-  border-radius: var(--radius-sm);
-  font-weight: var(--weight-bold);
-  font-size: var(--text-sm);
 }
 </style>

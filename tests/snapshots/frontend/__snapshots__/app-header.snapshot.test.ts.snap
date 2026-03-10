@@ -7,7 +7,9 @@ exports[`AppHeader component snapshots > brand link points to root 1`] = `
     </a>
     <nav data-v-49fcc50c="" class="app-header__nav"><a data-v-49fcc50c="" aria-current="page" href="/" class="router-link-active router-link-exact-active app-header__nav-link"> Sessions </a></nav>
   </div>
-  <div data-v-49fcc50c="" class="app-header__right"><button data-v-49fcc50c="" class="btn btn--primary btn--sm"><span data-v-49fcc50c="" class="icon icon--sm icon-upload"></span> Upload </button></div>
+  <div data-v-49fcc50c="" class="app-header__right"><button data-v-49fcc50c="" class="btn btn--primary btn--sm"><span data-v-49fcc50c="" class="icon icon--sm icon-upload"></span> Upload </button>
+    <div data-v-49fcc50c="" class="app-header__avatar"> S </div>
+  </div>
 </header>"
 `;
 
@@ -18,6 +20,8 @@ exports[`AppHeader component snapshots > default render 1`] = `
     </a>
     <nav data-v-49fcc50c="" class="app-header__nav"><a data-v-49fcc50c="" aria-current="page" href="/" class="router-link-active router-link-exact-active app-header__nav-link"> Sessions </a></nav>
   </div>
-  <div data-v-49fcc50c="" class="app-header__right"><button data-v-49fcc50c="" class="btn btn--primary btn--sm"><span data-v-49fcc50c="" class="icon icon--sm icon-upload"></span> Upload </button></div>
+  <div data-v-49fcc50c="" class="app-header__right"><button data-v-49fcc50c="" class="btn btn--primary btn--sm"><span data-v-49fcc50c="" class="icon icon--sm icon-upload"></span> Upload </button>
+    <div data-v-49fcc50c="" class="app-header__avatar"> S </div>
+  </div>
 </header>"
 `;
