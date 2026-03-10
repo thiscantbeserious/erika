@@ -156,14 +156,14 @@
   /* Line heights — absolute values snapped to baseline grid.
      Ratio-based --leading-* tokens kept for reference / fallback,
      but components SHOULD use the absolute --lh-* tokens. */
-  --lh-xs: 21px;     /* 10px text: 1 baseline unit */
-  --lh-sm: 21px;     /* 12px text: 1 baseline unit */
-  --lh-base: 21px;   /* 14px text: 1 baseline unit (= 1.5 ratio) */
-  --lh-lg: 21px;     /* 17px text: 1 baseline unit */
-  --lh-xl: 21px;     /* 20px text: 1 baseline unit */
-  --lh-2xl: 42px;    /* 24px text: 2 baseline units */
-  --lh-3xl: 42px;    /* 29px text: 2 baseline units */
-  --lh-mono: 21px;   /* monospace at any body size */
+  --lh-xs: var(--baseline);                    /* 10px text: 1 baseline unit */
+  --lh-sm: var(--baseline);                    /* 12px text: 1 baseline unit */
+  --lh-base: var(--baseline);                  /* 14px text: 1 baseline unit */
+  --lh-lg: var(--baseline);                    /* 17px text: 1 baseline unit */
+  --lh-xl: var(--baseline);                    /* 20px text: 1 baseline unit */
+  --lh-2xl: calc(var(--baseline) * 2);         /* 24px text: 2 baseline units */
+  --lh-3xl: calc(var(--baseline) * 2);         /* 29px text: 2 baseline units */
+  --lh-mono: var(--baseline);                  /* monospace at any body size */
 
   /* Legacy ratio tokens — kept for compatibility, but prefer --lh-* */
   --leading-tight: 1.3125;   /* 21px/16px approximation for headings */
@@ -206,11 +206,11 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Rhythm-aligned vertical spacing (multiples of 21px) */
-  --rhythm-1: 21px;    /* 1 baseline unit — standard gap */
-  --rhythm-2: 42px;    /* 2 baseline units — section spacing */
-  --rhythm-3: 63px;    /* 3 baseline units — major section break */
-  --rhythm-4: 84px;    /* 4 baseline units — page-level separation */
+  /* Rhythm-aligned vertical spacing (derived from --baseline) */
+  --rhythm-1: var(--baseline);                 /* 1 unit — standard gap */
+  --rhythm-2: calc(var(--baseline) * 2);       /* 2 units — section spacing */
+  --rhythm-3: calc(var(--baseline) * 3);       /* 3 units — major section break */
+  --rhythm-4: calc(var(--baseline) * 4);       /* 4 units — page-level separation */
 
   /* Named spacing shortcuts */
   --space-inline: var(--space-4);      /* default horizontal padding */
@@ -221,8 +221,8 @@
      ============================================================ */
   --container-max: 960px;
   --container-padding: var(--space-6);
-  --grid-gap: var(--rhythm-1);         /* 21px — 1 baseline unit */
-  --header-height: 63px;               /* 3 baseline units */
+  --grid-gap: var(--rhythm-1);                   /* 1 baseline unit */
+  --header-height: var(--rhythm-3);              /* 3 baseline units */
 
   /* Breakpoints (documented as tokens; used as raw values in @media) */
   --breakpoint-sm: 640px;
@@ -241,12 +241,12 @@
      btn-md / input-sm / input-md = 42px (2 units).
      btn-lg / input-lg = 63px (3 units).
      ============================================================ */
-  --btn-height-sm: 21px;       /* 1 baseline unit */
-  --btn-height-md: 42px;       /* 2 baseline units */
-  --btn-height-lg: 63px;       /* 3 baseline units */
-  --input-height-sm: 42px;     /* 2 baseline units */
-  --input-height-md: 42px;     /* 2 baseline units */
-  --input-height-lg: 63px;     /* 3 baseline units */
+  --btn-height-sm: var(--baseline);              /* 1 baseline unit */
+  --btn-height-md: var(--rhythm-2);              /* 2 baseline units */
+  --btn-height-lg: var(--rhythm-3);              /* 3 baseline units */
+  --input-height-sm: var(--rhythm-2);            /* 2 baseline units */
+  --input-height-md: var(--rhythm-2);            /* 2 baseline units */
+  --input-height-lg: var(--rhythm-3);            /* 3 baseline units */
 
   /* Component-specific sizing */
   --toast-min-width: 320px;
