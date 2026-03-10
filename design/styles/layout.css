@@ -82,6 +82,26 @@
   --terminal-bg: #1e1e22;
   --terminal-text: #dcdcdc;
 
+  /* Terminal ANSI palette */
+  --term-color-0: #2e3436;   /* black */
+  --term-color-1: #cc0000;   /* red */
+  --term-color-2: #4e9a06;   /* green */
+  --term-color-3: #c4a000;   /* yellow */
+  --term-color-4: #3465a4;   /* blue */
+  --term-color-5: #75507b;   /* magenta */
+  --term-color-6: #06989a;   /* cyan */
+  --term-color-7: #d3d7cf;   /* white */
+  --term-color-8: #555753;   /* bright black (gray) */
+  --term-color-9: #ef2929;   /* bright red */
+  --term-color-10: #8ae234;  /* bright green */
+  --term-color-11: #fce94f;  /* bright yellow */
+  --term-color-12: #729fcf;  /* bright blue */
+  --term-color-13: #ad7fa8;  /* bright magenta */
+  --term-color-14: #34e2e2;  /* bright cyan */
+  --term-color-15: #eeeeec;  /* bright white */
+  --term-default-fg: #d4d4d4;
+  --term-default-bg: #0a0a0a;
+
   /* ============================================================
      TYPOGRAPHY — Minor Third (1.2) from 14px base
      ============================================================ */
@@ -178,7 +198,7 @@
   --radius-full: 9999px;
 
   /* ============================================================
-     SHADOWS 
+     SHADOWS
      ============================================================ */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.15);
