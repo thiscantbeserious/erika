@@ -1109,8 +1109,16 @@
   border-left: var(--space-2) solid var(--accent-primary);
 }
 
+.section-header--detected .section-header__label {
+  color: var(--accent-primary);
+}
+
 .section-header--marker {
   border-left: var(--space-2) solid var(--accent-secondary);
+}
+
+.section-header--marker .section-header__label {
+  color: var(--accent-secondary);
 }
 
 .section-header--collapsed {

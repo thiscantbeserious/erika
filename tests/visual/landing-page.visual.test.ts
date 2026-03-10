@@ -27,7 +27,7 @@ test.describe('Landing Page', () => {
     await page.goto('/');
     await page.waitForSelector('.session-card', { timeout: 10000 });
     await expect(page).toHaveScreenshot('landing-one-session.png', {
-      mask: [page.locator('.session-card__date')],
+      mask: [page.locator('.session-list__date')],
     });
   });
 
@@ -43,7 +43,7 @@ test.describe('Landing Page', () => {
     const cards = page.locator('.session-card');
     await expect(cards).toHaveCount(3);
     await expect(page).toHaveScreenshot('landing-three-sessions.png', {
-      mask: [page.locator('.session-card__date')],
+      mask: [page.locator('.session-list__date')],
     });
   });
 
@@ -71,7 +71,7 @@ test.describe('Landing Page', () => {
       buffer: Buffer.from('{"version":3,"term":{"cols":80,"rows":24}}\n[0.1,"o","hello\\n"]\n'),
     });
 
-    const spinner = page.locator('.upload-zone__spinner');
+    const spinner = page.locator('.upload-zone__spinner-text');
     await expect(spinner).toBeVisible({ timeout: 3000 });
     await expect(page.locator('.upload-zone')).toHaveScreenshot('upload-zone-uploading.png');
   });
@@ -83,7 +83,7 @@ test.describe('Landing Page', () => {
     const card = page.locator('.session-card').first();
     await card.hover();
     await expect(page).toHaveScreenshot('landing-card-hover.png', {
-      mask: [page.locator('.session-card__date')],
+      mask: [page.locator('.session-list__date')],
     });
   });
 
