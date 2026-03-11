@@ -164,6 +164,7 @@ function clearFilters(): void {
 .sidebar-panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
   background: var(--bg-surface);
   width: var(--sidebar-width);
   overflow: hidden;
@@ -197,28 +198,76 @@ function clearFilters(): void {
   border-color: var(--accent-primary);
 }
 
+/* Style the native search clear (×) button for dark theme */
+.sidebar__search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 3.5l7 7M10.5 3.5l-7 7' stroke='%23999' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  cursor: pointer;
+}
+
+.sidebar__search-input::-webkit-search-cancel-button:hover {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 3.5l7 7M10.5 3.5l-7 7' stroke='%23ccc' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
 .sidebar__filters {
-  padding: var(--space-2) var(--space-3);
-  gap: var(--space-1);
+  padding: var(--space-1\.5) var(--space-3); /* 6px vertical */
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  gap: var(--space-1);
+}
+
+/* Override global filter-pill sizing for sidebar context:
+   smaller padding, smaller text to fit all 4 pills on one line. */
+.sidebar__filters .filter-pill {
+  padding: 2px var(--space-1\.5);
+  font-size: var(--text-xs);
+  line-height: var(--lh-xs);
+  border-radius: var(--radius-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
 .sidebar__list-region {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  /* Custom thin scrollbar for dark theme */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.sidebar__list-region::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar__list-region::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar__list-region::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+
+.sidebar__list-region::-webkit-scrollbar-thumb:hover {
+  background: var(--text-disabled);
 }
 
 .sidebar__session-list {
   list-style: none;
   margin: 0;
-  padding: var(--space-2) 0;
+  padding: var(--space-1) 0; /* 4px top/bottom -- tighter than space-2 */
+  overflow: hidden;
 }
 
 .sidebar__session-item {
   /* Padding and hover handled by SessionCard internally. */
   list-style: none;
+  /* overflow: hidden removed -- unnecessary and clips focus outlines */
 }
 
 .sidebar__empty-state {

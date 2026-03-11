@@ -1,19 +1,22 @@
 <template>
-  <button
+  <div
     class="session-card"
     :class="{ 'session-card--selected': isSelected }"
-    type="button"
+    role="button"
+    tabindex="0"
     @click="handleClick"
+    @keydown.enter="handleClick"
+    @keydown.space.prevent="handleClick"
   >
-    <!-- Row 1: filename + status dot -->
+    <!-- Row 1: status dot + filename (dot on left as visual anchor) -->
     <div class="session-card__row session-card__row--primary">
-      <span class="session-card__filename">{{ session.filename }}</span>
       <span
         class="session-card__status-dot"
         :class="statusDotClasses"
         role="img"
         :aria-label="statusLabel"
       />
+      <span class="session-card__filename">{{ session.filename }}</span>
     </div>
 
     <!-- Row 2: section count + relative age -->
@@ -21,7 +24,7 @@
       <span class="session-card__sections">{{ sectionText }}</span>
       <span class="session-card__age">{{ relativeAge }}</span>
     </div>
-  </button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -101,9 +104,11 @@ function handleClick(): void {
 .session-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 1px; /* tighter row gap -- sub-token value */
   width: 100%;
-  padding: var(--rhythm-quarter) var(--space-3);
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-1\.5) var(--space-3); /* 6px vertical */
   background: transparent;
   border: none;
   border-left: 2px solid transparent;
@@ -112,7 +117,8 @@ function handleClick(): void {
   color: var(--text-primary);
   font-family: var(--font-body);
   box-sizing: border-box;
-  transition: background 120ms ease-out;
+  transition: background var(--duration-fast) var(--easing-default),
+              border-color var(--duration-fast) var(--easing-default);
 }
 
 .session-card:hover {
@@ -129,24 +135,29 @@ function handleClick(): void {
   background: var(--accent-primary-subtle);
 }
 
+/* Selected + hover: slightly stronger background */
+.session-card--selected:hover {
+  background: rgba(0, 212, 255, 0.12);
+}
+
 /* Row layout */
 .session-card__row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1\.5); /* 6px -- tighter than default space-2 */
   min-width: 0;
 }
 
 .session-card__row--primary {
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
-/* Filename — monospace, truncated */
+/* Filename — monospace, truncated; dims at rest, brightens on interaction */
 .session-card__filename {
   font-family: var(--font-mono);
-  font-size: var(--text-base);
-  line-height: var(--lh-base);
-  color: var(--text-primary);
+  font-size: var(--text-sm); /* 12px -- one step smaller than text-base */
+  line-height: var(--lh-sm);
+  color: var(--text-secondary); /* dimmer at rest */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -154,12 +165,18 @@ function handleClick(): void {
   flex: 1;
 }
 
-/* Metadata row */
+.session-card:hover .session-card__filename,
+.session-card--selected .session-card__filename {
+  color: var(--text-primary); /* brightens on hover/selected */
+}
+
+/* Metadata row -- indented to align under filename past dot + gap */
 .session-card__meta {
   color: var(--text-muted);
-  font-size: var(--text-sm);
-  line-height: var(--lh-sm);
+  font-size: var(--text-xs); /* 10px -- one step smaller than text-sm */
+  line-height: var(--lh-xs);
   gap: var(--space-2);
+  padding-left: calc(6px + var(--space-1\.5)); /* dot width + row gap */
 }
 
 .session-card__sections,
@@ -173,11 +190,11 @@ function handleClick(): void {
   margin-left: auto;
 }
 
-/* Status indicator dot */
+/* Status indicator dot -- 6px, smaller and more subtle than space-2 (8px) */
 .session-card__status-dot {
   display: inline-block;
-  width: var(--space-2);
-  height: var(--space-2);
+  width: 6px;
+  height: 6px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
 }

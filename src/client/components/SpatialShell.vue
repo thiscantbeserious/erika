@@ -1,7 +1,9 @@
 <template>
   <BrandMark />
   <ShellHeader />
-  <SidebarPanel />
+  <div class="spatial-shell__sidebar">
+    <SidebarPanel />
+  </div>
   <div class="spatial-shell__main">
     <router-view />
   </div>

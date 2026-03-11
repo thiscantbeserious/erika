@@ -42,7 +42,7 @@
     "sidebar bottom aside";
   grid-template-columns: var(--sidebar-width) 1fr 0fr;
   grid-template-rows: var(--header-height) 1fr 0fr;
-  min-height: 100dvh;
+  height: 100dvh;
 
   /* Sidebar toggle animation.
      Transition only grid-template-columns to animate sidebar
@@ -84,6 +84,8 @@
 /** Persistent sidebar panel: spans both content rows on the left. */
 .spatial-shell__sidebar {
   grid-area: sidebar;
+  overflow: hidden;
+  min-height: 0;
 }
 
 /** Main content area: primary viewport for page content. */
@@ -91,6 +93,7 @@
   grid-area: main;
   /* Prevent content from breaking out of the grid track. */
   min-width: 0;
+  overflow-y: auto;
 }
 
 /** Aside panel: right column, collapsed (0fr) until activated. */
