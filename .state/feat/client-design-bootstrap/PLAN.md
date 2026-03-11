@@ -204,18 +204,18 @@ Goal: Build the session card component for the sidebar list. Status indicator wi
 
 Owner: frontend-engineer (design from frontend-designer)
 
-- [ ] Create `src/client/components/SessionCard.vue`
-- [ ] Card shows: session name (truncated with ellipsis), status indicator dot, metadata row (section count, age in human-readable format)
-- [ ] Card height within the target range from the baseline decision
-- [ ] Selected state: 2px left border in `--accent-primary`, background shift to `--accent-primary-subtle`
-- [ ] Status indicator: processing = CSS pulse animation (cyan); ready/completed = steady green dot; failed/interrupted = error color, no animation
-- [ ] Each status indicator has `aria-label` with human-readable text
-- [ ] Initial status sourced from `detection_status` field
-- [ ] Click handler: `router.push('/session/' + session.id)`
-- [ ] After click on desktop: focus remains in sidebar (do not auto-move to main)
-- [ ] Verify: card renders at correct height
-- [ ] Verify: status dot animates for processing state
-- [ ] Verify: selected state visual is correct
+- [x] Create `src/client/components/SessionCard.vue`
+- [x] Card shows: session name (truncated with ellipsis), status indicator dot, metadata row (section count, age in human-readable format)
+- [x] Card height within the target range from the baseline decision
+- [x] Selected state: 2px left border in `--accent-primary`, background shift to `--accent-primary-subtle`
+- [x] Status indicator: processing = CSS pulse animation (cyan); ready/completed = steady green dot; failed/interrupted = error color, no animation
+- [x] Each status indicator has `aria-label` with human-readable text
+- [x] Initial status sourced from `detection_status` field
+- [x] Click handler: `router.push('/session/' + session.id)`
+- [x] After click on desktop: focus remains in sidebar (do not auto-move to main)
+- [x] Verify: card renders at correct height
+- [x] Verify: status dot animates for processing state
+- [x] Verify: selected state visual is correct
 
 Files: `src/client/components/SessionCard.vue` (new), `src/client/components/SidebarPanel.vue`
 Depends on: Stage 6 (sidebar must exist), Stage 0 (baseline for card height)
@@ -504,7 +504,7 @@ Updated by implementer as work progresses.
 | 4 | complete | Skeleton loaders |
 | 5 | pending | Branding rename |
 | 6 | in progress | Sidebar panel — core implementation done; layout toggle wiring deferred to Stage 13 |
-| 7 | pending | Session card |
+| 7 | complete | Session card |
 | 8 | pending | Start page |
 | 9 | pending | Session detail layout |
 | 10 | pending | Upload flow |
