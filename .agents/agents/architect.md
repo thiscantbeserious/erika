@@ -17,6 +17,16 @@ skills:
   - workflow
   - instructions
   - templates
+hooks:
+  PreToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: command
+          command: ".agents/scripts/validate-write-state-only.sh"
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: ".agents/scripts/validate-reviewer-bash.sh"
 ---
 
 # Architect

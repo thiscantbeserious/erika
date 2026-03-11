@@ -35,6 +35,12 @@ maxTurns: 50
 skills:
   - workflow
   - instructions
+hooks:
+  PreToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: command
+          command: ".agents/scripts/validate-write-designer.sh"
 ---
 
 # Frontend Designer

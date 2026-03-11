@@ -15,6 +15,12 @@ maxTurns: 75
 skills:
   - workflow
   - instructions
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      hooks:
+        - type: command
+          command: ".agents/scripts/validate-write-frontend.sh"
 ---
 
 # Frontend Engineer

@@ -16,6 +16,12 @@ skills:
   - workflow
   - instructions
   - templates
+hooks:
+  PreToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: command
+          command: ".agents/scripts/validate-write-state-only.sh"
 ---
 
 # Product Owner
