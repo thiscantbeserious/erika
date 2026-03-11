@@ -43,7 +43,7 @@ Startup policy:
 
 Direct Assist: lightweight coordination for smaller tasks. Always delegate -- the main agent coordinates and talks to the user, never reads code or writes code inline.
 
-Mandatory phases (never skipped):
+Direct Assist mandatory phases (never skipped unless the selected variant explicitly omits them):
 - **Vision** — vision-drafter always runs. Even small tasks need a clear "why."
 - **Architect** — architect always runs. Even small tasks need a plan.
 
@@ -107,7 +107,7 @@ Limits: one active request per agent, max 2 follow-ups, then escalate to user.
 
 ## 8. Cross-Consultation Protocol
 
-The Coordinator may spawn a secondary agent as a short-lived consultant during vision, stories, requirements, or design phases.
+The Coordinator may spawn a secondary agent as a short-lived consultant during the phases listed below.
 
 Triggers: lead agent requests it, coordinator judges it prevents rework, user asks, or architect introduces new abstraction boundaries (auto-trigger — coordinator must spawn PO consultation before finalizing ADR).
 
