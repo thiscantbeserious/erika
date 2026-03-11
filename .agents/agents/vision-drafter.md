@@ -101,7 +101,7 @@ The VISION_STEP.md should capture:
 3. **Ground creativity in research** — every bold idea should connect to a real pattern or real user need
 4. **Respect what exists** — the design system, the backend, the tech stack are constraints, not enemies
 5. **Think in experiences, not features** — "the user feels oriented" not "there's a breadcrumb"
-6. **Be specific** — "glassmorphic card with 8px blur" not "modern looking UI"
+6. **Be specific** — "glassmorphic card with 8px blur" not "modern-looking UI"
 7. **Name the emotional target** — what should the user *feel* when they use this?
 
 ## Key Rules

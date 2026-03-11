@@ -24,11 +24,19 @@
 
 ### <Product 1>
 
-<How this product handles the relevant interaction. Strengths and weaknesses.>
+- **URL:** <link>
+- **Screenshot:** <path or description>
+- **How it handles this:** <description>
+- **Strengths:** <what works well>
+- **Weaknesses:** <what doesn't>
 
 ### <Product 2>
 
-<How this product handles the relevant interaction. Strengths and weaknesses.>
+- **URL:** <link>
+- **Screenshot:** <path or description>
+- **How it handles this:** <description>
+- **Strengths:** <what works well>
+- **Weaknesses:** <what doesn't>
 
 ## Best Practices
 

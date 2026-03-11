@@ -49,7 +49,7 @@ Mandatory phases (never skipped):
 
 Delegation in Direct Assist:
 - Classify the task scope and read the matching variant from `variants/`.
-- Run: vision-drafter → architect → engineer(s). Skip story-writer, product-owner, reviewer, and maintainer.
+- Run: vision-drafter → architect → engineer(s) → reviewer. Skip story-writer, product-owner, and maintainer.
 - Pure exploration ("how does X work"): spawn researcher directly -- no variant needed.
 
 SDLC Workflow runs all phases from the variant in order. No phases are skipped.
@@ -107,7 +107,7 @@ Limits: one active request per agent, max 2 follow-ups, then escalate to user.
 
 ## 8. Cross-Consultation Protocol
 
-The Coordinator may spawn a secondary agent as a short-lived consultant during requirements or design phases.
+The Coordinator may spawn a secondary agent as a short-lived consultant during vision, stories, requirements, or design phases.
 
 Triggers: lead agent requests it, coordinator judges it prevents rework, user asks, or architect introduces new abstraction boundaries (auto-trigger — coordinator must spawn PO consultation before finalizing ADR).
 

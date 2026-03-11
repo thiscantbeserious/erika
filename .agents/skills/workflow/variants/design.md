@@ -21,6 +21,7 @@ graph TD
 | 2 | `product-owner` | REQUIREMENTS.md signed off |
 | 3 | `frontend-designer` | Mockups approved by user |
 | 4 | `product-owner` | Validates designs match REQUIREMENTS.md |
+| 5 | `maintainer` | CI green, all approvals |
 
 No architect phase — design work doesn't need an ADR unless it involves architectural decisions (in which case, use the frontend or full-stack workflow instead).
 

@@ -27,8 +27,6 @@ graph TD
 | 6 | `product-owner` | Validates against REQUIREMENTS.md |
 | 7 | `maintainer` | CI green, all approvals |
 
-
-
 ## Git Contract
 
 | Rule | Value |
