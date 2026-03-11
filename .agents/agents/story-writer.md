@@ -16,6 +16,12 @@ maxTurns: 15
 skills:
   - workflow
   - templates
+hooks:
+  PreToolUse:
+    - matcher: "Write"
+      hooks:
+        - type: command
+          command: ".agents/scripts/validate-write-state-only.sh"
 ---
 
 # Story Writer
