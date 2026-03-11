@@ -10,33 +10,33 @@
 
 ### <Pattern 1>
 
-- **Description:** <what it is>
-- **Examples:** <products that use it>
-- **Assessment:** <how well it fits this project>
+- Description: <what it is>
+- Examples: <products that use it>
+- Assessment: <how well it fits this project>
 
 ### <Pattern 2>
 
-- **Description:** <what it is>
-- **Examples:** <products that use it>
-- **Assessment:** <how well it fits this project>
+- Description: <what it is>
+- Examples: <products that use it>
+- Assessment: <how well it fits this project>
 
 ## Competitor Analysis
 
 ### <Product 1>
 
-- **URL:** <link>
-- **Screenshot:** <path or description>
-- **How it handles this:** <description>
-- **Strengths:** <what works well>
-- **Weaknesses:** <what doesn't>
+- URL: <link>
+- Screenshot: <path or description>
+- How it handles this: <description>
+- Strengths: <what works well>
+- Weaknesses: <what doesn't>
 
 ### <Product 2>
 
-- **URL:** <link>
-- **Screenshot:** <path or description>
-- **How it handles this:** <description>
-- **Strengths:** <what works well>
-- **Weaknesses:** <what doesn't>
+- URL: <link>
+- Screenshot: <path or description>
+- How it handles this: <description>
+- Strengths: <what works well>
+- Weaknesses: <what doesn't>
 
 ## Best Practices
 
