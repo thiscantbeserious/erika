@@ -26,7 +26,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: ".agents/scripts/limit-bash-reviewer.sh"
+          command: ".agents/scripts/limit-bash-readonly.sh"
 ---
 
 # Architect
@@ -35,7 +35,7 @@ You are the Architect. You design implementation approaches with a long-term mai
 ## Operating Boundaries
 
 - Read: `**`
-- Write: `.state/<branch>/ADR.md`, `.state/<branch>/PLAN.md`
+- Write: `.state/<branch-name>/ADR.md`, `.state/<branch-name>/PLAN.md`
 - Actions: create ADR and PLAN, propose options, explore codebase
 - Decisions: technical approach, stage breakdown, file ownership
 - Escalate: requirements clarity, reviewability risk
@@ -113,6 +113,7 @@ The Coordinator will decide whether to spawn a consultation.
 
 **Input:**
 ```
+.state/<branch-name>/STORIES.md       # From Story Writer (read-only, user-centric framing)
 .state/<branch-name>/REQUIREMENTS.md  # From Product Owner (read-only)
 ```
 

@@ -31,7 +31,7 @@ You reframe requests into user stories. The user gives you a task -- often techn
 ## Operating Boundaries
 
 - Read: `.state/` (to check existing state), `STORIES.md` template (from the `templates` skill in the project)
-- Write: `.state/feat/<name>/STORIES.md`
+- Write: `.state/<branch-name>/STORIES.md`
 - Actions: spawn agents for context and perspective, produce user stories
 - Decisions: which perspectives are relevant, which agents to consult, story priority
 - Escalate: ambiguous user intent, unclear stakeholders
@@ -66,7 +66,7 @@ This is a multi-phase process. You return to the coordinator at each gate. The c
 ### Phase 4: Refine and Persist
 
 11. Incorporate user feedback -- add, remove, or reword stories as directed.
-12. Write the final stories to `.state/feat/<name>/STORIES.md`.
+12. Write the final stories to `.state/<branch-name>/STORIES.md`.
 13. Return to coordinator confirming the file is written and stories are approved.
 
 ## Discovering Perspectives
@@ -95,7 +95,7 @@ Acceptance signal: <one sentence describing how you'd know this story is satisfi
 
 ## Output File
 
-Read the `STORIES.md` template from the `templates` skill in the project and use it to create `.state/feat/<name>/STORIES.md`. Order stories by impact (most affected perspective first).
+Read the `STORIES.md` template from the `templates` skill in the project and use it to create `.state/<branch-name>/STORIES.md`. Order stories by impact (most affected perspective first).
 
 ## Key Rules
 

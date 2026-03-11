@@ -1,5 +1,6 @@
 #!/bin/bash
-# Whitelist-based command validation for reviewer agents.
+# Whitelist-based command validation for read-only agents.
+# Used by reviewer, pair-reviewer, and architect to restrict shell access.
 # Only allows read-only git, test/lint commands, and basic shell inspection.
 
 INPUT=$(cat)
@@ -34,27 +35,45 @@ while IFS= read -r segment; do
       esac
       ;;
     # Test and lint commands
-    npx|npm)
+    npx)
       SUBCOMMAND=$(echo "$segment" | sed 's/^[[:space:]]*//' | awk '{print $2}')
       case "$SUBCOMMAND" in
-        vitest|playwright|tsc)
+        vitest|playwright|tsc|vue-tsc)
           ;; # allowed
-        run)
-          ;; # npm run lint, npm run lint:fix, etc.
         *)
-          echo "Blocked: Only test/lint commands allowed (vitest, playwright, tsc, npm run)." >&2
+          echo "Blocked: Only test/lint commands allowed for npx (vitest, playwright, tsc, vue-tsc)." >&2
           exit 2
           ;;
       esac
       ;;
-    # Read-only shell inspection
-    ls|cat|head|tail|wc|find|file|stat|du|tree|echo|printf|sort|uniq|diff|grep|rg|awk|sed|tr|cut|tee|xargs|basename|dirname|realpath|readlink)
+    npm)
+      SUBCOMMAND=$(echo "$segment" | sed 's/^[[:space:]]*//' | awk '{print $2}')
+      SCRIPT=$(echo "$segment" | sed 's/^[[:space:]]*//' | awk '{print $3}')
+      case "$SUBCOMMAND" in
+        run)
+          case "$SCRIPT" in
+            lint|lint:fix|test|test:unit|test:integration|test:snapshot|test:visual|test:all|test:migrations)
+              ;; # allowed
+            *)
+              echo "Blocked: npm run only allowed for: lint, lint:fix, test, test:unit, test:integration, test:snapshot, test:visual, test:all, test:migrations." >&2
+              exit 2
+              ;;
+          esac
+          ;;
+        *)
+          echo "Blocked: Only 'npm run <script>' allowed." >&2
+          exit 2
+          ;;
+      esac
+      ;;
+    # Read-only shell inspection (no write-capable commands)
+    ls|cat|head|tail|wc|find|file|stat|du|tree|echo|printf|sort|uniq|diff|grep|rg|awk|tr|cut|basename|dirname|realpath|readlink)
       ;; # allowed
     # Allow test/true/false for shell conditionals
     test|\[|true|false)
       ;; # allowed
     *)
-      echo "Blocked: Command '$TOKEN' is not in the reviewer allowlist. Allowed: read-only git, npx vitest/playwright/tsc, npm run, and basic shell inspection (ls, cat, head, tail, wc, find, grep, sort, etc.)." >&2
+      echo "Blocked: Command '$TOKEN' is not in the readonly allowlist. Allowed: read-only git, npx vitest/playwright/tsc, npm run <safe-scripts>, and basic shell inspection (ls, cat, head, tail, wc, find, grep, sort, etc.)." >&2
       exit 2
       ;;
   esac

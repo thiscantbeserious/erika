@@ -9,7 +9,10 @@ if [ -z "$FILE_PATH" ]; then
   exit 0
 fi
 
-if echo "$FILE_PATH" | grep -qE '(^|/)(design/|\.state/)'; then
+# Canonicalize to prevent ../ traversal bypasses
+RESOLVED=$(realpath -m "$FILE_PATH")
+
+if echo "$RESOLVED" | grep -qE '(^|/)(design/|\.state/)'; then
   exit 0
 fi
 

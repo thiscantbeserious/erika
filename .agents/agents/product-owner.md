@@ -30,7 +30,7 @@ You are the Product Owner agent. You own the "what" and "why", gather requiremen
 
 ## Operating Boundaries
 
-- Write: `.state/<branch>/REQUIREMENTS.md`
+- Write: `.state/<branch-name>/REQUIREMENTS.md`
 - Actions: interview user, create/validate requirements
 - Decisions: what to build, acceptance criteria, scope boundaries
 - Escalate: technical feasibility, architecture implications
@@ -166,7 +166,7 @@ When spawned for final validation, verify the implementation solves the original
 
 Before approving, complete each step:
 
-1. `ls .state/<branch>/` - confirm REQUIREMENTS.md exists
+1. `ls .state/<branch-name>/` - confirm REQUIREMENTS.md exists
    - If missing → stop and ask: "REQUIREMENTS.md not found. Use ADR Context instead?"
    - Do not silently fall back
 2. For each acceptance criterion:
