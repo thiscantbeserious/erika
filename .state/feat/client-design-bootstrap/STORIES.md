@@ -1,108 +1,69 @@
-# Stories: Erika Spatial Foundation — CSS Grid Shell and Application Shell Bootstrap
+# Stories: Sidebar-based layout and design bootstrap
 
-> Transform Erika from a page-based prototype into a persistent multi-panel spatial application, establishing the CSS Grid architecture, baseline grid, sidebar, cognitive start page, upload flow, live status, skeleton loading, accessibility baseline, and mobile responsiveness.
+> Redesign the Erika platform into a real app: persistent sidebar session browser, upload UX, live processing status, cognitive start page, skeleton loading, feedback toasts, and mobile responsiveness — the first functional UI that connects to the backend.
 
 ## Stories
 
-### Platform user — spatial permanence: the session list is always there
+### Platform user -- persistent session browser
 
-As a platform user, I want the session list to remain visible while I read a session's detail, so that switching between sessions feels like switching files in an editor rather than navigating between pages.
+As a platform user, I want an always-visible sidebar showing my session list while I read a session's detail, so that I can switch between sessions without losing my place or navigating back to a list page.
 
-Acceptance signal: opening a session detail leaves the sidebar exactly as it was — scroll position preserved, selection highlighted — and clicking another session in the sidebar swaps the main content without any navigation or reload.
+Acceptance signal: clicking a session in the sidebar opens its detail in the main area without the sidebar disappearing or resetting scroll position.
 
----
+### Platform user -- live processing status in the sidebar
 
-### Platform user — oriented from first paint
+As a platform user, I want to see a processing indicator next to a session that is still being analyzed, so that I know whether it is safe to open a session or whether it is still being processed.
 
-As a platform user, I want the application's layout to appear instantly and remain stable as data loads, so that I never see a blank screen, a flash of unstyled content, or content jumping around as JavaScript initializes.
+Acceptance signal: a session uploaded while the app is open shows a progress state (e.g., "Processing...") that automatically updates to "Ready" or "Failed" when the backend finishes, without a page refresh.
 
-Acceptance signal: the grid shell (sidebar region, main region, header) is visibly painted before any session data arrives, skeleton loaders pulse within their correct grid areas, and no layout shift occurs when real content replaces them.
+### Platform user -- upload from the sidebar
 
----
+As a platform user, I want to start a new session upload from a "+ New Session" button in the sidebar, so that I never have to leave my current session view to add more recordings.
 
-### Platform user — a first launch that teaches rather than abandons
+Acceptance signal: clicking "+ New Session" opens a file picker; the new session appears in the sidebar list after upload without a full page reload.
 
-As a platform user opening Erika for the first time with no sessions uploaded, I want the main area to show me what Erika is and give me a direct path to my first action, so that I am never left staring at a blank void wondering if something went wrong.
+### Platform user -- drag-to-upload anywhere in the sidebar
 
-Acceptance signal: the start page shows a recognizable drop zone and a primary call to action; a user unfamiliar with Erika understands what to do within five seconds without reading documentation.
+As a platform user, I want to drag a `.cast` file anywhere over the sidebar and have it turn into a drop zone, so that I can upload a new session without hunting for a button.
 
----
+Acceptance signal: dragging a file over the sidebar transforms the session list into a visible drop zone; dropping the file triggers the upload flow.
 
-### Platform user — upload that responds to how I work
+### Platform user -- session search and status filtering
 
-As a platform user, I want to upload a session by dragging a file anywhere over the application window or clicking a button in the sidebar, so that I can start an upload in whatever way feels natural without hunting for a specific upload zone.
+As a platform user, I want to search sessions by name and filter by status (All / Processing / Ready / Failed) directly in the sidebar, so that I can find a specific session quickly without scrolling through everything.
 
-Acceptance signal: dragging a `.cast` file over the viewport triggers a visible receiving state (border glow, overlay) within 100ms; dropping or clicking upload causes a new entry to appear in the sidebar immediately, in a processing state.
+Acceptance signal: typing in the search bar narrows the visible sessions in real time; selecting a filter pill hides sessions that don't match that status.
 
----
+### Platform user -- cognitive start page when no session is selected
 
-### Platform user — ambient awareness of background processing
+As a platform user, I want to see a meaningful landing area when I first open the app or have no session selected, so that the main content area is never a blank void and I understand what to do next.
 
-As a platform user, I want to see a session's processing state update automatically in the sidebar while I do other things, so that I never have to refresh the page or wonder whether an upload finished.
+Acceptance signal: the main area shows an animated visual and a clear call to action ("Browse Files" or drag-drop zone) when no session is selected or when the session list is empty.
 
-Acceptance signal: a session card transitions through uploading → processing → ready (or failed) states driven by live server events, with each state paired with both a color and a motion pattern (pulsing = active, steady = done, no motion = failed), without any user action.
+### Platform user -- skeleton loading while content fetches
 
----
+As a platform user, I want to see placeholder shapes where sessions and session details will appear while the app is loading data, so that the interface never feels broken or empty during normal network latency.
 
-### Platform user — search and filter that sculpts the view
+Acceptance signal: the sidebar and main content area each show animated skeleton placeholders during initial load and navigation; they are replaced by real content once data arrives.
 
-As a platform user, I want to search sessions by name and filter by status in the sidebar, so that I can find a specific session immediately without scrolling through a long list.
+### Platform user -- feedback toasts for upload and processing events
 
-Acceptance signal: typing in the search bar narrows the session list in real time; status filter pills (All / Processing / Ready / Failed) further narrow the list; both filters compose; clearing the search restores the full list.
+As a platform user, I want a brief, non-intrusive notification when an upload completes, fails, or when processing finishes, so that I can keep working without staring at the sidebar to catch state changes.
 
----
+Acceptance signal: a toast appears automatically when an upload succeeds or errors, and when a processing job reaches "Ready" or "Failed"; each toast disappears on its own after a few seconds without requiring any action.
 
-### Platform user — upload feedback I can trust
+### Platform user -- mobile access with collapsible sidebar
 
-As a platform user, I want a brief notification when an upload completes or fails and when processing finishes, so that I can continue working without watching the sidebar for state changes.
+As a platform user, I want to access the session browser on a phone or small screen without the sidebar blocking the session detail, so that I can review sessions on the go.
 
-Acceptance signal: a toast appears automatically on upload success, upload failure, and processing completion or failure; each toast is announced to screen readers; toasts self-dismiss without requiring interaction.
-
----
-
-### Platform user — a mobile experience that is intentional, not crammed
-
-As a platform user on a phone or small screen, I want the sidebar to be accessible without blocking the session detail, so that I can browse and review sessions on the go without fighting the layout.
-
-Acceptance signal: on viewports below 768px, a toggle button reveals the sidebar as a full-height overlay with a visible backdrop; tapping a session closes the overlay and shows its detail; the overlay traps focus while open and returns it to the toggle on close.
-
----
-
-### Developer extending the platform — a grid that accommodates future panels without a rewrite
-
-As a developer adding features to Erika, I want the CSS Grid shell to pre-declare all six named regions (`brand`, `header`, `sidebar`, `main`, `aside`, `bottom`) from day one with `aside` and `bottom` collapsed to `0fr`, so that I can activate a new panel by setting its grid track size without restructuring the layout template.
-
-Acceptance signal: the grid template is defined in a pure CSS file loaded before the Vue bundle; `aside` and `bottom` are valid named areas that collapse cleanly to zero; adding a component to either area causes it to appear without touching the grid definition.
-
----
-
-### Developer extending the platform — design tokens that are consistent with the spatial shell
-
-As a developer building components for the sidebar or main content area, I want the spacing tokens to produce component heights that are proportionate to comparable tools (sidebar items ~36-50px, header ~54px, inputs ~36px), so that I can implement new components without fighting the spacing system.
-
-Acceptance signal: the frontend-designer documents which baseline path (A: 21px, B: dual-rhythm, C: 18px/36px) was adopted and why, and the chosen `--baseline` value is reflected in `design/styles/layout.css` before any component implementation begins.
-
----
-
-### Platform user — status that works for everyone, not just color vision
-
-As a platform user relying on a screen reader or with color vision differences, I want session status indicators to communicate their meaning through more than color alone, so that I can understand which sessions are processing, ready, or failed regardless of how I perceive the interface.
-
-Acceptance signal: processing indicators pair color with a motion pattern (pulsing animation); each status dot has an `aria-label` describing its state in text; SSE-driven status changes are announced via ARIA live regions without interrupting ongoing screen reader activity.
-
----
+Acceptance signal: on a narrow viewport the sidebar is hidden by default; a hamburger/menu button reveals it as an overlay; tapping a session closes the sidebar and opens the detail.
 
 ## Out of Scope
 
-- Right panel (`aside`) and bottom panel (`bottom`) content — grid areas are defined and collapsed, but nothing populates them this cycle
-- Drag-handle resize for the sidebar — deferred unless the frontend-designer naturally includes it in mockups
-- Session curation UI (annotations, tagging, segment marking) — separate future feature
-- Multi-user features, workspaces, team sharing, authentication, authorization
-- Virtual scrolling for the session list — incremental addition when needed
-- Backend changes of any kind — all APIs exist (session CRUD, upload, SSE status, re-detect)
-- Dashboard analytics or metrics beyond the cognitive start page
-- Terminal rendering improvements (scrollback dedup, VT processing)
-- Server-side search indexing — client-side filtering only this cycle
+- Backend changes (SSE endpoint, status API, retry endpoint are already merged in PR #66)
+- Team/workspace permissions or multi-user session sharing
+- Session curation UI (marking segments, annotations) -- separate feature
+- Dashboard evolution beyond the initial cognitive start page visual
 
 ---
 **Sign-off:** Approved
