@@ -2,7 +2,8 @@
  * Tests for SidebarPanel component — Stage 6 full implementation.
  *
  * Covers: skeleton loading, search input, filter pills, session list,
- * empty state, "+ New Session" button, SessionCard integration, and safe inject guard.
+ * empty state, "+ New Session" button, SessionCard integration, safe inject guard,
+ * drag handling including multiple-file drop.
  */
 import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
@@ -12,6 +13,16 @@ import type { Session } from '../../shared/types/session.js';
 import SidebarPanel from './SidebarPanel.vue';
 import { sessionListKey } from '../composables/useSessionList.js';
 import type { SessionListState } from '../composables/useSessionList.js';
+
+vi.mock('../composables/useUpload.js', () => ({
+  useUpload: () => ({
+    uploadFileWithOptimistic: mockUploadFileWithOptimistic,
+    uploading: ref(false),
+    error: ref(null),
+    isDragging: ref(false),
+  }),
+}));
+const mockUploadFileWithOptimistic = vi.fn();
 
 function createTestRouter() {
   return createRouter({
@@ -400,6 +411,27 @@ describe('SidebarPanel', () => {
       await sidebar.trigger('dragenter');
       expect(wrapper.find('.upload-zone__title').text()).toBe('Release to upload');
       expect(wrapper.find('.upload-zone__subtitle').text()).toBe('File will be processed automatically');
+    });
+
+    it('calls uploadFileWithOptimistic for each file when multiple files are dropped', async () => {
+      mockUploadFileWithOptimistic.mockClear();
+      const state = makeSessionListState();
+      const wrapper = await mountWithState(state);
+      const sidebar = wrapper.find('.spatial-shell__sidebar');
+      const file1 = new File(['content1'], 'session1.cast', { type: 'text/plain' });
+      const file2 = new File(['content2'], 'session2.cast', { type: 'text/plain' });
+      const dataTransfer = { files: [file1, file2] };
+      await sidebar.trigger('drop', { dataTransfer });
+      expect(mockUploadFileWithOptimistic).toHaveBeenCalledTimes(2);
+      expect(mockUploadFileWithOptimistic).toHaveBeenNthCalledWith(1, file1, expect.any(Object));
+      expect(mockUploadFileWithOptimistic).toHaveBeenNthCalledWith(2, file2, expect.any(Object));
+    });
+
+    it('file input has multiple attribute to allow selecting multiple files', async () => {
+      const state = makeSessionListState();
+      const wrapper = await mountWithState(state);
+      const fileInput = wrapper.find('input[type="file"][accept=".cast"]');
+      expect(fileInput.attributes('multiple')).toBeDefined();
     });
   });
 });

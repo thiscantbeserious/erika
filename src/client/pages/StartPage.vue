@@ -23,24 +23,25 @@ function openFilePicker(): void {
   fileInputRef.value?.click();
 }
 
-/** Handles file selection — uses optimistic upload flow when sessionList is available. */
+/** Handles file selection — uses optimistic upload flow for each selected file when sessionList is available. */
 function handleFileChange(event: Event): void {
   const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
+  const files = input.files;
   if (fileInputRef.value) {
     fileInputRef.value.value = '';
   }
-  if (!file || !sessionList) return;
-
-  uploadFileWithOptimistic(file, {
-    onOptimisticInsert: (tempSession: Session) => {
-      sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
-    },
-    onUploadComplete: async (tempId: string) => {
-      sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
-      await sessionList.fetchSessions();
-    },
-  });
+  if (!files || files.length === 0 || !sessionList) return;
+  for (const file of files) {
+    uploadFileWithOptimistic(file, {
+      onOptimisticInsert: (tempSession: Session) => {
+        sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
+      },
+      onUploadComplete: async (tempId: string) => {
+        sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
+        await sessionList.fetchSessions();
+      },
+    });
+  }
 }
 
 /** Keyboard handler for upload zone: Enter and Space open file picker. */
@@ -59,6 +60,7 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
       ref="fileInputRef"
       type="file"
       accept=".cast"
+      multiple
       class="start-page__file-input"
       tabindex="-1"
       aria-hidden="true"
