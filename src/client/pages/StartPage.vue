@@ -36,7 +36,7 @@ function handleFileChange(event: Event): void {
     onOptimisticInsert: (tempSession: Session) => {
       sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
     },
-    onUploadSuccess: async (tempId: string) => {
+    onUploadComplete: async (tempId: string) => {
       sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
       await sessionList.fetchSessions();
     },

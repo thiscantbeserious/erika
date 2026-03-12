@@ -32,7 +32,7 @@
   box-shadow: inset -1px 0 0 var(--border-default);
 }
 
-/* Bottom border — gradient line that aligns with the header's bottom border. */
+/* Bottom border — straight line that connects seamlessly with ShellHeader's ::after. */
 .brand-mark::after {
   content: '';
   position: absolute;
@@ -40,13 +40,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--accent-primary) 40%,
-    var(--accent-primary) 100%
-  );
-  opacity: 0.6;
+  background: color-mix(in srgb, var(--accent-primary) 60%, transparent);
 }
 
 .brand-mark__logotype {

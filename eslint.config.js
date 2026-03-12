@@ -55,8 +55,11 @@ export default tseslint.config(
       globals: {
         DragEvent: 'readonly',
         Event: 'readonly',
+        FocusEvent: 'readonly',
         KeyboardEvent: 'readonly',
         MouseEvent: 'readonly',
+        MutationObserver: 'readonly',
+        Node: 'readonly',
         Element: 'readonly',
         ResizeObserver: 'readonly',
         confirm: 'readonly',
