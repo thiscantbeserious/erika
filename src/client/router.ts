@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import SpatialShell from './components/SpatialShell.vue';
 import StartPage from './pages/StartPage.vue';
-import SessionDetailPage from './pages/SessionDetailPage.vue';
+import SessionDetailView from './pages/SessionDetailView.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,7 +19,7 @@ const router = createRouter({
         {
           path: 'session/:id',
           name: 'session-detail',
-          component: SessionDetailPage,
+          component: SessionDetailView,
         },
       ],
     },

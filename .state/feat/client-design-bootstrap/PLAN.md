@@ -260,13 +260,13 @@ Goal: Adapt or rebuild SessionDetailPage for the main grid area. Breadcrumb move
 
 Owner: frontend-engineer (verdict from Stage 1)
 
-- [ ] Create `src/client/pages/SessionDetailView.vue` (or refactor `SessionDetailPage.vue` per designer verdict)
-- [ ] Remove container wrapper and standalone breadcrumb -- breadcrumb now rendered by `ShellHeader.vue` based on current route
-- [ ] Content fills the `main` grid area directly
-- [ ] Loading state uses `SkeletonMain.vue`
-- [ ] Error state styled within the main area
-- [ ] Component responsive to width changes (for future `aside` panel activation)
-- [ ] Wire `ShellHeader.vue` to display breadcrumb: "Sessions > {filename}" when on `/session/:id`
+- [x] Create `src/client/pages/SessionDetailView.vue` (or refactor `SessionDetailPage.vue` per designer verdict)
+- [x] Remove container wrapper and standalone breadcrumb -- breadcrumb now rendered by `ShellHeader.vue` based on current route
+- [x] Content fills the `main` grid area directly
+- [x] Loading state uses `SkeletonMain.vue`
+- [x] Error state styled within the main area
+- [x] Component responsive to width changes (for future `aside` panel activation)
+- [x] Wire `ShellHeader.vue` to display breadcrumb: "Sessions > {filename}" when on `/session/:id`
 - [ ] Verify: session detail renders correctly in the main grid area
 - [ ] Verify: breadcrumb appears in the header area
 - [ ] Verify: switching sessions updates main content without sidebar change
@@ -506,7 +506,7 @@ Updated by implementer as work progresses.
 | 6 | in progress | Sidebar panel — core implementation done; layout toggle wiring deferred to Stage 13 |
 | 7 | complete | Session card |
 | 8 | complete | Start page — StartPage.vue implemented; router updated to route name 'home' |
-| 9 | pending | Session detail layout |
+| 9 | complete | Session detail layout — SessionDetailView.vue created, ShellHeader breadcrumb wired |
 | 10 | pending | Upload flow |
 | 11 | pending | SSE status updates |
 | 12 | pending | Toast system |
