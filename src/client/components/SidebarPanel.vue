@@ -43,7 +43,7 @@
       </div>
 
       <!-- Session list (hidden during drag) -->
-      <div v-if="!isDragOver" class="sidebar__list-region">
+      <div v-show="!isDragOver" class="sidebar__list-region">
         <ul
           v-if="sessionList.filteredSessions.value.length > 0"
           class="sidebar__session-list"
@@ -84,37 +84,34 @@
 
       <!-- Drop zone (shown during drag, replaces list) -->
       <div
-        v-else
-        class="sidebar__drop-zone"
+        v-show="isDragOver"
+        class="sidebar__drop-zone upload-zone upload-zone--compact upload-zone--drag-over"
         role="button"
         aria-label="Drop .cast file to upload"
       >
-        <div class="sidebar__drop-zone-content">
-          <svg
-            class="sidebar__drop-icon"
-            width="40"
-            height="40"
-            viewBox="0 0 40 40"
-            fill="none"
+        <div class="upload-zone__icon">
+          <div
+            class="upload-zone__disc-ring"
             aria-hidden="true"
+          />
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 48 48"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
           >
-            <path
-              d="M20 6v20M12 14l8-8 8 8"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M6 28v4a2 2 0 002 2h24a2 2 0 002-2v-4"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
+            <path d="M14 30V36H34V30" />
+            <path d="M24 12V30" />
+            <path d="M16 20L24 12L32 20" />
           </svg>
-          <p class="sidebar__drop-text">Drop .cast file</p>
-          <p class="sidebar__drop-hint">to start a new session</p>
+        </div>
+        <div class="upload-zone__title">
+          Release to upload
+        </div>
+        <div class="upload-zone__subtitle">
+          File will be processed automatically
         </div>
       </div>
 
@@ -414,40 +411,15 @@ function clearFilters(): void {
   transition: opacity 150ms ease-out;
 }
 
-/* Drop zone — replaces session list during drag */
+/* Drop zone — replaces session list during drag.
+   Visual styling is provided by .upload-zone classes from components.css. */
 .sidebar__drop-zone {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 0;
-  border: 1px solid rgba(0, 212, 255, 0.15);
-  border-radius: var(--radius-md);
-  margin: var(--space-2) var(--space-3);
-  background: rgba(0, 212, 255, 0.02);
-}
-
-.sidebar__drop-zone-content {
-  text-align: center;
-}
-
-.sidebar__drop-icon {
-  color: rgba(0, 212, 255, 0.7);
-  margin-bottom: var(--space-3);
-}
-
-.sidebar__drop-text {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  color: var(--text-primary);
-  margin: 0 0 var(--space-1) 0;
-}
-
-.sidebar__drop-hint {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin: 0;
+  padding: var(--space-3);
 }
 
 /* Footer browse fallback during drag */

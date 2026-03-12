@@ -329,7 +329,7 @@ describe('SidebarPanel', () => {
       const wrapper = await mountWithState(state);
       const sidebar = wrapper.find('.spatial-shell__sidebar');
       await sidebar.trigger('dragenter');
-      expect(wrapper.find('.sidebar__list-region').exists()).toBe(false);
+      expect(wrapper.find('.sidebar__list-region').attributes('style')).toContain('display: none');
     });
 
     it('hides drop zone after dragleave when counter reaches zero', async () => {
@@ -339,7 +339,7 @@ describe('SidebarPanel', () => {
       await sidebar.trigger('dragenter');
       expect(wrapper.find('.sidebar__drop-zone').exists()).toBe(true);
       await sidebar.trigger('dragleave');
-      expect(wrapper.find('.sidebar__drop-zone').exists()).toBe(false);
+      expect(wrapper.find('.sidebar__drop-zone').attributes('style')).toContain('display: none');
     });
 
     it('hides drop zone after drop event', async () => {
@@ -349,7 +349,7 @@ describe('SidebarPanel', () => {
       await sidebar.trigger('dragenter');
       expect(wrapper.find('.sidebar__drop-zone').exists()).toBe(true);
       await sidebar.trigger('drop', { dataTransfer: { files: [] } });
-      expect(wrapper.find('.sidebar__drop-zone').exists()).toBe(false);
+      expect(wrapper.find('.sidebar__drop-zone').attributes('style')).toContain('display: none');
     });
 
     it('changes footer button text to "or browse files" during drag', async () => {
@@ -393,13 +393,13 @@ describe('SidebarPanel', () => {
       expect(dropZone.attributes('aria-label')).toBe('Drop .cast file to upload');
     });
 
-    it('drop zone contains drop icon and text', async () => {
+    it('drop zone contains upload-zone title and subtitle', async () => {
       const state = makeSessionListState();
       const wrapper = await mountWithState(state);
       const sidebar = wrapper.find('.spatial-shell__sidebar');
       await sidebar.trigger('dragenter');
-      expect(wrapper.find('.sidebar__drop-text').text()).toBe('Drop .cast file');
-      expect(wrapper.find('.sidebar__drop-hint').text()).toBe('to start a new session');
+      expect(wrapper.find('.upload-zone__title').text()).toBe('Release to upload');
+      expect(wrapper.find('.upload-zone__subtitle').text()).toBe('File will be processed automatically');
     });
   });
 });
