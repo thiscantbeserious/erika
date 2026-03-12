@@ -121,6 +121,7 @@
           ref="fileInputRef"
           type="file"
           accept=".cast"
+          multiple
           class="sidebar__file-input"
           aria-hidden="true"
           tabindex="-1"
@@ -211,21 +212,23 @@ function onDragLeave(): void {
   }
 }
 
-/** Handles file drop: resets drag state and initiates optimistic upload. */
+/** Handles file drop: resets drag state and initiates optimistic upload for each dropped file. */
 function onDrop(event: DragEvent): void {
   dragCounter = 0;
   isDragOver.value = false;
-  const file = event.dataTransfer?.files?.[0];
-  if (!file) return;
-  uploadFileWithOptimistic(file, {
-    onOptimisticInsert: (tempSession: Session) => {
-      sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
-    },
-    onUploadComplete: async (tempId: string) => {
-      sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
-      await sessionList.fetchSessions();
-    },
-  });
+  const files = event.dataTransfer?.files;
+  if (!files || files.length === 0) return;
+  for (const file of files) {
+    uploadFileWithOptimistic(file, {
+      onOptimisticInsert: (tempSession: Session) => {
+        sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
+      },
+      onUploadComplete: async (tempId: string) => {
+        sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
+        await sessionList.fetchSessions();
+      },
+    });
+  }
 }
 
 /** Opens the system file picker for .cast files. */
@@ -233,22 +236,23 @@ function openFilePicker(): void {
   fileInputRef.value?.click();
 }
 
-/** Handles file selection from the hidden file input. Uses optimistic upload flow. */
+/** Handles file selection from the hidden file input. Uses optimistic upload flow for each selected file. */
 function handleFileInputChange(event: Event): void {
   const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
+  const files = input.files;
   input.value = '';
-
-  uploadFileWithOptimistic(file, {
-    onOptimisticInsert: (tempSession: Session) => {
-      sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
-    },
-    onUploadComplete: async (tempId: string) => {
-      sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
-      await sessionList.fetchSessions();
-    },
-  });
+  if (!files || files.length === 0) return;
+  for (const file of files) {
+    uploadFileWithOptimistic(file, {
+      onOptimisticInsert: (tempSession: Session) => {
+        sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
+      },
+      onUploadComplete: async (tempId: string) => {
+        sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
+        await sessionList.fetchSessions();
+      },
+    });
+  }
 }
 
 /** Clears both search query and status filter. */
