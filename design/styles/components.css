@@ -2465,7 +2465,7 @@ html:has(.modal-backdrop) body {
   overflow-y: scroll;
   /* Standard properties: Firefox + Safari 18+ */
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 212, 255, 0.45) transparent;
+  scrollbar-color: color-mix(in srgb, var(--accent-primary) 45%, transparent) transparent;
 }
 
 /* Chrome / Edge only — Safari ignores these */
@@ -2474,23 +2474,23 @@ html:has(.modal-backdrop) body {
 }
 
 .scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 212, 255, 0.03);
+  background: color-mix(in srgb, var(--accent-primary) 3%, transparent);
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.4);
+  background: var(--accent-primary-glow);
   border-radius: var(--radius-full);
-  box-shadow: 0 0 6px rgba(0, 212, 255, 0.25);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 
 .scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 212, 255, 0.6);
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+  background: color-mix(in srgb, var(--accent-primary) 60%, transparent);
+  box-shadow: 0 0 8px var(--accent-primary-glow);
 }
 
 .scrollbar::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 212, 255, 0.75);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  background: var(--accent-primary-glow-strong);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 50%, transparent);
 }
 
 /* ================================================================

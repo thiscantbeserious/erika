@@ -12,8 +12,8 @@ export interface UploadResponse {
 export interface OptimisticCallbacks {
   /** Called immediately when upload starts with a temporary session entry. */
   onOptimisticInsert: (tempSession: Session) => void;
-  /** Called after upload succeeds; removes the optimistic entry and refreshes. */
-  onUploadSuccess: (tempId: string) => Promise<void>;
+  /** Called after upload completes (success or failure); removes the optimistic entry and refreshes. */
+  onUploadComplete: (tempId: string) => Promise<void>;
 }
 
 export function useUpload(onSuccess?: () => void) {
@@ -104,15 +104,15 @@ export function useUpload(onSuccess?: () => void) {
         if (data.details) {
           error.value += `: ${data.details}`;
         }
-        await callbacks.onUploadSuccess(tempId);
+        await callbacks.onUploadComplete(tempId);
         return;
       }
 
-      await callbacks.onUploadSuccess(tempId);
+      await callbacks.onUploadComplete(tempId);
       onSuccess?.();
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Upload failed';
-      await callbacks.onUploadSuccess(tempId);
+      await callbacks.onUploadComplete(tempId);
     } finally {
       uploading.value = false;
     }

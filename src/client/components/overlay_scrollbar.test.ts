@@ -185,4 +185,66 @@ describe('OverlayScrollbar', () => {
       expect(wrapper.find('.overlay-scrollbar--show-track').exists()).toBe(true);
     });
   });
+
+  describe('hover visibility', () => {
+    it('adds visible class on mouseenter when showOnHover is true', async () => {
+      wrapper = mount(OverlayScrollbar, {
+        slots: { default: '<p>content</p>' },
+      });
+      await wrapper.find('.overlay-scrollbar').trigger('mouseenter');
+      expect(wrapper.find('.overlay-scrollbar--visible').exists()).toBe(true);
+    });
+
+    it('removes visible class on mouseleave', async () => {
+      wrapper = mount(OverlayScrollbar, {
+        slots: { default: '<p>content</p>' },
+      });
+      await wrapper.find('.overlay-scrollbar').trigger('mouseenter');
+      await wrapper.find('.overlay-scrollbar').trigger('mouseleave');
+      expect(wrapper.find('.overlay-scrollbar--visible').exists()).toBe(false);
+    });
+
+    it('does not add visible class on mouseenter when showOnHover is false', async () => {
+      wrapper = mount(OverlayScrollbar, {
+        props: { showOnHover: false },
+        slots: { default: '<p>content</p>' },
+      });
+      await wrapper.find('.overlay-scrollbar').trigger('mouseenter');
+      expect(wrapper.find('.overlay-scrollbar--visible').exists()).toBe(false);
+    });
+  });
+
+  describe('focus-within visibility', () => {
+    it('adds visible class on focusin', async () => {
+      wrapper = mount(OverlayScrollbar, {
+        slots: { default: '<p>content</p>' },
+        attachTo: document.body,
+      });
+      await wrapper.find('.overlay-scrollbar').trigger('focusin');
+      expect(wrapper.find('.overlay-scrollbar--visible').exists()).toBe(true);
+    });
+
+    it('removes visible class on focusout when focus leaves the container', async () => {
+      wrapper = mount(OverlayScrollbar, {
+        slots: { default: '<p>content</p>' },
+        attachTo: document.body,
+      });
+      await wrapper.find('.overlay-scrollbar').trigger('focusin');
+      // relatedTarget null means focus left entirely
+      await wrapper.find('.overlay-scrollbar').trigger('focusout', { relatedTarget: null });
+      expect(wrapper.find('.overlay-scrollbar--visible').exists()).toBe(false);
+    });
+  });
+
+  describe('unmount cleanup', () => {
+    it('unmounts without errors after a drag is started', async () => {
+      wrapper = await mountWithOverflow(400, 200);
+      const thumb = wrapper.find('.overlay-scrollbar__thumb');
+      if (thumb.exists()) {
+        await thumb.trigger('mousedown', { clientY: 50 });
+      }
+      // Should not throw
+      expect(() => wrapper.unmount()).not.toThrow();
+    });
+  });
 });

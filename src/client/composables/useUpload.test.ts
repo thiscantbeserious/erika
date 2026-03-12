@@ -197,12 +197,12 @@ describe('useUpload', () => {
       });
 
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
       expect(onOptimisticInsert).toHaveBeenCalledOnce();
@@ -212,12 +212,12 @@ describe('useUpload', () => {
     it('inserts optimistic entry with correct filename and uploading-prefixed id', async () => {
       vi.mocked(fetch).mockResolvedValue(makeOkResponse({ id: 'server-1' }));
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'my-session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
       const inserted = onOptimisticInsert.mock.calls[0]?.[0];
@@ -226,44 +226,44 @@ describe('useUpload', () => {
       expect(inserted.id).toMatch(/^uploading-\d+$/);
     });
 
-    it('calls onUploadSuccess with the temp id on success', async () => {
+    it('calls onUploadComplete with the temp id on success', async () => {
       vi.mocked(fetch).mockResolvedValue(makeOkResponse({ id: 'server-1' }));
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
       const inserted = onOptimisticInsert.mock.calls[0]?.[0];
-      expect(onUploadSuccess).toHaveBeenCalledWith(inserted.id);
+      expect(onUploadComplete).toHaveBeenCalledWith(inserted.id);
     });
 
-    it('calls onUploadSuccess even when upload fails (to clean up optimistic entry)', async () => {
+    it('calls onUploadComplete even when upload fails (to clean up optimistic entry)', async () => {
       vi.mocked(fetch).mockResolvedValue(makeErrorResponse(500, { error: 'Server error' }));
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
-      expect(onUploadSuccess).toHaveBeenCalledOnce();
+      expect(onUploadComplete).toHaveBeenCalledOnce();
     });
 
     it('sets error message on upload failure', async () => {
       vi.mocked(fetch).mockResolvedValue(makeErrorResponse(422, { error: 'Bad file' }));
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { error, uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
       expect(error.value).toBe('Bad file');
@@ -271,12 +271,12 @@ describe('useUpload', () => {
 
     it('sets error for non-.cast file without calling fetch or inserting optimistic entry', async () => {
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn();
+      const onUploadComplete = vi.fn();
       const { error, uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'video.mp4'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
       expect(error.value).toBe('Only .cast files are supported');
@@ -284,29 +284,29 @@ describe('useUpload', () => {
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it('calls onUploadSuccess on network failure', async () => {
+    it('calls onUploadComplete on network failure', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
-      expect(onUploadSuccess).toHaveBeenCalledOnce();
+      expect(onUploadComplete).toHaveBeenCalledOnce();
     });
 
     it('sets uploading to false after completion', async () => {
       vi.mocked(fetch).mockResolvedValue(makeOkResponse({ id: 'server-1' }));
       const onOptimisticInsert = vi.fn();
-      const onUploadSuccess = vi.fn().mockResolvedValue(undefined);
+      const onUploadComplete = vi.fn().mockResolvedValue(undefined);
       const { uploading, uploadFileWithOptimistic } = useUpload();
 
       await uploadFileWithOptimistic(new File(['data'], 'session.cast'), {
         onOptimisticInsert,
-        onUploadSuccess,
+        onUploadComplete,
       });
 
       expect(uploading.value).toBe(false);

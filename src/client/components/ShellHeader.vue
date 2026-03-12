@@ -70,10 +70,10 @@ const sessionLabel = computed(() => {
   height: var(--header-height);
   padding-inline: var(--space-6);
   background: var(--bg-surface);
+  /* Bottom border — continuous gradient line aligned with BrandMark's ::after. */
   position: relative;
 }
 
-/* TRON gradient bottom border — runs from cyan (left) through to pink (right). */
 .shell-header::after {
   content: '';
   position: absolute;
@@ -82,16 +82,10 @@ const sessionLabel = computed(() => {
   right: 0;
   height: 1px;
   background: linear-gradient(
-    90deg,
-    var(--accent-primary) 0%,
-    var(--accent-primary) 40%,
-    var(--accent-secondary) 85%,
-    transparent 100%
+    to right,
+    color-mix(in srgb, var(--accent-primary) 60%, transparent),
+    color-mix(in srgb, var(--accent-secondary) 80%, transparent)
   );
-  opacity: 0.7;
-  box-shadow:
-    0 0 8px var(--accent-primary-glow),
-    0 0 20px rgba(0, 212, 255, 0.12);
 }
 
 /* Left section — holds breadcrumbs when on a session detail route. */

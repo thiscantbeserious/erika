@@ -77,6 +77,7 @@ const hasOverflow = ref(false);
 
 let scrollIdleTimer: ReturnType<typeof setTimeout> | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let mutationObserver: MutationObserver | null = null;
 
 // Drag state
 let dragStartY = 0;
@@ -226,16 +227,17 @@ onMounted(() => {
   resizeObserver = new ResizeObserver(() => recalculate());
   resizeObserver.observe(viewport);
 
-  // Observe the viewport's first child to catch content height changes
-  if (viewport.firstElementChild) {
-    resizeObserver.observe(viewport.firstElementChild as Element);
-  }
+  // Watch for child list changes (e.g. slot content replaced at runtime)
+  // so recalculate() runs even without a scroll or resize event.
+  mutationObserver = new MutationObserver(() => recalculate());
+  mutationObserver.observe(viewport, { childList: true, subtree: true });
 
   recalculate();
 });
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
+  mutationObserver?.disconnect();
   if (scrollIdleTimer !== null) clearTimeout(scrollIdleTimer);
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
@@ -274,7 +276,7 @@ onBeforeUnmount(() => {
 
 /* Track background — only shown when showTrack prop is true */
 .overlay-scrollbar--show-track .overlay-scrollbar__track {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
 }
 
 /* Show track on: scrolling, dragging, container hover, focus-within */
@@ -298,7 +300,7 @@ onBeforeUnmount(() => {
   right: 0;
   width: 6px;
   min-height: 24px;
-  background: rgba(0, 212, 255, 0.4);
+  background: var(--accent-primary-glow);
   border-radius: 9999px;
   overflow: hidden;
   transition: background 150ms ease-out;
@@ -315,7 +317,7 @@ onBeforeUnmount(() => {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(0, 212, 255, 0.8),
+    color-mix(in srgb, var(--accent-primary) 80%, transparent),
     transparent
   );
   transform: translateY(-100%);
@@ -325,7 +327,7 @@ onBeforeUnmount(() => {
 
 /* Hover: brighten + activate rider */
 .overlay-scrollbar__thumb:hover {
-  background: rgba(0, 212, 255, 0.6);
+  background: color-mix(in srgb, var(--accent-primary) 60%, transparent);
 }
 
 .overlay-scrollbar__thumb:hover::before {
@@ -335,7 +337,7 @@ onBeforeUnmount(() => {
 /* Active/dragging: brightest + rider */
 .overlay-scrollbar__thumb:active,
 .overlay-scrollbar--dragging .overlay-scrollbar__thumb {
-  background: rgba(0, 212, 255, 0.75);
+  background: var(--accent-primary-glow-strong);
 }
 
 .overlay-scrollbar__thumb:active::before {

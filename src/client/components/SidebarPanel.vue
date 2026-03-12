@@ -86,7 +86,7 @@
       <div
         v-show="isDragOver"
         class="sidebar__drop-zone upload-zone upload-zone--compact upload-zone--drag-over"
-        role="button"
+        role="region"
         aria-label="Drop .cast file to upload"
       >
         <div class="upload-zone__icon">
@@ -221,7 +221,7 @@ function onDrop(event: DragEvent): void {
     onOptimisticInsert: (tempSession: Session) => {
       sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
     },
-    onUploadSuccess: async (tempId: string) => {
+    onUploadComplete: async (tempId: string) => {
       sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
       await sessionList.fetchSessions();
     },
@@ -244,7 +244,7 @@ function handleFileInputChange(event: Event): void {
     onOptimisticInsert: (tempSession: Session) => {
       sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
     },
-    onUploadSuccess: async (tempId: string) => {
+    onUploadComplete: async (tempId: string) => {
       sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
       await sessionList.fetchSessions();
     },
