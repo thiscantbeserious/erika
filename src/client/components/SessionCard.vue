@@ -1,12 +1,12 @@
 <template>
   <div
     class="session-card"
-    :class="{ 'session-card--selected': isSelected }"
+    :class="cardClasses"
     role="button"
-    tabindex="0"
+    :tabindex="isProcessing ? -1 : 0"
     @click="handleClick"
-    @keydown.enter="handleClick"
-    @keydown.space.prevent="handleClick"
+    @keydown.enter="!isProcessing && handleClick()"
+    @keydown.space.prevent="!isProcessing && handleClick()"
   >
     <!-- Row 1: status dot + filename (dot on left as visual anchor) -->
     <div class="session-card__row session-card__row--primary">
@@ -19,11 +19,14 @@
       <span class="session-card__filename">{{ session.filename }}</span>
     </div>
 
-    <!-- Row 2: section count + relative age -->
-    <div class="session-card__row session-card__meta">
+    <!-- Row 2 (ready/failed): section count + relative age -->
+    <div v-if="!isProcessing" class="session-card__row session-card__meta">
       <span class="session-card__sections">{{ sectionText }}</span>
       <span class="session-card__age">{{ relativeAge }}</span>
     </div>
+
+    <!-- Row 2 (processing): animated "Processing" text replaces metadata -->
+    <div v-else class="session-card__processing-text">Processing</div>
 
     <!-- ARIA live region: announces real-time status updates to screen readers -->
     <span
@@ -85,6 +88,15 @@ const statusGroup = computed<StatusGroup>(() => {
 /** Whether the session just completed (for glow animation trigger). */
 const justCompleted = ref(false);
 
+/** Whether the session is currently in a processing state. */
+const isProcessing = computed(() => statusGroup.value === 'processing');
+
+/** CSS classes for the card root element. */
+const cardClasses = computed(() => ({
+  'session-card--selected': props.isSelected,
+  'session-card--processing': isProcessing.value,
+}));
+
 /** CSS classes for the status indicator dot. */
 const statusDotClasses = computed(() => ({
   'session-card__status-dot--ready': statusGroup.value === 'ready',
@@ -134,8 +146,9 @@ const relativeAge = computed<string>(() =>
   formatRelativeTime(props.session.uploaded_at),
 );
 
-/** Navigates to the session detail route without moving focus out of the sidebar. */
+/** Navigates to the session detail route. No-op while session is processing. */
 function handleClick(): void {
+  if (isProcessing.value) return;
   void router.push(`/session/${props.session.id}`);
 }
 </script>
@@ -273,10 +286,84 @@ function handleClick(): void {
   100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
 }
 
+/* ================================================================
+   PROCESSING STATE — Variant E: Synced Light Swoosh
+   ================================================================ */
+
+.session-card--processing {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Muted content when processing */
+.session-card--processing .session-card__filename {
+  color: var(--text-muted);
+}
+
+/* Processing text with animated ellipsis (replaces metadata row) */
+.session-card__processing-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--lh-xs);
+  color: var(--accent-primary);
+  padding-left: calc(6px + var(--space-1\.5)); /* dot width + row gap */
+}
+
+.session-card__processing-text::after {
+  content: '';
+  animation: ellipsis 1.8s steps(4, end) infinite;
+}
+
+@keyframes ellipsis {
+  0%  { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+/* Swoosh pseudo-element — synced across all processing cards via shared keyframes + timing */
+.session-card--processing::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(0, 212, 255, 0.03) 30%,
+    rgba(0, 212, 255, 0.08) 40%,
+    rgba(0, 212, 255, 0.15) 50%,
+    rgba(0, 212, 255, 0.08) 60%,
+    rgba(0, 212, 255, 0.03) 70%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: swoosh-sweep 3s ease-in-out infinite;
+}
+
+@keyframes swoosh-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .session-card__status-dot--pulse,
   .session-card__status-dot--glow {
+    animation: none;
+  }
+
+  .session-card--processing::after {
+    animation: none;
+    transform: none;
+    background: none;
+  }
+
+  .session-card__processing-text::after {
+    content: '...';
     animation: none;
   }
 }
