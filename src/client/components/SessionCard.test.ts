@@ -202,4 +202,46 @@ describe('SessionCard', () => {
       expect(tagName === 'button' || role === 'button').toBe(true);
     });
   });
+
+  describe('processing card', () => {
+    it('applies processing modifier class when statusGroup is processing', () => {
+      const wrapper = mountCard(makeSession({ detection_status: 'processing' }));
+      expect(wrapper.find('.session-card--processing').exists()).toBe(true);
+    });
+
+    it('does not apply processing modifier class for completed status', () => {
+      const wrapper = mountCard(makeSession({ detection_status: 'completed' }));
+      expect(wrapper.find('.session-card--processing').exists()).toBe(false);
+    });
+
+    it('shows "Processing" text instead of section count when processing', () => {
+      const wrapper = mountCard(makeSession({ detection_status: 'processing', detected_sections_count: 5 }));
+      expect(wrapper.find('.session-card__processing-text').exists()).toBe(true);
+      expect(wrapper.find('.session-card__processing-text').text()).toContain('Processing');
+    });
+
+    it('does not show meta row when processing', () => {
+      const wrapper = mountCard(makeSession({ detection_status: 'processing' }));
+      expect(wrapper.find('.session-card__meta').exists()).toBe(false);
+    });
+
+    it('does not navigate on click when processing', async () => {
+      const session = makeSession({ id: 'proc-1', detection_status: 'processing' });
+      const wrapper = mountCard(session);
+      await wrapper.find('.session-card').trigger('click');
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('has tabindex="-1" when processing to remove from tab order', () => {
+      const wrapper = mountCard(makeSession({ detection_status: 'processing' }));
+      const card = wrapper.find('.session-card');
+      expect(card.attributes('tabindex')).toBe('-1');
+    });
+
+    it('has tabindex="0" for non-processing cards', () => {
+      const wrapper = mountCard(makeSession({ detection_status: 'completed' }));
+      const card = wrapper.find('.session-card');
+      expect(card.attributes('tabindex')).toBe('0');
+    });
+  });
 });
