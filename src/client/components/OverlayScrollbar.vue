@@ -4,7 +4,13 @@
     :class="{
       'overlay-scrollbar--scrolling': isScrolling,
       'overlay-scrollbar--dragging': isDragging,
+      'overlay-scrollbar--visible': isHovered || isFocusWithin,
+      'overlay-scrollbar--show-track': showTrack,
     }"
+    @mouseenter="onContainerEnter"
+    @mouseleave="onContainerLeave"
+    @focusin="isFocusWithin = true"
+    @focusout="onFocusOut"
   >
     <div
       ref="viewportRef"
@@ -14,6 +20,7 @@
       <slot />
     </div>
     <div
+      v-if="hasOverflow"
       ref="trackRef"
       class="overlay-scrollbar__track"
       @mousedown="onTrackClick"
@@ -28,15 +35,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 
 /**
  * OverlayScrollbar wraps scrollable content and renders a custom
  * TRON-themed scrollbar overlay that works across all browsers,
- * including Safari which does not support ::-webkit-scrollbar.
+ * including Safari which does not support CSS scrollbar styling.
  *
- * Usage: <OverlayScrollbar class="sidebar__list-region">...</OverlayScrollbar>
+ * Props:
+ *   showTrack   — render a visible track background (default false)
+ *   showOnHover — show scrollbar when hovering the container (default true)
+ *
+ * The scrollbar also shows on:
+ *   - Active scrolling (fades after 1.5s idle)
+ *   - Container hover (when showOnHover is true)
+ *   - Focus within the container (keyboard navigation)
+ *   - Thumb drag
  */
+
+const props = withDefaults(defineProps<{
+  showTrack?: boolean;
+  showOnHover?: boolean;
+}>(), {
+  showTrack: false,
+  showOnHover: true,
+});
 
 const MIN_THUMB_HEIGHT = 24;
 const SCROLL_IDLE_MS = 1500;
@@ -48,6 +71,9 @@ const thumbHeight = ref(0);
 const thumbTop = ref(0);
 const isScrolling = ref(false);
 const isDragging = ref(false);
+const isHovered = ref(false);
+const isFocusWithin = ref(false);
+const hasOverflow = ref(false);
 
 let scrollIdleTimer: ReturnType<typeof setTimeout> | null = null;
 let resizeObserver: ResizeObserver | null = null;
@@ -66,33 +92,29 @@ const thumbStyle = computed(() => ({
 function recalculate(): void {
   const viewport = viewportRef.value;
   const track = trackRef.value;
-  if (!viewport || !track) return;
+  if (!viewport) return;
 
   const { scrollHeight, clientHeight, scrollTop } = viewport;
-  const trackHeight = track.clientHeight;
 
-  if (scrollHeight <= clientHeight || trackHeight === 0) {
+  hasOverflow.value = scrollHeight > clientHeight;
+
+  if (!hasOverflow.value) {
     thumbHeight.value = 0;
     thumbTop.value = 0;
     return;
   }
+
+  // Track may not be in DOM yet if hasOverflow just became true
+  if (!track) return;
+
+  const trackHeight = track.clientHeight;
+  if (trackHeight === 0) return;
 
   const ratio = clientHeight / scrollHeight;
   const rawThumbHeight = ratio * trackHeight;
   const clampedThumbHeight = Math.max(MIN_THUMB_HEIGHT, rawThumbHeight);
   thumbHeight.value = clampedThumbHeight;
 
-  updateThumbTop(scrollTop, scrollHeight, clientHeight, trackHeight, clampedThumbHeight);
-}
-
-/** Updates only the thumb's top position given the current scroll state. */
-function updateThumbTop(
-  scrollTop: number,
-  scrollHeight: number,
-  clientHeight: number,
-  trackHeight: number,
-  clampedThumbHeight: number,
-): void {
   const maxScroll = scrollHeight - clientHeight;
   const maxThumbTop = trackHeight - clampedThumbHeight;
   thumbTop.value = maxScroll > 0 ? (scrollTop / maxScroll) * maxThumbTop : 0;
@@ -101,8 +123,7 @@ function updateThumbTop(
 /** Handles native scroll events: recalculate position and show scrollbar. */
 function onScroll(): void {
   const viewport = viewportRef.value;
-  const track = trackRef.value;
-  if (!viewport || !track) return;
+  if (!viewport) return;
 
   const { scrollHeight, clientHeight } = viewport;
   if (scrollHeight <= clientHeight) {
@@ -121,6 +142,28 @@ function resetIdleTimer(): void {
   scrollIdleTimer = setTimeout(() => {
     if (!isDragging.value) isScrolling.value = false;
   }, SCROLL_IDLE_MS);
+}
+
+/** Shows scrollbar on container hover. */
+function onContainerEnter(): void {
+  if (props.showOnHover) {
+    isHovered.value = true;
+    recalculate();
+  }
+}
+
+/** Hides scrollbar when mouse leaves container. */
+function onContainerLeave(): void {
+  isHovered.value = false;
+}
+
+/** Hides scrollbar when focus leaves the container entirely. */
+function onFocusOut(event: FocusEvent): void {
+  const container = (event.currentTarget as HTMLElement);
+  const relatedTarget = event.relatedTarget as Node | null;
+  if (!relatedTarget || !container.contains(relatedTarget)) {
+    isFocusWithin.value = false;
+  }
 }
 
 /** Handles a click on the track: scrolls to the clicked position. */
@@ -171,6 +214,11 @@ function onDragEnd(): void {
   resetIdleTimer();
 }
 
+// Recalculate when hasOverflow changes (track enters/leaves DOM)
+watch(hasOverflow, () => {
+  requestAnimationFrame(() => recalculate());
+});
+
 onMounted(() => {
   const viewport = viewportRef.value;
   if (!viewport) return;
@@ -212,6 +260,7 @@ onBeforeUnmount(() => {
   display: none; /* Chrome/Safari/Edge */
 }
 
+/* Track — positioned along right edge */
 .overlay-scrollbar__track {
   position: absolute;
   top: 0;
@@ -223,11 +272,27 @@ onBeforeUnmount(() => {
   transition: opacity 150ms ease-out;
 }
 
+/* Track background — only shown when showTrack prop is true */
+.overlay-scrollbar--show-track .overlay-scrollbar__track {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Show track on: scrolling, dragging, container hover, focus-within */
 .overlay-scrollbar--scrolling .overlay-scrollbar__track,
+.overlay-scrollbar--dragging .overlay-scrollbar__track,
+.overlay-scrollbar--visible .overlay-scrollbar__track,
 .overlay-scrollbar__track:hover {
   opacity: 1;
 }
 
+/* Rider animation: Knight Rider style — light bounces up and down the thumb.
+   Uses alternate direction so ease-in-out applies to each sweep individually. */
+@keyframes thumb-rider {
+  0%   { transform: translateY(-50%); }
+  100% { transform: translateY(250%); }
+}
+
+/* Thumb */
 .overlay-scrollbar__thumb {
   position: absolute;
   right: 0;
@@ -235,19 +300,61 @@ onBeforeUnmount(() => {
   min-height: 24px;
   background: rgba(0, 212, 255, 0.4);
   border-radius: 9999px;
-  box-shadow: 0 0 6px rgba(0, 212, 255, 0.25);
-  transition: background 150ms ease-out, box-shadow 150ms ease-out;
+  overflow: hidden;
+  transition: background 150ms ease-out;
   cursor: pointer;
 }
 
-.overlay-scrollbar__thumb:hover {
-  background: rgba(0, 212, 255, 0.6);
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+/* Rider highlight band — hidden by default */
+.overlay-scrollbar__thumb::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 212, 255, 0.8),
+    transparent
+  );
+  transform: translateY(-100%);
+  animation: none;
+  border-radius: inherit;
 }
 
+/* Hover: brighten + activate rider */
+.overlay-scrollbar__thumb:hover {
+  background: rgba(0, 212, 255, 0.6);
+}
+
+.overlay-scrollbar__thumb:hover::before {
+  animation: thumb-rider 2.4s ease-in-out infinite alternate;
+}
+
+/* Active/dragging: brightest + rider */
 .overlay-scrollbar__thumb:active,
 .overlay-scrollbar--dragging .overlay-scrollbar__thumb {
   background: rgba(0, 212, 255, 0.75);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.overlay-scrollbar__thumb:active::before {
+  animation: thumb-rider 2.4s ease-in-out infinite alternate;
+}
+
+.overlay-scrollbar--dragging .overlay-scrollbar__thumb::before {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-scrollbar__track {
+    transition: none;
+  }
+  .overlay-scrollbar__thumb {
+    transition: none;
+  }
+  .overlay-scrollbar__thumb::before {
+    animation: none;
+  }
 }
 </style>

@@ -2446,37 +2446,51 @@ html:has(.modal-backdrop) body {
 /* ======================
    Scrollbar — TRON utility (.scrollbar)
    ======================
-   Apply to any overflow-y:auto/scroll container.
+   Apply to any overflow-y:scroll container for custom scrollbar styling.
    Thin cyan-accented thumb with subtle glow, near-invisible track.
+
+   Browser support notes:
+   - Firefox: uses scrollbar-width + scrollbar-color (standard properties below).
+   - Chrome / Edge: uses ::-webkit-scrollbar pseudo-elements below.
+   - Safari: does NOT support ::-webkit-scrollbar. It uses the standard
+     scrollbar-width + scrollbar-color properties (Safari 18+). Combine with
+     overflow-y:scroll on the container so the scrollbar is always visible
+     (Safari hides overlay scrollbars on inactive scroll containers).
    ====================== */
 
 .scrollbar {
+  /* overflow-y:scroll keeps the scrollbar permanently rendered.
+     Required for Safari — overlay scrollbars only appear while actively scrolling,
+     making the custom colour invisible without this. */
+  overflow-y: scroll;
+  /* Standard properties: Firefox + Safari 18+ */
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 212, 255, 0.25) transparent;
+  scrollbar-color: rgba(0, 212, 255, 0.45) transparent;
 }
 
+/* Chrome / Edge only — Safari ignores these */
 .scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 212, 255, 0.03);
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.2);
+  background: rgba(0, 212, 255, 0.4);
   border-radius: var(--radius-full);
-  box-shadow: 0 0 4px rgba(0, 212, 255, 0.15);
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.25);
 }
 
 .scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 212, 255, 0.4);
-  box-shadow: 0 0 6px rgba(0, 212, 255, 0.3);
+  background: rgba(0, 212, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
 }
 
 .scrollbar::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 212, 255, 0.55);
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.75);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 /* ================================================================
