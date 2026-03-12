@@ -7,6 +7,9 @@
  * Note: jsdom/happy-dom do not implement scrollHeight/clientHeight layout,
  * so tests stub those properties directly on refs to exercise the
  * component's calculation logic.
+ *
+ * The track element uses v-if="hasOverflow", so it only appears in the DOM
+ * after a scroll/resize triggers recalculate() with overflowing content.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
@@ -32,11 +35,41 @@ function stubTrackHeight(el: HTMLElement, height: number): void {
   Object.defineProperty(el, 'clientHeight', { value: height, configurable: true });
 }
 
+/** Helper: mount, stub overflow, trigger scroll, wait for track to appear, stub track height. */
+async function mountWithOverflow(
+  scrollHeight: number,
+  clientHeight: number,
+  scrollTop = 0,
+  trackHeight = 200,
+): Promise<VueWrapper> {
+  const wrapper = mount(OverlayScrollbar, {
+    slots: { default: '<p>content</p>' },
+    attachTo: document.body,
+  });
+
+  const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
+  stubViewportLayout(viewport, { scrollHeight, clientHeight, scrollTop });
+
+  // Trigger scroll to set hasOverflow and recalculate
+  await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
+  await nextTick();
+
+  // Track is now in DOM if content overflows
+  const track = wrapper.find('.overlay-scrollbar__track');
+  if (track.exists()) {
+    stubTrackHeight(track.element as HTMLElement, trackHeight);
+    // Re-trigger to pick up track height
+    await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
+    await nextTick();
+  }
+
+  return wrapper;
+}
+
 describe('OverlayScrollbar', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {
-    // ResizeObserver not available in happy-dom; stub it globally.
     class MockResizeObserver {
       observe = vi.fn();
       unobserve = vi.fn();
@@ -65,20 +98,6 @@ describe('OverlayScrollbar', () => {
       });
       expect(wrapper.find('.overlay-scrollbar__viewport').exists()).toBe(true);
     });
-
-    it('renders the scrollbar track', () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>content</p>' },
-      });
-      expect(wrapper.find('.overlay-scrollbar__track').exists()).toBe(true);
-    });
-
-    it('renders the scrollbar thumb', () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>content</p>' },
-      });
-      expect(wrapper.find('.overlay-scrollbar__thumb').exists()).toBe(true);
-    });
   });
 
   describe('root element', () => {
@@ -98,61 +117,26 @@ describe('OverlayScrollbar', () => {
     });
   });
 
-  describe('thumb visibility', () => {
-    it('track is not visible when content fits (scrollHeight <= clientHeight)', async () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>short content</p>' },
-        attachTo: document.body,
-      });
-
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      stubViewportLayout(viewport, { scrollHeight: 100, clientHeight: 200 });
-
-      // Trigger a scroll event to recalculate
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
-      const track = wrapper.find('.overlay-scrollbar__track');
-      // When content fits, thumb height would be >= 100% — track should not be shown
-      // Internally represented by isScrollable computed
-      expect(track.exists()).toBe(true); // track always in DOM
+  describe('track visibility', () => {
+    it('track is not in DOM when content fits (no overflow)', async () => {
+      wrapper = await mountWithOverflow(100, 200);
+      expect(wrapper.find('.overlay-scrollbar__track').exists()).toBe(false);
     });
 
-    it('applies scrolling class when scroll event fires', async () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>content</p>' },
-        attachTo: document.body,
-      });
+    it('track appears when content overflows', async () => {
+      wrapper = await mountWithOverflow(400, 200);
+      expect(wrapper.find('.overlay-scrollbar__track').exists()).toBe(true);
+    });
 
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      stubViewportLayout(viewport, { scrollHeight: 400, clientHeight: 200, scrollTop: 50 });
-
-      const track = wrapper.find('.overlay-scrollbar__track').element as HTMLElement;
-      stubTrackHeight(track, 200);
-
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
+    it('applies scrolling class when scroll fires with overflow', async () => {
+      wrapper = await mountWithOverflow(400, 200, 50);
       expect(wrapper.find('.overlay-scrollbar--scrolling').exists()).toBe(true);
     });
   });
 
   describe('thumb height calculation', () => {
     it('thumb height is proportional to visible ratio', async () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>tall content</p>' },
-        attachTo: document.body,
-      });
-
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      stubViewportLayout(viewport, { scrollHeight: 400, clientHeight: 200 });
-
-      const track = wrapper.find('.overlay-scrollbar__track').element as HTMLElement;
-      stubTrackHeight(track, 200);
-
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
+      wrapper = await mountWithOverflow(400, 200, 0, 200);
       const thumb = wrapper.find('.overlay-scrollbar__thumb');
       const style = thumb.attributes('style') ?? '';
       // Ratio = 200/400 = 0.5, trackHeight = 200, thumbHeight = 100
@@ -160,21 +144,7 @@ describe('OverlayScrollbar', () => {
     });
 
     it('thumb height is at least 24px (min-height)', async () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>very tall content</p>' },
-        attachTo: document.body,
-      });
-
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      // Ratio = 50/2000 = 0.025, unclamped = 0.025 * 200 = 5px → clamped to 24px
-      stubViewportLayout(viewport, { scrollHeight: 2000, clientHeight: 50 });
-
-      const track = wrapper.find('.overlay-scrollbar__track').element as HTMLElement;
-      stubTrackHeight(track, 200);
-
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
+      wrapper = await mountWithOverflow(2000, 50, 0, 200);
       const thumb = wrapper.find('.overlay-scrollbar__thumb');
       const style = thumb.attributes('style') ?? '';
       expect(style).toContain('height: 24px');
@@ -183,70 +153,36 @@ describe('OverlayScrollbar', () => {
 
   describe('thumb position on scroll', () => {
     it('sets thumb top to 0 when scrolled to top', async () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>tall content</p>' },
-        attachTo: document.body,
-      });
-
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      stubViewportLayout(viewport, { scrollHeight: 400, clientHeight: 200, scrollTop: 0 });
-
-      const track = wrapper.find('.overlay-scrollbar__track').element as HTMLElement;
-      stubTrackHeight(track, 200);
-
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
+      wrapper = await mountWithOverflow(400, 200, 0, 200);
       const thumb = wrapper.find('.overlay-scrollbar__thumb');
       const style = thumb.attributes('style') ?? '';
       expect(style).toContain('top: 0px');
     });
 
     it('updates thumb top when scrolled partway down', async () => {
-      wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>tall content</p>' },
-        attachTo: document.body,
-      });
-
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      // scrollHeight=400, clientHeight=200, scrollTop=100
-      // maxScroll = 200, ratio = 100/200 = 0.5
-      // thumbHeight = (200/400)*200 = 100
-      // maxThumbTop = 200 - 100 = 100
-      // thumbTop = 0.5 * 100 = 50
-      stubViewportLayout(viewport, { scrollHeight: 400, clientHeight: 200, scrollTop: 100 });
-
-      const track = wrapper.find('.overlay-scrollbar__track').element as HTMLElement;
-      stubTrackHeight(track, 200);
-
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
+      wrapper = await mountWithOverflow(400, 200, 100, 200);
       const thumb = wrapper.find('.overlay-scrollbar__thumb');
       const style = thumb.attributes('style') ?? '';
+      // maxScroll=200, ratio=100/200=0.5, thumbHeight=100, maxThumbTop=100, top=50
       expect(style).toContain('top: 50px');
     });
   });
 
-  describe('scrollable flag', () => {
-    it('does not apply scrollable state when content fits viewport', async () => {
+  describe('props', () => {
+    it('defaults showOnHover to true', () => {
       wrapper = mount(OverlayScrollbar, {
-        slots: { default: '<p>short</p>' },
-        attachTo: document.body,
+        slots: { default: '<p>content</p>' },
       });
+      // Component should not have visible class initially (not hovered)
+      expect(wrapper.find('.overlay-scrollbar--visible').exists()).toBe(false);
+    });
 
-      const viewport = wrapper.find('.overlay-scrollbar__viewport').element as HTMLElement;
-      stubViewportLayout(viewport, { scrollHeight: 100, clientHeight: 200 });
-
-      const track = wrapper.find('.overlay-scrollbar__track').element as HTMLElement;
-      stubTrackHeight(track, 200);
-
-      await wrapper.find('.overlay-scrollbar__viewport').trigger('scroll');
-      await nextTick();
-
-      // Thumb should cover full track (or near it) — no scroll needed
-      // The track opacity class should not be applied
-      expect(wrapper.find('.overlay-scrollbar--scrolling').exists()).toBe(false);
+    it('applies show-track class when showTrack is true', () => {
+      wrapper = mount(OverlayScrollbar, {
+        props: { showTrack: true },
+        slots: { default: '<p>content</p>' },
+      });
+      expect(wrapper.find('.overlay-scrollbar--show-track').exists()).toBe(true);
     });
   });
 });
