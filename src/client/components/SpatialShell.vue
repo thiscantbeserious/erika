@@ -7,6 +7,11 @@
   <div class="spatial-shell__main">
     <router-view />
   </div>
+  <!-- Toast container is fixed-position outside the grid flow -->
+  <ToastContainer
+    :toasts="toasts"
+    @dismiss="removeToast"
+  />
 </template>
 
 <script setup lang="ts">
@@ -14,8 +19,10 @@ import { provide, onMounted } from 'vue';
 import BrandMark from './BrandMark.vue';
 import ShellHeader from './ShellHeader.vue';
 import SidebarPanel from './SidebarPanel.vue';
+import ToastContainer from './ToastContainer.vue';
 import { useLayout, layoutKey } from '../composables/useLayout.js';
 import { useSessionList, sessionListKey } from '../composables/useSessionList.js';
+import { useToast } from '../composables/useToast.js';
 
 /**
  * SpatialShell is the layout route parent.
@@ -31,6 +38,9 @@ provide(layoutKey, layout);
 /** Session list is provided at shell level so sidebar and header can share it. */
 const sessionList = useSessionList();
 provide(sessionListKey, sessionList);
+
+/** Toast state — shared singleton, consumed by ToastContainer rendered here. */
+const { toasts, removeToast } = useToast();
 
 /** Suppress layout transition flash on first paint. */
 onMounted(() => {

@@ -497,19 +497,19 @@ Updated by implementer as work progresses.
 
 | Stage | Status | Notes |
 |-------|--------|-------|
-| 0 | pending | Baseline grid decision |
-| 1 | pending | Design review verdicts |
+| 0 | complete | Baseline grid decision — Path C (18px) chosen |
+| 1 | complete | Design review verdicts — documented in DESIGN_VERDICTS.md |
 | 2 | complete | CSS Grid shell |
-| 3 | pending | Route restructure |
+| 3 | complete | Route restructure — SpatialShell.vue, layout route wrapper, useLayout |
 | 4 | complete | Skeleton loaders |
-| 5 | pending | Branding rename |
-| 6 | in progress | Sidebar panel — core implementation done; layout toggle wiring deferred to Stage 13 |
+| 5 | complete | Branding rename — all user-facing "RAGTS" replaced with "Erika" |
+| 6 | complete | Sidebar panel — core done; layout toggle deferred to Stage 13 |
 | 7 | complete | Session card |
 | 8 | complete | Start page — StartPage.vue implemented; router updated to route name 'home' |
 | 9 | complete | Session detail layout — SessionDetailView.vue created, ShellHeader breadcrumb wired |
 | 10 | complete | Upload flow — DropOverlay, drag handlers, optimistic entries, file picker wired |
 | 11 | complete | SSE status updates — useSSE composable + SessionCard wired |
 | 12 | pending | Toast system |
-| 13 | pending | Mobile overlay |
+| 13 | pending | Mobile overlay + sidebar toggle |
 | 14 | pending | Accessibility pass |
 | 15 | pending | Design token audit |

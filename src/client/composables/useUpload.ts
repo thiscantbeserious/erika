@@ -14,6 +14,10 @@ export interface OptimisticCallbacks {
   onOptimisticInsert: (tempSession: Session) => void;
   /** Called after upload completes (success or failure); removes the optimistic entry and refreshes. */
   onUploadComplete: (tempId: string) => Promise<void>;
+  /** Optional: called with the filename after a successful upload for toast notification. */
+  onUploadSuccess?: (filename: string) => void;
+  /** Optional: called with the error message after a failed upload for toast notification. */
+  onUploadError?: (message: string) => void;
 }
 
 export function useUpload(onSuccess?: () => void) {
@@ -100,19 +104,20 @@ export function useUpload(onSuccess?: () => void) {
       const data = await res.json() as UploadResponse;
 
       if (!res.ok) {
-        error.value = data.error || `Upload failed (${res.status})`;
-        if (data.details) {
-          error.value += `: ${data.details}`;
-        }
+        const msg = data.error || `Upload failed (${res.status})`;
+        error.value = data.details ? `${msg}: ${data.details}` : msg;
         await callbacks.onUploadComplete(tempId);
+        callbacks.onUploadError?.(error.value);
         return;
       }
 
       await callbacks.onUploadComplete(tempId);
+      callbacks.onUploadSuccess?.(file.name);
       onSuccess?.();
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Upload failed';
       await callbacks.onUploadComplete(tempId);
+      callbacks.onUploadError?.(error.value ?? 'Upload failed');
     } finally {
       uploading.value = false;
     }

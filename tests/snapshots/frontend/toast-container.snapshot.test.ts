@@ -10,7 +10,7 @@ import type { Toast } from '@client/composables/useToast';
 describe('ToastContainer component snapshots', () => {
   it('success toast', () => {
     const toasts: Toast[] = [
-      { id: 1, message: 'Session uploaded successfully', type: 'success' },
+      { id: 1, message: 'Session uploaded successfully', type: 'success', role: 'status' },
     ];
     const wrapper = mount(ToastContainer, {
       props: { toasts },
@@ -20,7 +20,7 @@ describe('ToastContainer component snapshots', () => {
 
   it('error toast', () => {
     const toasts: Toast[] = [
-      { id: 2, message: 'Upload failed: invalid file type', type: 'error' },
+      { id: 2, message: 'Upload failed: invalid file type', type: 'error', role: 'alert' },
     ];
     const wrapper = mount(ToastContainer, {
       props: { toasts },
@@ -30,7 +30,7 @@ describe('ToastContainer component snapshots', () => {
 
   it('info toast', () => {
     const toasts: Toast[] = [
-      { id: 3, message: 'Processing session...', type: 'info' },
+      { id: 3, message: 'Processing session...', type: 'info', role: 'status' },
     ];
     const wrapper = mount(ToastContainer, {
       props: { toasts },
@@ -40,9 +40,9 @@ describe('ToastContainer component snapshots', () => {
 
   it('multiple toasts stacked', () => {
     const toasts: Toast[] = [
-      { id: 1, message: 'Upload complete', type: 'success' },
-      { id: 2, message: 'Another warning', type: 'error' },
-      { id: 3, message: 'FYI', type: 'info' },
+      { id: 1, message: 'Upload complete', type: 'success', role: 'status' },
+      { id: 2, message: 'Another warning', type: 'error', role: 'alert' },
+      { id: 3, message: 'FYI', type: 'info', role: 'status' },
     ];
     const wrapper = mount(ToastContainer, {
       props: { toasts },

@@ -23,7 +23,7 @@ vi.mock('vue-router', () => ({
  * test environment where EventSource is unavailable.
  */
 class StubEventSource {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   constructor(_url: string) {}
   onopen: null = null;
   onerror: null = null;
