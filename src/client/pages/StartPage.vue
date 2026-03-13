@@ -10,6 +10,7 @@
 import { ref, inject, computed } from 'vue';
 import { sessionListKey } from '../composables/useSessionList.js';
 import { useUpload } from '../composables/useUpload.js';
+import { useToast } from '../composables/useToast.js';
 import type { Session } from '../../shared/types/session.js';
 
 const sessionList = inject(sessionListKey, null);
@@ -17,6 +18,7 @@ const hasSessions = computed(() => (sessionList?.sessions.value.length ?? 0) > 0
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const { uploadFileWithOptimistic } = useUpload();
+const { addToast } = useToast();
 
 /** Opens the system file picker. Upload zone, browse link, and keyboard trigger this. */
 function openFilePicker(): void {
@@ -39,6 +41,12 @@ function handleFileChange(event: Event): void {
       onUploadComplete: async (tempId: string) => {
         sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
         await sessionList.fetchSessions();
+      },
+      onUploadSuccess: (filename: string) => {
+        addToast(`${filename} uploaded — processing started`, 'success');
+      },
+      onUploadError: (message: string) => {
+        addToast(`Upload failed: ${message}`, 'error');
       },
     });
   }
@@ -76,73 +84,247 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
       aria-hidden="true"
     >
       <defs>
-        <pattern id="spTronGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="0" x2="40" y2="0" stroke="#00d4ff" stroke-width="0.4" opacity="0.22" />
-          <line x1="0" y1="0" x2="0" y2="40" stroke="#00d4ff" stroke-width="0.4" opacity="0.22" />
-          <circle cx="0" cy="0" r="0.8" fill="#00d4ff" opacity="0.3" />
+        <pattern
+          id="spTronGrid"
+          x="0"
+          y="0"
+          width="40"
+          height="40"
+          patternUnits="userSpaceOnUse"
+        >
+          <line
+            x1="0"
+            y1="0"
+            x2="40"
+            y2="0"
+            stroke="#00d4ff"
+            stroke-width="0.4"
+            opacity="0.22"
+          />
+          <line
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="40"
+            stroke="#00d4ff"
+            stroke-width="0.4"
+            opacity="0.22"
+          />
+          <circle
+            cx="0"
+            cy="0"
+            r="0.8"
+            fill="#00d4ff"
+            opacity="0.3"
+          />
         </pattern>
       </defs>
 
       <!-- TRON fine grid -->
-      <rect class="sp-grid-dots" width="100%" height="100%" fill="url(#spTronGrid)" />
+      <rect
+        class="sp-grid-dots"
+        width="100%"
+        height="100%"
+        fill="url(#spTronGrid)"
+      />
 
       <!-- Decorative secondary paths -->
-      <path class="sp-deco-path" d="M 60,80 C 140,60 200,100 280,80 S 420,40 520,75" stroke="#00d4ff" />
-      <path class="sp-deco-path" d="M 760,480 C 840,460 900,500 980,480 S 1100,440 1200,470" stroke="#ff4d6a" />
+      <path
+        class="sp-deco-path"
+        d="M 60,80 C 140,60 200,100 280,80 S 420,40 520,75"
+        stroke="#00d4ff"
+      />
+      <path
+        class="sp-deco-path"
+        d="M 760,480 C 840,460 900,500 980,480 S 1100,440 1200,470"
+        stroke="#ff4d6a"
+      />
 
       <!-- Node 1: record (cyan) at grid intersection 280,120 -->
       <g>
-        <circle class="sp-node-fill sp-node-fill--cyan sp-node-fill--n1" cx="280" cy="120" r="6" />
-        <circle class="sp-node-ring sp-node-ring--cyan sp-node-ring--n1" cx="280" cy="120" r="10" />
-        <circle class="sp-node-outer sp-node-outer--n1" cx="280" cy="120" r="16" stroke="#00d4ff" stroke-dasharray="4 4" />
-        <text class="sp-node-label sp-node-label--n1" x="280" y="160">record</text>
+        <circle
+          class="sp-node-fill sp-node-fill--cyan sp-node-fill--n1"
+          cx="280"
+          cy="120"
+          r="6"
+        />
+        <circle
+          class="sp-node-ring sp-node-ring--cyan sp-node-ring--n1"
+          cx="280"
+          cy="120"
+          r="10"
+        />
+        <circle
+          class="sp-node-outer sp-node-outer--n1"
+          cx="280"
+          cy="120"
+          r="16"
+          stroke="#00d4ff"
+          stroke-dasharray="4 4"
+        />
+        <text
+          class="sp-node-label sp-node-label--n1"
+          x="280"
+          y="160"
+        >record</text>
       </g>
 
       <!-- Node 2: validate (pink) at grid intersection 400,480 -->
       <g>
-        <circle class="sp-node-fill sp-node-fill--pink sp-node-fill--n2" cx="400" cy="480" r="6" />
-        <circle class="sp-node-ring sp-node-ring--pink sp-node-ring--n2" cx="400" cy="480" r="10" />
-        <circle class="sp-node-outer sp-node-outer--n2" cx="400" cy="480" r="16" stroke="#ff4d6a" stroke-dasharray="4 4" />
-        <text class="sp-node-label sp-node-label--n2" x="400" y="520">validate</text>
+        <circle
+          class="sp-node-fill sp-node-fill--pink sp-node-fill--n2"
+          cx="400"
+          cy="480"
+          r="6"
+        />
+        <circle
+          class="sp-node-ring sp-node-ring--pink sp-node-ring--n2"
+          cx="400"
+          cy="480"
+          r="10"
+        />
+        <circle
+          class="sp-node-outer sp-node-outer--n2"
+          cx="400"
+          cy="480"
+          r="16"
+          stroke="#ff4d6a"
+          stroke-dasharray="4 4"
+        />
+        <text
+          class="sp-node-label sp-node-label--n2"
+          x="400"
+          y="520"
+        >validate</text>
       </g>
 
       <!-- Node 3: detect (cyan) at grid intersection 640,80 -->
       <g>
-        <circle class="sp-node-fill sp-node-fill--cyan sp-node-fill--n3" cx="640" cy="80" r="6" />
-        <circle class="sp-node-ring sp-node-ring--cyan sp-node-ring--n3" cx="640" cy="80" r="10" />
-        <circle class="sp-node-outer sp-node-outer--n3" cx="640" cy="80" r="16" stroke="#00d4ff" stroke-dasharray="4 4" />
-        <text class="sp-node-label sp-node-label--n3" x="640" y="120">detect</text>
+        <circle
+          class="sp-node-fill sp-node-fill--cyan sp-node-fill--n3"
+          cx="640"
+          cy="80"
+          r="6"
+        />
+        <circle
+          class="sp-node-ring sp-node-ring--cyan sp-node-ring--n3"
+          cx="640"
+          cy="80"
+          r="10"
+        />
+        <circle
+          class="sp-node-outer sp-node-outer--n3"
+          cx="640"
+          cy="80"
+          r="16"
+          stroke="#00d4ff"
+          stroke-dasharray="4 4"
+        />
+        <text
+          class="sp-node-label sp-node-label--n3"
+          x="640"
+          y="120"
+        >detect</text>
       </g>
 
       <!-- Node 4: replay (pink) at grid intersection 920,480 -->
       <g>
-        <circle class="sp-node-fill sp-node-fill--pink sp-node-fill--n4" cx="920" cy="480" r="6" />
-        <circle class="sp-node-ring sp-node-ring--pink sp-node-ring--n4" cx="920" cy="480" r="10" />
-        <circle class="sp-node-outer sp-node-outer--n4" cx="920" cy="480" r="16" stroke="#ff4d6a" stroke-dasharray="4 4" />
-        <text class="sp-node-label sp-node-label--n4" x="920" y="520">replay</text>
+        <circle
+          class="sp-node-fill sp-node-fill--pink sp-node-fill--n4"
+          cx="920"
+          cy="480"
+          r="6"
+        />
+        <circle
+          class="sp-node-ring sp-node-ring--pink sp-node-ring--n4"
+          cx="920"
+          cy="480"
+          r="10"
+        />
+        <circle
+          class="sp-node-outer sp-node-outer--n4"
+          cx="920"
+          cy="480"
+          r="16"
+          stroke="#ff4d6a"
+          stroke-dasharray="4 4"
+        />
+        <text
+          class="sp-node-label sp-node-label--n4"
+          x="920"
+          y="520"
+        >replay</text>
       </g>
 
       <!-- Node 5: curate (cyan, final — stronger glow) at grid intersection 960,120 -->
       <g>
-        <circle class="sp-node-fill sp-node-fill--final sp-node-fill--n5" cx="960" cy="120" r="8" />
-        <circle class="sp-node-ring sp-node-ring--final sp-node-ring--n5" cx="960" cy="120" r="13" />
-        <circle class="sp-node-outer sp-node-outer--n5" cx="960" cy="120" r="20" stroke="#00d4ff" stroke-dasharray="5 5" />
-        <text class="sp-node-label sp-node-label--n5" x="960" y="160">curate</text>
+        <circle
+          class="sp-node-fill sp-node-fill--final sp-node-fill--n5"
+          cx="960"
+          cy="120"
+          r="8"
+        />
+        <circle
+          class="sp-node-ring sp-node-ring--final sp-node-ring--n5"
+          cx="960"
+          cy="120"
+          r="13"
+        />
+        <circle
+          class="sp-node-outer sp-node-outer--n5"
+          cx="960"
+          cy="120"
+          r="20"
+          stroke="#00d4ff"
+          stroke-dasharray="5 5"
+        />
+        <text
+          class="sp-node-label sp-node-label--n5"
+          x="960"
+          y="160"
+        >curate</text>
       </g>
     </svg>
 
     <!-- Ambient particles (8 total — 6 cyan, 2 pink) -->
-    <div class="sp-particle sp-particle--1" aria-hidden="true" />
-    <div class="sp-particle sp-particle--2" aria-hidden="true" />
-    <div class="sp-particle sp-particle--3" aria-hidden="true" />
-    <div class="sp-particle sp-particle--4" aria-hidden="true" />
-    <div class="sp-particle sp-particle--5" aria-hidden="true" />
-    <div class="sp-particle sp-particle--6" aria-hidden="true" />
-    <div class="sp-particle sp-particle--7" aria-hidden="true" />
-    <div class="sp-particle sp-particle--8" aria-hidden="true" />
+    <div
+      class="sp-particle sp-particle--1"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--2"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--3"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--4"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--5"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--6"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--7"
+      aria-hidden="true"
+    />
+    <div
+      class="sp-particle sp-particle--8"
+      aria-hidden="true"
+    />
 
     <!-- Blinking cursor watermark -->
-    <div class="start-page__cursor-prompt" aria-hidden="true">
+    <div
+      class="start-page__cursor-prompt"
+      aria-hidden="true"
+    >
       <span class="start-page__cursor-chevron">&gt;</span><span class="start-page__cursor-blink">_</span>
     </div>
 
@@ -159,24 +341,47 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
         @keydown="handleDropZoneKeydown"
       >
         <div class="upload-zone__icon">
-          <div class="upload-zone__disc-ring" aria-hidden="true" />
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M14 30V36H34V30"/>
-            <path d="M24 12V30"/>
-            <path d="M16 20L24 12L32 20"/>
+          <div
+            class="upload-zone__disc-ring"
+            aria-hidden="true"
+          />
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 48 48"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M14 30V36H34V30" />
+            <path d="M24 12V30" />
+            <path d="M16 20L24 12L32 20" />
           </svg>
         </div>
-        <div class="upload-zone__title">{{ hasSessions ? 'Add another session.' : 'No sessions yet. Fix that.' }}</div>
+        <div class="upload-zone__title">
+          {{ hasSessions ? 'Add another session.' : 'No sessions yet. Fix that.' }}
+        </div>
         <div class="upload-zone__subtitle">
           Drop a <code>.cast</code> file here or click to browse
           — watch it unfold into something you can actually read.
         </div>
-        <span class="upload-zone__browse" role="button" tabindex="0" @click.stop="openFilePicker" @keydown.enter.stop="openFilePicker" @keydown.space.prevent.stop="openFilePicker">Browse Files</span>
+        <span
+          class="upload-zone__browse"
+          role="button"
+          tabindex="0"
+          @click.stop="openFilePicker"
+          @keydown.enter.stop="openFilePicker"
+          @keydown.space.prevent.stop="openFilePicker"
+        >Browse Files</span>
       </div>
 
       <!-- AGR hint -->
       <p class="start-page__hint">
-        Recording sessions? Use <a href="https://github.com/thiscantbeserious/agent-session-recorder" target="_blank" rel="noopener noreferrer">AGR</a> to capture them.
+        Recording sessions? Use <a
+          href="https://github.com/thiscantbeserious/agent-session-recorder"
+          target="_blank"
+          rel="noopener noreferrer"
+        >AGR</a> to capture them.
       </p>
     </div>
   </div>

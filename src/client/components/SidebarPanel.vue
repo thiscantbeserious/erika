@@ -43,7 +43,10 @@
       </div>
 
       <!-- Session list (hidden during drag) -->
-      <OverlayScrollbar v-show="!isDragOver" class="sidebar__list-region">
+      <OverlayScrollbar
+        v-show="!isDragOver"
+        class="sidebar__list-region"
+      >
         <ul
           v-if="sessionList.filteredSessions.value.length > 0"
           class="sidebar__session-list"
@@ -149,6 +152,7 @@ import OverlayScrollbar from './OverlayScrollbar.vue';
 import { sessionListKey } from '../composables/useSessionList.js';
 import type { SessionListState } from '../composables/useSessionList.js';
 import { useUpload } from '../composables/useUpload.js';
+import { useToast } from '../composables/useToast.js';
 import type { Session } from '../../shared/types/session.js';
 
 /**
@@ -177,6 +181,7 @@ const currentSessionId = computed<string>(() =>
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const { uploadFileWithOptimistic } = useUpload();
+const { addToast } = useToast();
 
 interface FilterPill {
   label: string;
@@ -227,6 +232,12 @@ function onDrop(event: DragEvent): void {
         sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
         await sessionList.fetchSessions();
       },
+      onUploadSuccess: (filename: string) => {
+        addToast(`${filename} uploaded — processing started`, 'success');
+      },
+      onUploadError: (message: string) => {
+        addToast(`Upload failed: ${message}`, 'error');
+      },
     });
   }
 }
@@ -250,6 +261,12 @@ function handleFileInputChange(event: Event): void {
       onUploadComplete: async (tempId: string) => {
         sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
         await sessionList.fetchSessions();
+      },
+      onUploadSuccess: (filename: string) => {
+        addToast(`${filename} uploaded — processing started`, 'success');
+      },
+      onUploadError: (message: string) => {
+        addToast(`Upload failed: ${message}`, 'error');
       },
     });
   }

@@ -20,13 +20,21 @@
     </div>
 
     <!-- Row 2 (ready/failed): section count + relative age -->
-    <div v-if="!isProcessing" class="session-card__row session-card__meta">
+    <div
+      v-if="!isProcessing"
+      class="session-card__row session-card__meta"
+    >
       <span class="session-card__sections">{{ sectionText }}</span>
       <span class="session-card__age">{{ relativeAge }}</span>
     </div>
 
     <!-- Row 2 (processing): animated "Processing" text replaces metadata -->
-    <div v-else class="session-card__processing-text">Processing</div>
+    <div
+      v-else
+      class="session-card__processing-text"
+    >
+      Processing
+    </div>
 
     <!-- ARIA live region: announces real-time status updates to screen readers -->
     <span
@@ -39,11 +47,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Session } from '../../shared/types/session.js';
 import { formatRelativeTime } from '../../shared/utils/format_relative_time.js';
 import { useSSE } from '../composables/useSSE.js';
+import { useToast } from '../composables/useToast.js';
 
 /**
  * SessionCard renders a single session entry in the sidebar list.
@@ -68,6 +77,7 @@ const router = useRouter();
 const sessionId = computed(() => props.session.id);
 const initialStatus = computed(() => props.session.detection_status);
 const { status: liveStatus } = useSSE(sessionId, initialStatus);
+const { addToast } = useToast();
 
 /** Maps detection_status to one of three display groups. */
 type StatusGroup = 'ready' | 'processing' | 'failed';
@@ -87,6 +97,21 @@ const statusGroup = computed<StatusGroup>(() => {
 
 /** Whether the session just completed (for glow animation trigger). */
 const justCompleted = ref(false);
+
+/**
+ * Watch for terminal status transitions to trigger glow animation and toast notification.
+ * Fires a success toast when processing completes, or an error toast when it fails.
+ */
+watch(liveStatus, (next, prev) => {
+  if (prev === undefined || next === undefined) return;
+  if (next === 'completed') {
+    justCompleted.value = true;
+    addToast(`${props.session.filename} is ready`, 'success');
+    setTimeout(() => { justCompleted.value = false; }, 700);
+  } else if (next === 'failed' || next === 'interrupted') {
+    addToast(`${props.session.filename} processing failed`, 'error');
+  }
+});
 
 /** Whether the session is currently in a processing state. */
 const isProcessing = computed(() => statusGroup.value === 'processing');
