@@ -372,16 +372,16 @@ Goal: Sidebar collapses on mobile. Hamburger toggle. Overlay with focus trap and
 
 Owner: frontend-engineer
 
-- [ ] Add hamburger toggle button to `ShellHeader.vue` (visible only < 768px)
-- [ ] Create `src/client/components/MobileSidebarOverlay.vue` -- overlay wrapper with backdrop
-- [ ] Sidebar slides in: `translateX(-100%)` -> `translateX(0)`, 150-200ms ease-out
-- [ ] Backdrop dims main content while sidebar is open
-- [ ] `aria-modal="true"` on overlay
-- [ ] Focus trap: Tab cycles sidebar controls only while overlay is open
-- [ ] Escape closes overlay, returns focus to hamburger toggle
-- [ ] Tapping a session card closes overlay and shows session detail
-- [ ] Filter pills meet 44px minimum touch target height (padding compensation)
-- [ ] `useLayout()` tracks mobile vs desktop sidebar state separately
+- [x] Add hamburger toggle button to `ShellHeader.vue` (visible only < 768px)
+- [x] Create `src/client/components/MobileSidebarOverlay.vue` -- overlay wrapper with backdrop
+- [x] Sidebar slides in: `translateX(-100%)` -> `translateX(0)`, 150-200ms ease-out
+- [x] Backdrop dims main content while sidebar is open
+- [x] `aria-modal="true"` on overlay
+- [x] Focus trap: Tab cycles sidebar controls only while overlay is open
+- [x] Escape closes overlay, returns focus to hamburger toggle
+- [x] Tapping a session card closes overlay and shows session detail
+- [x] Filter pills meet 44px minimum touch target height (padding compensation)
+- [x] `useLayout()` tracks mobile vs desktop sidebar state separately
 - [ ] Verify: on mobile viewport, hamburger opens sidebar overlay
 - [ ] Verify: Escape closes and returns focus
 - [ ] Verify: selecting a session closes overlay
@@ -510,6 +510,6 @@ Updated by implementer as work progresses.
 | 10 | complete | Upload flow — DropOverlay, drag handlers, optimistic entries, file picker wired |
 | 11 | complete | SSE status updates — useSSE composable + SessionCard wired |
 | 12 | complete | Toast system |
-| 13 | pending | Mobile overlay + sidebar toggle |
+| 13 | complete | Mobile overlay — hamburger, focus trap, backdrop, slide-in animation, route-close |
 | 14 | pending | Accessibility pass |
 | 15 | pending | Design token audit |
