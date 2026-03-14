@@ -106,10 +106,10 @@ watch(liveStatus, (next, prev) => {
   if (prev === next) return;
   if (next === 'completed') {
     justCompleted.value = true;
-    addToast(`${props.session.filename} is ready`, 'success', { title: 'Session ready' });
+    addToast(`${props.session.filename} is ready`, 'success', { title: 'Session ready', icon: 'icon-file-check' });
     setTimeout(() => { justCompleted.value = false; }, 700);
   } else if (next === 'failed' || next === 'interrupted') {
-    addToast(`${props.session.filename} processing failed`, 'error', { title: 'Processing failed' });
+    addToast(`${props.session.filename} processing failed`, 'error', { title: 'Processing failed', icon: 'icon-error-circle' });
   }
 });
 

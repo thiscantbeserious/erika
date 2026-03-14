@@ -25,70 +25,81 @@ const emit = defineEmits<{
         class="toast__icon"
         aria-hidden="true"
       >
-        <!-- success -->
-        <svg
-          v-if="toast.type === 'success'"
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <circle
-            cx="10"
-            cy="10"
-            r="8"
+        <!-- Custom icon from design system -->
+        <template v-if="toast.icon">
+          <span
+            class="icon icon--md"
+            :class="toast.icon"
+            aria-hidden="true"
           />
-          <path d="M7 10l2 2 4-4" />
-        </svg>
-        <!-- warning -->
-        <svg
-          v-else-if="toast.type === 'warning'"
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <path d="M10 2L1.5 17h17L10 2z" />
-          <path d="M10 8v4M10 14v.5" />
-        </svg>
-        <!-- error -->
-        <svg
-          v-else-if="toast.type === 'error'"
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <circle
-            cx="10"
-            cy="10"
-            r="8"
-          />
-          <path d="M7 7l6 6M13 7l-6 6" />
-        </svg>
-        <!-- info (default) -->
-        <svg
-          v-else
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <circle
-            cx="10"
-            cy="10"
-            r="8"
-          />
-          <path d="M10 9v5M10 6.5v.5" />
-        </svg>
+        </template>
+        <!-- Default inline SVG icons -->
+        <template v-else>
+          <!-- success -->
+          <svg
+            v-if="toast.type === 'success'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle
+              cx="10"
+              cy="10"
+              r="8"
+            />
+            <path d="M7 10l2 2 4-4" />
+          </svg>
+          <!-- warning -->
+          <svg
+            v-else-if="toast.type === 'warning'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M10 2L1.5 17h17L10 2z" />
+            <path d="M10 8v4M10 14v.5" />
+          </svg>
+          <!-- error -->
+          <svg
+            v-else-if="toast.type === 'error'"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle
+              cx="10"
+              cy="10"
+              r="8"
+            />
+            <path d="M7 7l6 6M13 7l-6 6" />
+          </svg>
+          <!-- info (default) -->
+          <svg
+            v-else
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle
+              cx="10"
+              cy="10"
+              r="8"
+            />
+            <path d="M10 9v5M10 6.5v.5" />
+          </svg>
+        </template>
       </div>
       <div class="toast__content">
         <div
