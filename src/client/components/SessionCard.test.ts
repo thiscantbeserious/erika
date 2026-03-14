@@ -232,10 +232,10 @@ describe('SessionCard', () => {
       expect(mockPush).not.toHaveBeenCalled();
     });
 
-    it('has tabindex="-1" when processing to remove from tab order', () => {
+    it('remains focusable (tabindex="0") when processing so screen readers can discover status', () => {
       const wrapper = mountCard(makeSession({ detection_status: 'processing' }));
       const card = wrapper.find('.session-card');
-      expect(card.attributes('tabindex')).toBe('-1');
+      expect(card.attributes('tabindex')).toBe('0');
     });
 
     it('has tabindex="0" for non-processing cards', () => {

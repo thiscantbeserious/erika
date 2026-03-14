@@ -403,6 +403,12 @@ function clearFilters(): void {
   text-decoration: underline;
 }
 
+.sidebar__clear-filters-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .sidebar__footer {
   padding: var(--space-3);
   border-top: 1px solid var(--border-default);

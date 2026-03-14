@@ -3,10 +3,10 @@
     class="session-card"
     :class="cardClasses"
     role="button"
-    :tabindex="isProcessing ? -1 : 0"
+    tabindex="0"
     @click="handleClick"
-    @keydown.enter="!isProcessing && handleClick()"
-    @keydown.space.prevent="!isProcessing && handleClick()"
+    @keydown.enter="handleClick()"
+    @keydown.space.prevent="handleClick()"
   >
     <!-- Row 1: status dot + filename (dot on left as visual anchor) -->
     <div class="session-card__row session-card__row--primary">
@@ -317,7 +317,6 @@ function handleClick(): void {
 
 .session-card--processing {
   cursor: default;
-  pointer-events: none;
 }
 
 /* Muted content when processing */

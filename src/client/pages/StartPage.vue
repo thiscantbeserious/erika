@@ -359,11 +359,7 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
         </div>
         <span
           class="upload-zone__browse"
-          role="button"
-          tabindex="0"
-          @click.stop="openFilePicker"
-          @keydown.enter.stop="openFilePicker"
-          @keydown.space.prevent.stop="openFilePicker"
+          aria-hidden="true"
         >Browse Files</span>
       </div>
 
