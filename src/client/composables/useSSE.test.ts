@@ -382,6 +382,98 @@ describe('useSSE()', () => {
     });
   });
 
+  describe('status sync on open — already-completed sessions', () => {
+    it('fetches current status once when SSE connection opens', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: 'sess-1', detection_status: 'processing' }),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const sessionId = ref('sess-1');
+      useSSE(sessionId, makeStatus('processing'));
+      await nextTick();
+
+      const instance = mockInstances[0]!;
+      instance.simulateOpen();
+      await Promise.resolve();
+      await nextTick();
+
+      expect(fetchMock).toHaveBeenCalledWith('/api/sessions/sess-1');
+    });
+
+    it('updates status to "completed" and closes SSE when sync finds session already completed', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: 'sess-1', detection_status: 'completed' }),
+      }));
+
+      const sessionId = ref('sess-1');
+      const { status } = useSSE(sessionId, makeStatus('processing'));
+      await nextTick();
+
+      const instance = mockInstances[0]!;
+      instance.simulateOpen();
+      await Promise.resolve();
+      await nextTick();
+
+      expect(status.value).toBe('completed');
+      expect(instance.closed).toBe(true);
+    });
+
+    it('updates status to "failed" and closes SSE when sync finds session failed', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: 'sess-1', detection_status: 'failed' }),
+      }));
+
+      const sessionId = ref('sess-1');
+      const { status } = useSSE(sessionId, makeStatus('processing'));
+      await nextTick();
+
+      const instance = mockInstances[0]!;
+      instance.simulateOpen();
+      await Promise.resolve();
+      await nextTick();
+
+      expect(status.value).toBe('failed');
+      expect(instance.closed).toBe(true);
+    });
+
+    it('leaves SSE open when sync finds session still processing', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: 'sess-1', detection_status: 'detecting' }),
+      }));
+
+      const sessionId = ref('sess-1');
+      useSSE(sessionId, makeStatus('processing'));
+      await nextTick();
+
+      const instance = mockInstances[0]!;
+      instance.simulateOpen();
+      await Promise.resolve();
+      await nextTick();
+
+      expect(instance.closed).toBe(false);
+    });
+
+    it('does not close SSE when sync fetch fails', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+
+      const sessionId = ref('sess-1');
+      useSSE(sessionId, makeStatus('processing'));
+      await nextTick();
+
+      const instance = mockInstances[0]!;
+      instance.simulateOpen();
+      await Promise.resolve();
+      await nextTick();
+
+      expect(instance.closed).toBe(false);
+    });
+  });
+
   describe('session ID change', () => {
     it('closes existing connection and opens new one when sessionId changes', async () => {
       const sessionId = ref('sess-1');

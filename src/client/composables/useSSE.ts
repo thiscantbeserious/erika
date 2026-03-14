@@ -173,6 +173,27 @@ export function useSSE(
     }
   }
 
+  /**
+   * Sync session status once via REST on SSE open.
+   * If the server reports a terminal status (already completed/failed before the client
+   * connected), update liveStatus and close the SSE connection immediately so the card
+   * stops showing "Processing" indefinitely.
+   */
+  async function syncStatusOnOpen(id: string): Promise<void> {
+    try {
+      const res = await fetch(`/api/sessions/${id}`);
+      if (!res.ok) return;
+      const data = await res.json() as SessionPollResponse;
+      if (data.detection_status === undefined) return;
+      status.value = data.detection_status;
+      if (TERMINAL_STATUSES.has(data.detection_status)) {
+        closeSSE();
+      }
+    } catch {
+      // Sync errors are non-fatal — SSE events will still drive status updates
+    }
+  }
+
   /** Open SSE connection for the given session ID. */
   function openSSE(id: string): void {
     if (!acquireSlot(id)) {
@@ -184,7 +205,10 @@ export function useSSE(
     const es = new EventSource(`/api/sessions/${id}/events`);
     eventSource = es;
 
-    es.onopen = () => { isConnected.value = true; };
+    es.onopen = () => {
+      isConnected.value = true;
+      void syncStatusOnOpen(id);
+    };
     es.onerror = () => { isConnected.value = false; };
 
     attachEventListeners(es);
