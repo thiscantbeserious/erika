@@ -1,13 +1,15 @@
 /**
  * Tests for MobileSidebarOverlay component — Stage 13.
  *
- * Covers: renders only when open, backdrop element present, aria-modal attribute,
- * Escape key closes overlay, backdrop click closes overlay, slide-in transition
- * class applied when open.
+ * Covers: open/closed state via CSS class, backdrop element present, aria-modal attribute,
+ * Escape key closes overlay, backdrop click closes overlay, animation class applied when open.
  *
  * Note: The component uses <Teleport to="body">, so rendered elements appear in
  * document.body. Tests use document.querySelector instead of wrapper.find()
  * for elements inside the Teleport.
+ *
+ * Animation strategy: always in DOM, open state toggled via
+ * .mobile-sidebar-overlay__root--open class (no v-if / Vue Transition).
  */
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
@@ -130,14 +132,15 @@ afterEach(() => {
 
 describe('MobileSidebarOverlay', () => {
   describe('when overlay is closed', () => {
-    it('does not render the overlay panel', async () => {
+    it('renders the root element in the DOM (always-in-DOM approach)', async () => {
       await mountOverlay({ isMobileOverlayOpen: false });
-      expect(q('.mobile-sidebar-overlay__panel')).toBeNull();
+      expect(q('.mobile-sidebar-overlay__root')).not.toBeNull();
     });
 
-    it('does not render the backdrop', async () => {
+    it('does not have the open class when closed', async () => {
       await mountOverlay({ isMobileOverlayOpen: false });
-      expect(q('.mobile-sidebar-overlay__backdrop')).toBeNull();
+      const root = q('.mobile-sidebar-overlay__root');
+      expect(root?.classList.contains('mobile-sidebar-overlay__root--open')).toBe(false);
     });
   });
 
@@ -181,6 +184,13 @@ describe('MobileSidebarOverlay', () => {
       // The inner wrapper class confirming SidebarPanel is rendered inside.
       expect(q('.mobile-sidebar-overlay')).not.toBeNull();
     });
+
+    it('has the open modifier class when open', async () => {
+      await mountOverlay({ isMobileOverlayOpen: true });
+      await nextTick();
+      const root = q('.mobile-sidebar-overlay__root');
+      expect(root?.classList.contains('mobile-sidebar-overlay__root--open')).toBe(true);
+    });
   });
 
   describe('Escape key', () => {
@@ -204,11 +214,20 @@ describe('MobileSidebarOverlay', () => {
   });
 
   describe('animation class', () => {
-    it('renders the panel when open (Transition handles animation via CSS classes)', async () => {
+    it('applies the open modifier class when overlay is open', async () => {
       await mountOverlay({ isMobileOverlayOpen: true });
       await nextTick();
-      const panel = q('.mobile-sidebar-overlay__panel');
-      expect(panel).not.toBeNull();
+      const root = q('.mobile-sidebar-overlay__root');
+      expect(root?.classList.contains('mobile-sidebar-overlay__root--open')).toBe(true);
+    });
+
+    it('removes the open modifier class when overlay is closed', async () => {
+      const { layout } = await mountOverlay({ isMobileOverlayOpen: true });
+      await nextTick();
+      layout.isMobileOverlayOpen.value = false;
+      await nextTick();
+      const root = q('.mobile-sidebar-overlay__root');
+      expect(root?.classList.contains('mobile-sidebar-overlay__root--open')).toBe(false);
     });
   });
 

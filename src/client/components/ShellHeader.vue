@@ -13,17 +13,13 @@
       @click="openMobileOverlay"
     >
       <span
-        class="shell-header__hamburger-bar"
+        class="shell-header__hamburger-icon"
         aria-hidden="true"
-      />
-      <span
-        class="shell-header__hamburger-bar"
-        aria-hidden="true"
-      />
-      <span
-        class="shell-header__hamburger-bar"
-        aria-hidden="true"
-      />
+      >
+        <span class="shell-header__hamburger-bar" />
+        <span class="shell-header__hamburger-bar" />
+        <span class="shell-header__hamburger-bar" />
+      </span>
     </button>
     <div class="shell-header__left">
       <nav
@@ -183,19 +179,19 @@ defineExpose({ hamburgerRef });
   min-width: 0;
 }
 
-/* Hamburger button — visible only on mobile (v-if driven by isMobile). */
+/* Hamburger button — visible only on mobile (v-if driven by isMobile).
+   44px touch target with 8px padding around the 28px branded icon box. */
 .shell-header__hamburger {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  width: 44px; /* 44px min touch target */
+  width: 44px;
   height: 44px;
-  padding: var(--space-3);
+  padding: var(--space-2);
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-primary);
+  color: var(--accent-primary);
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -206,11 +202,36 @@ defineExpose({ hamburgerRef });
   border-radius: var(--radius-sm);
 }
 
-/* Three horizontal bars that form the hamburger icon. */
+/* Branded icon box — matches BrandMark .brand-mark__icon aesthetic. */
+.shell-header__hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 212, 255, 0.06);
+  box-shadow:
+    0 0 8px rgba(0, 212, 255, 0.15),
+    inset 0 0 6px rgba(0, 212, 255, 0.08);
+  transition: box-shadow var(--duration-normal) var(--easing-default);
+  flex-shrink: 0;
+}
+
+.shell-header__hamburger:hover .shell-header__hamburger-icon {
+  box-shadow:
+    0 0 14px rgba(0, 212, 255, 0.35),
+    inset 0 0 8px rgba(0, 212, 255, 0.12);
+}
+
+/* Three horizontal bars inside the branded icon box. */
 .shell-header__hamburger-bar {
   display: block;
-  width: 18px;
-  height: 2px;
+  width: 14px;
+  height: 1.5px;
   background: currentColor;
   border-radius: 1px;
 }

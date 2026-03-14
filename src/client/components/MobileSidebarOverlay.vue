@@ -1,34 +1,30 @@
 <template>
   <Teleport to="body">
-    <Transition name="overlay">
+    <div
+      class="mobile-sidebar-overlay__root"
+      :class="{ 'mobile-sidebar-overlay__root--open': isMobileOverlayOpen }"
+    >
+      <!-- Backdrop -->
       <div
-        v-if="isMobileOverlayOpen"
-        class="mobile-sidebar-overlay__root"
+        class="mobile-sidebar-overlay__backdrop"
+        aria-hidden="true"
+        @click="onBackdropClick"
+      />
+      <!-- Slide-in panel -->
+      <div
+        ref="panelRef"
+        class="mobile-sidebar-overlay__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation sidebar"
+        tabindex="-1"
+        @keydown="onKeydown"
       >
-        <!-- Backdrop -->
-        <div
-          class="mobile-sidebar-overlay__backdrop"
-          aria-hidden="true"
-          @click="onBackdropClick"
-        />
-        <!-- Slide-in panel -->
-        <div
-          ref="panelRef"
-          class="mobile-sidebar-overlay__panel"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation sidebar"
-          tabindex="-1"
-          @keydown="onKeydown"
-        >
-          <div
-            class="mobile-sidebar-overlay"
-          >
-            <SidebarPanel />
-          </div>
+        <div class="mobile-sidebar-overlay">
+          <SidebarPanel />
         </div>
       </div>
-    </Transition>
+    </div>
   </Teleport>
 </template>
 
@@ -44,6 +40,10 @@ import { layoutKey } from '../composables/useLayout.js';
  * Controlled by isMobileOverlayOpen from the injected layout state.
  * Closes automatically on route navigation (session card selection).
  * Locks body scroll while open and returns focus to the trigger element on close.
+ *
+ * Animation strategy: always in DOM, toggled via .mobile-sidebar-overlay__root--open class.
+ * CSS transitions on panel (translateX) and backdrop (opacity) are always present.
+ * Visibility is handled with visibility + pointer-events to avoid interaction when closed.
  */
 
 const layout = inject(layoutKey);
@@ -143,15 +143,26 @@ watch(() => route.fullPath, (newPath, oldPath) => {
 <style scoped>
 /**
  * MobileSidebarOverlay — slide-in sidebar drawer for mobile viewports.
- * Only rendered when isMobileOverlayOpen is true (controlled by useLayout).
- * Uses fixed positioning so it floats above the grid layout.
+ * Always rendered in DOM; visibility toggled via --open modifier class.
+ * CSS transitions on panel/backdrop are always present (no Transition component needed).
  */
 
-/* Root wrapper — contains both backdrop and panel for Transition targeting. */
+/* Root wrapper — always in DOM, hidden when not open. */
 .mobile-sidebar-overlay__root {
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay-backdrop);
+  /* Hidden state: invisible, non-interactive, hide after transition completes. */
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s var(--duration-fast);
+}
+
+/* Open state: immediately visible and interactive. */
+.mobile-sidebar-overlay__root--open {
+  visibility: visible;
+  pointer-events: auto;
+  transition: visibility 0s 0s;
 }
 
 /* Backdrop: full-viewport dim layer behind the panel. */
@@ -159,6 +170,12 @@ watch(() => route.fullPath, (newPath, oldPath) => {
   position: absolute;
   inset: 0;
   background: var(--bg-overlay);
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease-out;
+}
+
+.mobile-sidebar-overlay__root--open .mobile-sidebar-overlay__backdrop {
+  opacity: 1;
 }
 
 /* Slide-in panel container: fixed left column. */
@@ -170,6 +187,12 @@ watch(() => route.fullPath, (newPath, oldPath) => {
   height: 100dvh;
   z-index: var(--z-overlay-panel);
   outline: none; /* Panel is focusable but we manage visual focus internally. */
+  transform: translateX(-100%);
+  transition: transform var(--duration-fast) ease-out;
+}
+
+.mobile-sidebar-overlay__root--open .mobile-sidebar-overlay__panel {
+  transform: translateX(0);
 }
 
 /* Inner wrapper that fills the panel and hosts SidebarPanel. */
@@ -181,38 +204,12 @@ watch(() => route.fullPath, (newPath, oldPath) => {
   overflow: hidden;
 }
 
-/* ============================================================
-   TRANSITION — Vue Transition "overlay"
-   Enter: backdrop fades in, panel slides in from left.
-   Leave: backdrop fades out, panel slides out to left.
-   ============================================================ */
-
-:global(.overlay-enter-active .mobile-sidebar-overlay__panel),
-:global(.overlay-leave-active .mobile-sidebar-overlay__panel) {
-  transition: transform 175ms ease-out;
-}
-
-:global(.overlay-enter-from .mobile-sidebar-overlay__panel),
-:global(.overlay-leave-to .mobile-sidebar-overlay__panel) {
-  transform: translateX(-100%);
-}
-
-:global(.overlay-enter-active .mobile-sidebar-overlay__backdrop),
-:global(.overlay-leave-active .mobile-sidebar-overlay__backdrop) {
-  transition: opacity 175ms ease-out;
-}
-
-:global(.overlay-enter-from .mobile-sidebar-overlay__backdrop),
-:global(.overlay-leave-to .mobile-sidebar-overlay__backdrop) {
-  opacity: 0;
-}
-
 /* Respect prefers-reduced-motion: skip slide/fade animation. */
 @media (prefers-reduced-motion: reduce) {
-  :global(.overlay-enter-active .mobile-sidebar-overlay__panel),
-  :global(.overlay-leave-active .mobile-sidebar-overlay__panel),
-  :global(.overlay-enter-active .mobile-sidebar-overlay__backdrop),
-  :global(.overlay-leave-active .mobile-sidebar-overlay__backdrop) {
+  .mobile-sidebar-overlay__root,
+  .mobile-sidebar-overlay__root--open,
+  .mobile-sidebar-overlay__backdrop,
+  .mobile-sidebar-overlay__panel {
     transition: none;
   }
 }
