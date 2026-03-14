@@ -10,4 +10,5 @@ data/
 .env.local
 test-results/
 playwright-report/
+.playwright-mcp/
 tests/.test-data/
