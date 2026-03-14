@@ -510,6 +510,11 @@ function clearFilters(): void {
     justify-content: center;
     padding-block: var(--space-2);
   }
+
+  .sidebar__new-session-btn {
+    height: var(--btn-height-lg);
+    font-size: var(--text-base);
+  }
 }
 
 /* Mobile brand header — close button + brand name at the top of the overlay panel.
