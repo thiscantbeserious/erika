@@ -64,13 +64,11 @@
         <ul
           v-if="sessionList.filteredSessions.value.length > 0"
           class="sidebar__session-list"
-          role="list"
         >
           <li
             v-for="session in sessionList.filteredSessions.value"
             :key="session.id"
             class="sidebar__session-item"
-            role="listitem"
           >
             <SessionCard
               :session="session"

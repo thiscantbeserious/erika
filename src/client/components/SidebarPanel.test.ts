@@ -196,18 +196,18 @@ describe('SidebarPanel', () => {
   });
 
   describe('session list', () => {
-    it('renders a <ul> with role="list" when sessions exist', async () => {
+    it('renders a <ul> for sessions when sessions exist', async () => {
       const sessions = [makeSession({ id: '1', filename: 'alpha.cast' })];
       const state = makeSessionListState({
         sessions: ref(sessions),
         filteredSessions: computed(() => sessions),
       });
       const wrapper = await mountWithState(state);
-      const list = wrapper.find('ul[role="list"]');
+      const list = wrapper.find('ul.sidebar__session-list');
       expect(list.exists()).toBe(true);
     });
 
-    it('renders a <li> with role="listitem" for each filtered session', async () => {
+    it('renders a <li> for each filtered session', async () => {
       const sessions = [
         makeSession({ id: '1', filename: 'alpha.cast' }),
         makeSession({ id: '2', filename: 'beta.cast' }),
@@ -217,7 +217,7 @@ describe('SidebarPanel', () => {
         filteredSessions: computed(() => sessions),
       });
       const wrapper = await mountWithState(state);
-      const items = wrapper.findAll('li[role="listitem"]');
+      const items = wrapper.findAll('li.sidebar__session-item');
       expect(items).toHaveLength(2);
     });
 

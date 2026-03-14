@@ -55,9 +55,9 @@ const { toasts, removeToast } = useToast();
 /** Suppress layout transition flash on first paint. */
 onMounted(() => {
   requestAnimationFrame(() => {
-    const shell = document.querySelector('.spatial-shell');
+    const shell = document.querySelector<HTMLElement>('.spatial-shell');
     if (shell) {
-      shell.removeAttribute('data-hydrating');
+      delete shell.dataset['hydrating'];
     }
   });
 });

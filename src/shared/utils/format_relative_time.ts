@@ -6,7 +6,7 @@
  */
 export function formatRelativeTime(date: Date | string): string {
   const target = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(target.getTime())) return 'unknown';
+  if (Number.isNaN(target.getTime())) return 'unknown';
 
   const diffMs = Date.now() - target.getTime();
   // Handles clock skew: future dates are treated as "just now"

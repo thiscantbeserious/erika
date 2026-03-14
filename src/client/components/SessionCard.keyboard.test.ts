@@ -38,7 +38,7 @@ vi.mock('../composables/useSSE.js', () => ({
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockPush = vi.fn();
+const mockPush = vi.fn().mockResolvedValue(undefined);
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: mockPush }),
   useRoute: () => ({ params: { id: '' } }),
@@ -75,7 +75,7 @@ function mountCard(session: Session, isSelected = false) {
 
 describe('SessionCard — keyboard navigation', () => {
   beforeEach(() => {
-    mockPush.mockReset();
+    mockPush.mockClear();
     mockAddToast.mockReset();
     controlledStatus.value = 'completed';
     resetConnectionBudget();
@@ -139,7 +139,7 @@ describe('SessionCard — keyboard navigation', () => {
 
 describe('SessionCard — status transition watch (lines 106-112)', () => {
   beforeEach(() => {
-    mockPush.mockReset();
+    mockPush.mockClear();
     mockAddToast.mockReset();
     controlledStatus.value = 'processing';
     resetConnectionBudget();

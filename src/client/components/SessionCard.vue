@@ -174,7 +174,9 @@ const relativeAge = computed<string>(() =>
 /** Navigates to the session detail route. No-op while session is processing. */
 function handleClick(): void {
   if (isProcessing.value) return;
-  void router.push(`/session/${props.session.id}`);
+  router.push(`/session/${props.session.id}`).catch(() => {
+    // Navigation errors (e.g. NavigationDuplicated) are non-fatal; swallow silently.
+  });
 }
 </script>
 

@@ -47,8 +47,8 @@ function readStoredSidebarOpen(): boolean {
 export function useLayout(): LayoutState {
   const isSidebarOpen = ref(readStoredSidebarOpen());
 
-  const mq = typeof window !== 'undefined'
-    ? window.matchMedia('(max-width: 767px)')
+  const mq = typeof globalThis.matchMedia === 'function'
+    ? globalThis.matchMedia('(max-width: 767px)')
     : null;
 
   const isMobile = ref(mq?.matches ?? false);

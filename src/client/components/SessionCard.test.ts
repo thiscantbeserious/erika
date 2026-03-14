@@ -12,7 +12,7 @@ import SessionCard from './SessionCard.vue';
 import { resetConnectionBudget } from '../composables/useSSE.js';
 
 // Mock vue-router
-const mockPush = vi.fn();
+const mockPush = vi.fn().mockResolvedValue(undefined);
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: mockPush }),
   useRoute: () => ({ params: { id: '' } }),
@@ -55,7 +55,7 @@ function mountCard(session: Session, isSelected = false) {
 
 describe('SessionCard', () => {
   beforeEach(() => {
-    mockPush.mockReset();
+    mockPush.mockClear();
     vi.stubGlobal('EventSource', StubEventSource);
     resetConnectionBudget();
   });
