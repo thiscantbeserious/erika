@@ -10,6 +10,8 @@ export interface Toast {
   type: 'success' | 'error' | 'info' | 'warning';
   /** ARIA role: 'alert' for errors (assertive), 'status' for informational (polite). */
   role: ToastRole;
+  /** Optional icon class from design system (e.g., 'icon-file-check'). When set, renders a design system icon instead of the default SVG. */
+  icon?: string;
 }
 
 /** Default dismiss durations per toast type in milliseconds. */
@@ -43,7 +45,7 @@ export function useToast() {
   function addToast(
     message: string,
     type: Toast['type'] = 'info',
-    options?: { title?: string; durationMs?: number } | number,
+    options?: { title?: string; durationMs?: number; icon?: string } | number,
   ): void {
     const id = nextId++;
     const role: ToastRole = type === 'error' ? 'alert' : 'status';
@@ -51,8 +53,9 @@ export function useToast() {
     const opts = typeof options === 'number' ? { durationMs: options } : (options ?? {});
     const duration = opts.durationMs ?? DISMISS_DURATION[type];
     const title = opts.title;
+    const icon = typeof opts === 'object' ? opts.icon : undefined;
 
-    toasts.value.push({ id, title, message, type, role });
+    toasts.value.push({ id, title, message, type, role, icon });
 
     if (duration > 0) {
       timers.set(id, setTimeout(() => { removeToast(id); }, duration));

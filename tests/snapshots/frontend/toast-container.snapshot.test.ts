@@ -59,4 +59,24 @@ describe('ToastContainer component snapshots', () => {
     });
     expect(wrapper.html()).toMatchSnapshot();
   });
+
+  it('success toast with custom design-system icon', () => {
+    const toasts: Toast[] = [
+      { id: 5, title: 'Session ready', message: 'file.cast is ready', type: 'success', role: 'status', icon: 'icon-file-check' },
+    ];
+    const wrapper = mount(ToastContainer, {
+      props: { toasts },
+    });
+    expect(wrapper.html()).toMatchSnapshot();
+  });
+
+  it('error toast with custom design-system icon', () => {
+    const toasts: Toast[] = [
+      { id: 6, title: 'Upload failed', message: 'Could not upload file', type: 'error', role: 'alert', icon: 'icon-error-circle' },
+    ];
+    const wrapper = mount(ToastContainer, {
+      props: { toasts },
+    });
+    expect(wrapper.html()).toMatchSnapshot();
+  });
 });
