@@ -29,9 +29,9 @@ test('error: empty session list — prompt to upload', async ({ page }) => {
   await deleteAllSessions();
 
   await page.goto('/');
-  await page.waitForSelector('.upload-zone', { timeout: 10000 });
+  await page.waitForSelector('.start-page .upload-zone', { timeout: 10000 });
 
-  const uploadZone = page.locator('.upload-zone');
+  const uploadZone = page.locator('.start-page .upload-zone');
   await expect(uploadZone).toBeVisible();
   await expect(uploadZone).toHaveScreenshot('error-empty-session-list.png');
 });

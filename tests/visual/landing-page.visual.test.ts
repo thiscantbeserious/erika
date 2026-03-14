@@ -14,7 +14,7 @@ test.describe('Landing Page', () => {
 
   test('empty state — no sessions', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.upload-zone', { timeout: 10000 });
+    await page.waitForSelector('.start-page .upload-zone', { timeout: 10000 });
     await expect(page).toHaveScreenshot('landing-empty-state.png', {
       mask: [page.locator('.shell-header')],
     });
@@ -49,8 +49,8 @@ test.describe('Landing Page', () => {
 
   test('upload zone — default state', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.upload-zone', { timeout: 10000 });
-    await expect(page.locator('.upload-zone')).toHaveScreenshot('upload-zone-default.png');
+    await page.waitForSelector('.start-page .upload-zone', { timeout: 10000 });
+    await expect(page.locator('.start-page .upload-zone')).toHaveScreenshot('upload-zone-default.png');
   });
 
   test('upload in progress — optimistic card visible', async ({ page }) => {
@@ -99,7 +99,7 @@ test.describe('Landing Page', () => {
 
     // Navigate again to see empty state
     await page.goto('/');
-    await page.waitForSelector('.upload-zone', { timeout: 10000 });
+    await page.waitForSelector('.start-page .upload-zone', { timeout: 10000 });
     await expect(page).toHaveScreenshot('landing-after-delete.png', {
       mask: [page.locator('.shell-header')],
     });

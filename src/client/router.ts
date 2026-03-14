@@ -21,6 +21,11 @@ const router = createRouter({
           name: 'session-detail',
           component: SessionDetailView,
         },
+        {
+          // Catch-all: redirect unknown paths to home
+          path: ':pathMatch(.*)*',
+          redirect: { name: 'home' },
+        },
       ],
     },
   ],
