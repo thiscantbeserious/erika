@@ -14,6 +14,7 @@ tools:
   - mcp__playwright__browser_tabs
   - mcp__playwright__browser_resize
   - mcp__playwright__browser_console_messages
+  - mcp__playwright__browser_evaluate
 disallowedTools:
   - Edit
   - Write
