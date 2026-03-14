@@ -1,11 +1,11 @@
 /**
  * Tests for HexGateIcon component — reusable hex gate icon button.
  *
- * Covers: renders segments, applies is-open class, emits click,
+ * Covers: renders segments, applies is-open class, native click via fallthrough,
  * aria attributes, and accessibility.
  * aria-label is passed as a fallthrough attribute (not a prop).
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import HexGateIcon from './HexGateIcon.vue';
 
@@ -83,23 +83,25 @@ describe('HexGateIcon', () => {
   });
 
   describe('click event', () => {
-    it('emits a click event when the button is clicked', async () => {
-      const wrapper = mountIcon(false);
+    it('calls a native click handler exactly once per click via fallthrough', async () => {
+      const handler = vi.fn();
+      const wrapper = mount(HexGateIcon, {
+        props: { isOpen: false },
+        attrs: { 'aria-label': 'Toggle', onClick: handler },
+      });
       await wrapper.trigger('click');
-      expect(wrapper.emitted('click')).toBeTruthy();
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
-    it('emits click exactly once per click', async () => {
-      const wrapper = mountIcon(false);
-      await wrapper.trigger('click');
-      expect(wrapper.emitted('click')).toHaveLength(1);
-    });
-
-    it('emits click multiple times for multiple clicks', async () => {
-      const wrapper = mountIcon(false);
+    it('calls native click handler multiple times for multiple clicks', async () => {
+      const handler = vi.fn();
+      const wrapper = mount(HexGateIcon, {
+        props: { isOpen: false },
+        attrs: { 'aria-label': 'Toggle', onClick: handler },
+      });
       await wrapper.trigger('click');
       await wrapper.trigger('click');
-      expect(wrapper.emitted('click')).toHaveLength(2);
+      expect(handler).toHaveBeenCalledTimes(2);
     });
   });
 });

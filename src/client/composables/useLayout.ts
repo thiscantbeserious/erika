@@ -1,4 +1,4 @@
-import { ref, readonly, onScopeDispose, getCurrentScope } from 'vue';
+import { ref, readonly, watch, onScopeDispose, getCurrentScope } from 'vue';
 import type { InjectionKey, Ref } from 'vue';
 
 const STORAGE_KEY = 'erika:layout:sidebar-open';
@@ -76,6 +76,16 @@ export function useLayout(): LayoutState {
   }
 
   const isMobileOverlayOpen = ref(false);
+
+  /**
+   * Auto-close the mobile overlay when the viewport transitions out of mobile.
+   * Prevents stale overlay + body scroll-lock on desktop after resize.
+   */
+  watch(isMobile, (mobile) => {
+    if (!mobile && isMobileOverlayOpen.value) {
+      isMobileOverlayOpen.value = false;
+    }
+  });
 
   /** Opens the mobile sidebar overlay. */
   function openMobileOverlay(): void {

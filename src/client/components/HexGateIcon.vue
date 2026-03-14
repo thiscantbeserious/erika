@@ -3,7 +3,6 @@
     class="hex-gate-icon"
     :class="{ 'is-open': isOpen }"
     type="button"
-    @click="emit('click')"
   >
     <span class="hex-gate-icon__box">
       <span
@@ -30,17 +29,10 @@
  * Pass `:isOpen` prop to control the hex (closed) vs X (open) visual state.
  */
 
-const props = defineProps<{
+defineProps<{
   /** Whether the icon is in its open (X) state. */
   isOpen: boolean;
 }>();
-
-const emit = defineEmits<{
-  (e: 'click'): void;
-}>();
-
-// Silence unused-props warning from the linter — props are used in template.
-void props;
 </script>
 
 <style scoped>

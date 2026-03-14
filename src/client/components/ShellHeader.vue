@@ -112,7 +112,9 @@ defineExpose({ hamburgerRef });
   background: var(--bg-surface);
   /* Bottom border — continuous gradient line aligned with BrandMark's ::after. */
   position: relative;
-  overflow: hidden;
+  /* overflow: clip prevents breadcrumb text overflow without creating a scroll context,
+     and does not clip focus outlines of child buttons (unlike overflow: hidden). */
+  overflow: clip;
 }
 
 .shell-header::after {
