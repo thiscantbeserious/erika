@@ -2471,7 +2471,9 @@ html:has(.modal-backdrop) body {
   scrollbar-color: color-mix(in srgb, var(--accent-primary) 45%, transparent) transparent;
 }
 
-/* Chrome / Edge only — Safari ignores these */
+/* Chrome / Edge / Safari — ::-webkit-scrollbar is supported but Safari uses overlay
+   scrollbars that auto-hide; the scrollbar-width/scrollbar-color above handles styling
+   in Firefox and Safari 18+. These rules apply custom colours for Chromium-based browsers. */
 .scrollbar::-webkit-scrollbar {
   width: 6px;
 }

@@ -29,7 +29,7 @@ export function formatRelativeTime(date: Date | string): string {
   const diffWeeks = Math.floor(diffDays / 7);
   if (diffWeeks < 4) return `${diffWeeks}w ago`;
 
-  const diffMonths = Math.floor(diffDays / 30);
+  const diffMonths = Math.max(1, Math.floor(diffDays / 30));
   if (diffMonths >= 12) {
     const years = Math.floor(diffMonths / 12);
     return `${years}y ago`;

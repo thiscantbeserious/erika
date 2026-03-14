@@ -78,6 +78,7 @@ const hasOverflow = ref(false);
 let scrollIdleTimer: ReturnType<typeof setTimeout> | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let mutationObserver: MutationObserver | null = null;
+let overflowWatchRafId: number | null = null;
 
 // Drag state
 let dragStartY = 0;
@@ -217,7 +218,7 @@ function onDragEnd(): void {
 
 // Recalculate when hasOverflow changes (track enters/leaves DOM)
 watch(hasOverflow, () => {
-  requestAnimationFrame(() => recalculate());
+  overflowWatchRafId = requestAnimationFrame(() => recalculate());
 });
 
 onMounted(() => {
@@ -239,6 +240,7 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   mutationObserver?.disconnect();
   if (scrollIdleTimer !== null) clearTimeout(scrollIdleTimer);
+  if (overflowWatchRafId !== null) cancelAnimationFrame(overflowWatchRafId);
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
 });

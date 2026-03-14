@@ -69,6 +69,7 @@ export default tseslint.config(
         File: 'readonly',
         document: 'readonly',
         requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         FormData: 'readonly',

@@ -87,9 +87,8 @@ export function useUpload(onSuccess?: () => void) {
       detection_status: 'pending',
     };
 
-    callbacks.onOptimisticInsert(tempSession);
-
     uploading.value = true;
+    callbacks.onOptimisticInsert(tempSession);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -129,6 +128,20 @@ export function useUpload(onSuccess?: () => void) {
     isDragging.value = false;
   }
 
+  /** Handles a drop event from the UploadZone component; uploads the first dropped file. */
+  function handleDrop(event: DragEvent): void {
+    isDragging.value = false;
+    const file = event.dataTransfer?.files[0];
+    if (file) void uploadFile(file);
+  }
+
+  /** Handles a file input change event from the UploadZone component; uploads the selected file. */
+  function handleFileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) void uploadFile(file);
+  }
+
   function clearError(): void {
     error.value = null;
   }
@@ -139,8 +152,10 @@ export function useUpload(onSuccess?: () => void) {
     isDragging,
     uploadFile,
     uploadFileWithOptimistic,
+    handleDrop,
     handleDragOver,
     handleDragLeave,
+    handleFileInput,
     clearError,
   };
 }

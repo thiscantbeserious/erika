@@ -80,11 +80,24 @@ function trapFocus(event: KeyboardEvent): void {
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
   const isShift = event.shiftKey;
+  const active = document.activeElement;
 
-  if (isShift && document.activeElement === first) {
+  // When the panel container itself is focused (e.g. on open), direct Tab to first
+  // focusable and Shift+Tab to last focusable so focus never escapes the overlay.
+  if (active === panelRef.value) {
+    event.preventDefault();
+    if (isShift) {
+      last?.focus();
+    } else {
+      first?.focus();
+    }
+    return;
+  }
+
+  if (isShift && active === first) {
     event.preventDefault();
     last?.focus();
-  } else if (!isShift && document.activeElement === last) {
+  } else if (!isShift && active === last) {
     event.preventDefault();
     first?.focus();
   }
@@ -116,13 +129,15 @@ onUnmounted(() => {
   setBodyScrollLock(false);
 });
 
-/** Focus the panel when it opens; save the current focus target to restore on close. */
+/** Focus the first focusable element when opened; save the current focus target to restore on close. */
 watch(isMobileOverlayOpen, async (isOpen) => {
   if (isOpen) {
     returnFocusTarget = document.activeElement;
     setBodyScrollLock(true);
     await nextTick();
-    panelRef.value?.focus();
+    const focusable = getFocusableElements();
+    const target = focusable[0] ?? panelRef.value;
+    target?.focus();
   } else {
     setBodyScrollLock(false);
     if (returnFocusTarget && 'focus' in returnFocusTarget) {

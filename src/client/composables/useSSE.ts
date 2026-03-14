@@ -181,7 +181,8 @@ export function useSSE(
    * If the server reports a terminal status (already completed/failed before the client
    * connected), update liveStatus and close the SSE connection immediately so the card
    * stops showing "Processing" indefinitely.
-   * Skips applying the fetched status if an SSE event has already provided a more recent value.
+   * Skips applying the fetched status if an SSE event has already provided a more recent value,
+   * or if the session ID has changed since the request was initiated.
    */
   async function syncStatusOnOpen(id: string): Promise<void> {
     try {
@@ -191,6 +192,8 @@ export function useSSE(
       if (data.detection_status === undefined) return;
       // If an SSE event already updated status, skip applying the potentially stale fetch result
       if (sseEventReceived) return;
+      // Guard against stale response when session ID has changed
+      if (currentSessionId !== id) return;
       status.value = data.detection_status;
       if (TERMINAL_STATUSES.has(data.detection_status)) {
         closeSSE();
@@ -215,7 +218,13 @@ export function useSSE(
       isConnected.value = true;
       void syncStatusOnOpen(id);
     };
-    es.onerror = () => { isConnected.value = false; };
+    es.onerror = () => {
+      // Release the budget slot and clean up state on connection error so
+      // subsequent sessions can acquire the slot without a stale entry.
+      isConnected.value = false;
+      releaseSlot(id);
+      eventSource = null;
+    };
 
     attachEventListeners(es);
   }

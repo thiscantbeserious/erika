@@ -164,7 +164,7 @@
   --lh-sm: var(--baseline);                    /* 12px text: 1 baseline unit */
   --lh-base: var(--baseline);                  /* 14px text: 1 baseline unit */
   --lh-lg: var(--baseline);                    /* 17px text: 1 baseline unit */
-  --lh-xl: var(--baseline);                    /* 20px text: 1 baseline unit */
+  --lh-xl: calc(var(--baseline) * 2);           /* 20px text: 2 baseline units = 36px */
   --lh-2xl: calc(var(--baseline) * 2);         /* 24px text: 2 baseline units */
   --lh-3xl: calc(var(--baseline) * 2);         /* 29px text: 2 baseline units */
   --lh-mono: 20px;                             /* monospace: hardcoded for terminal reading comfort (1.43 ratio at 14px) */

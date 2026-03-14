@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import type { Plugin } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -16,10 +18,17 @@ function cssCacheBust(): Plugin {
     name: 'css-cache-bust',
     apply: 'build',
     transformIndexHtml(html) {
-      const hash = Date.now().toString(36);
       return html.replace(
-        /href="(\/design\/styles\/[^"]+\.css)"/g,
-        `href="$1?v=${hash}"`,
+        /href="(\/design\/styles\/([^"]+\.css))"/g,
+        (_match, fullPath: string, filename: string) => {
+          try {
+            const content = readFileSync(`./design/styles/${filename}`, 'utf-8');
+            const hash = createHash('md5').update(content).digest('hex').slice(0, 8);
+            return `href="${fullPath}?v=${hash}"`;
+          } catch {
+            return `href="${fullPath}"`;
+          }
+        },
       );
     },
   };
