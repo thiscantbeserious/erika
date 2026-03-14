@@ -298,9 +298,9 @@ function openFilePicker(): void {
 /** Handles file selection from the hidden file input. Uses optimistic upload flow for each selected file. */
 function handleFileInputChange(event: Event): void {
   const input = event.target as HTMLInputElement;
-  const files = input.files;
+  const files = Array.from(input.files ?? []);
   input.value = '';
-  if (!files || files.length === 0) return;
+  if (files.length === 0) return;
   for (const file of files) {
     announceUploadStatus(`Uploading ${file.name}…`);
     uploadFileWithOptimistic(file, {

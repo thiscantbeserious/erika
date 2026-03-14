@@ -17,6 +17,9 @@ export interface OptimisticCallbacks {
   onUploadComplete: (tempId: string) => Promise<void>;
 }
 
+/** Monotonic counter to guarantee unique tempIds for concurrent optimistic uploads. */
+let optimisticSeq = 0;
+
 export function useUpload(onSuccess?: () => void) {
   const uploading = ref(false);
   const error = ref<string | null>(null);
@@ -75,7 +78,7 @@ export function useUpload(onSuccess?: () => void) {
       return;
     }
 
-    const tempId = `uploading-${Date.now()}`;
+    const tempId = `uploading-${Date.now()}-${optimisticSeq++}`;
     const tempSession: Session = {
       id: tempId,
       filename: file.name,

@@ -163,7 +163,7 @@ describe('useUpload', () => {
       const inserted = onOptimisticInsert.mock.calls[0]?.[0];
       expect(inserted).toBeDefined();
       expect(inserted.filename).toBe('my-session.cast');
-      expect(inserted.id).toMatch(/^uploading-\d+$/);
+      expect(inserted.id).toMatch(/^uploading-\d+-\d+$/);
     });
 
     it('calls onUploadComplete with the temp id on success', async () => {

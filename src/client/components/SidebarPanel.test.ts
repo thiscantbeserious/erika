@@ -16,6 +16,10 @@ import type { SessionListState } from '../composables/useSessionList.js';
 import { layoutKey } from '../composables/useLayout.js';
 import type { LayoutState } from '../composables/useLayout.js';
 
+const { mockUploadFileWithOptimistic } = vi.hoisted(() => ({
+  mockUploadFileWithOptimistic: vi.fn(),
+}));
+
 vi.mock('../composables/useUpload.js', () => ({
   useUpload: () => ({
     uploadFileWithOptimistic: mockUploadFileWithOptimistic,
@@ -24,7 +28,6 @@ vi.mock('../composables/useUpload.js', () => ({
     isDragging: ref(false),
   }),
 }));
-const mockUploadFileWithOptimistic = vi.fn();
 
 function createTestRouter() {
   return createRouter({

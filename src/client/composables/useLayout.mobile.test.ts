@@ -36,7 +36,14 @@ describe('useLayout() — mobile overlay (Stage 13)', () => {
   });
 
   describe('openMobileOverlay()', () => {
-    it('sets isMobileOverlayOpen to true', () => {
+    it('sets isMobileOverlayOpen to true when on mobile viewport', () => {
+      const mqStub = {
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
+      vi.spyOn(window, 'matchMedia').mockReturnValue(mqStub as unknown as MediaQueryList);
+
       const scope = effectScope();
       let layout: ReturnType<typeof useLayout> | undefined;
       scope.run(() => { layout = useLayout(); });
@@ -44,17 +51,44 @@ describe('useLayout() — mobile overlay (Stage 13)', () => {
       layout?.openMobileOverlay();
       expect(layout?.isMobileOverlayOpen.value).toBe(true);
       scope.stop();
+      vi.restoreAllMocks();
+    });
+
+    it('is a no-op when called on desktop viewport', () => {
+      const mqStub = {
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
+      vi.spyOn(window, 'matchMedia').mockReturnValue(mqStub as unknown as MediaQueryList);
+
+      const scope = effectScope();
+      let layout: ReturnType<typeof useLayout> | undefined;
+      scope.run(() => { layout = useLayout(); });
+
+      layout?.openMobileOverlay();
+      expect(layout?.isMobileOverlayOpen.value).toBe(false);
+      scope.stop();
+      vi.restoreAllMocks();
     });
   });
 
   describe('closeMobileOverlay()', () => {
     it('sets isMobileOverlayOpen to false after opening', () => {
+      const mqStub = {
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
+      vi.spyOn(window, 'matchMedia').mockReturnValue(mqStub as unknown as MediaQueryList);
+
       const scope = effectScope();
       let layout: ReturnType<typeof useLayout> | undefined;
       scope.run(() => { layout = useLayout(); });
 
       layout?.openMobileOverlay();
       layout?.closeMobileOverlay();
+      vi.restoreAllMocks();
       expect(layout?.isMobileOverlayOpen.value).toBe(false);
       scope.stop();
     });

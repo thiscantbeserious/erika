@@ -67,12 +67,16 @@ function createMockEventSource(url: string): MockEventSourceInstance {
   return instance;
 }
 
-class MockEventSourceConstructor {
-  constructor(url: string) {
-    const instance = createMockEventSource(url);
-    Object.assign(this, instance);
-    return instance as unknown as MockEventSourceConstructor;
-  }
+/**
+ * Constructable mock for EventSource that delegates to createMockEventSource.
+ * Uses Object.assign so the constructed instance IS the mock object pushed to mockInstances.
+ */
+function MockEventSourceConstructor(this: MockEventSourceInstance, url: string): void {
+  const instance = createMockEventSource(url);
+  Object.assign(this, instance);
+  // Replace the last pushed entry (from createMockEventSource) with `this`
+  // so tests can call simulateOpen/simulateEvent on the same object that useSSE holds.
+  mockInstances[mockInstances.length - 1] = this;
 }
 
 function makeStatus(s: DetectionStatus = 'processing') {

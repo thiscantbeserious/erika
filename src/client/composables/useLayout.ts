@@ -87,8 +87,9 @@ export function useLayout(): LayoutState {
     }
   });
 
-  /** Opens the mobile sidebar overlay. */
+  /** Opens the mobile sidebar overlay. No-op on desktop. */
   function openMobileOverlay(): void {
+    if (!isMobile.value) return;
     isMobileOverlayOpen.value = true;
   }
 
