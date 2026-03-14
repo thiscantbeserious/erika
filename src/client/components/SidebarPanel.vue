@@ -132,6 +132,16 @@
         </div>
       </div>
 
+      <!-- Upload status live region — screen readers announce result after drag-drop or file pick -->
+      <div
+        role="status"
+        aria-live="polite"
+        class="sidebar__upload-status"
+        aria-atomic="true"
+      >
+        {{ uploadStatusMessage }}
+      </div>
+
       <!-- Footer -->
       <div class="sidebar__footer">
         <input
@@ -207,6 +217,20 @@ const currentSessionId = computed<string>(() =>
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const { uploadFileWithOptimistic } = useUpload();
 
+/** Screen reader announcement text for upload actions — cleared after 4 seconds. */
+const uploadStatusMessage = ref('');
+let uploadStatusTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Sets the upload status message and schedules a clear after 4 seconds. */
+function announceUploadStatus(message: string): void {
+  if (uploadStatusTimer !== null) clearTimeout(uploadStatusTimer);
+  uploadStatusMessage.value = message;
+  uploadStatusTimer = setTimeout(() => {
+    uploadStatusMessage.value = '';
+    uploadStatusTimer = null;
+  }, 4000);
+}
+
 interface FilterPill {
   label: string;
   value: 'all' | 'ready' | 'processing' | 'failed';
@@ -248,6 +272,7 @@ function onDrop(event: DragEvent): void {
   const files = event.dataTransfer?.files;
   if (!files || files.length === 0) return;
   for (const file of files) {
+    announceUploadStatus(`Uploading ${file.name}…`);
     uploadFileWithOptimistic(file, {
       onOptimisticInsert: (tempSession: Session) => {
         sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
@@ -255,6 +280,7 @@ function onDrop(event: DragEvent): void {
       onUploadComplete: async (tempId: string) => {
         sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
         await sessionList.fetchSessions();
+        announceUploadStatus('Upload complete.');
       },
     });
   }
@@ -272,6 +298,7 @@ function handleFileInputChange(event: Event): void {
   input.value = '';
   if (!files || files.length === 0) return;
   for (const file of files) {
+    announceUploadStatus(`Uploading ${file.name}…`);
     uploadFileWithOptimistic(file, {
       onOptimisticInsert: (tempSession: Session) => {
         sessionList.sessions.value = [tempSession, ...sessionList.sessions.value];
@@ -279,6 +306,7 @@ function handleFileInputChange(event: Event): void {
       onUploadComplete: async (tempId: string) => {
         sessionList.sessions.value = sessionList.sessions.value.filter(s => s.id !== tempId);
         await sessionList.fetchSessions();
+        announceUploadStatus('Upload complete.');
       },
     });
   }
@@ -324,8 +352,9 @@ function clearFilters(): void {
   color: var(--text-muted);
 }
 
-.sidebar__search-input:focus {
-  outline: none;
+.sidebar__search-input:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -1px;
   border-color: var(--accent-primary);
 }
 
@@ -440,6 +469,19 @@ function clearFilters(): void {
   justify-content: center;
   min-height: 0;
   padding: var(--space-3);
+}
+
+/* Visually hidden live region for screen reader upload status announcements. */
+.sidebar__upload-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Footer browse fallback during drag */

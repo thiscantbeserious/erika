@@ -24,6 +24,7 @@ const hasContent = computed(() => sections.value.length > 0 || snapshot.value !=
     <SkeletonMain v-if="loading" />
     <div
       v-else-if="error"
+      role="alert"
       class="session-detail-view__state session-detail-view__state--error"
     >
       {{ error }}
