@@ -6,6 +6,19 @@
     @dragleave="onDragLeave"
     @drop.prevent="onDrop"
   >
+    <!-- Mobile brand header — close button + brand name, only visible on mobile overlay -->
+    <div
+      v-if="isMobile"
+      class="sidebar__mobile-header"
+    >
+      <HexGateIcon
+        :is-open="true"
+        aria-label="Close navigation"
+        @click="closeMobileOverlay"
+      />
+      <span class="sidebar__mobile-brand">Erika</span>
+    </div>
+
     <SkeletonSidebar v-if="sessionList.loading.value" />
     <template v-else>
       <!-- Search input -->
@@ -149,9 +162,11 @@ import { useRoute } from 'vue-router';
 import SkeletonSidebar from './SkeletonSidebar.vue';
 import SessionCard from './SessionCard.vue';
 import OverlayScrollbar from './OverlayScrollbar.vue';
+import HexGateIcon from './HexGateIcon.vue';
 import { sessionListKey } from '../composables/useSessionList.js';
 import type { SessionListState } from '../composables/useSessionList.js';
 import { useUpload } from '../composables/useUpload.js';
+import { layoutKey } from '../composables/useLayout.js';
 import type { Session } from '../../shared/types/session.js';
 
 /**
@@ -170,6 +185,16 @@ if (!_injectedSessionList) {
   );
 }
 const sessionList: SessionListState = _injectedSessionList;
+
+const layout = inject(layoutKey);
+
+/** True on mobile viewports — drives mobile brand header visibility. */
+const isMobile = computed(() => layout?.isMobile.value ?? false);
+
+/** Closes the mobile sidebar overlay. No-op when layout is not provided. */
+function closeMobileOverlay(): void {
+  layout?.closeMobileOverlay();
+}
 
 const route = useRoute();
 
@@ -426,5 +451,29 @@ function clearFilters(): void {
     align-items: center;
     padding-block: var(--space-2);
   }
+}
+
+/* Mobile brand header — close button + brand name at the top of the overlay panel.
+   Mirrors the BrandMark height and bottom-border styling for visual continuity. */
+.sidebar__mobile-header {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding-inline-end: var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent);
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Brand name in mobile header — matches BrandMark typography. */
+.sidebar__mobile-brand {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-primary);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+  line-height: var(--lh-lg);
 }
 </style>

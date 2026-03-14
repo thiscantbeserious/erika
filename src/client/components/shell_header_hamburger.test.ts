@@ -91,30 +91,30 @@ describe('ShellHeader — hex gate hamburger button', () => {
 
     it('renders hex gate box container', async () => {
       const { wrapper } = await mountHeader(true);
-      expect(wrapper.find('.shell-header__hex-box').exists()).toBe(true);
+      expect(wrapper.find('.hex-gate-icon__box').exists()).toBe(true);
     });
 
     it('renders hex gate inner container', async () => {
       const { wrapper } = await mountHeader(true);
-      expect(wrapper.find('.shell-header__hex-inner').exists()).toBe(true);
+      expect(wrapper.find('.hex-gate-icon__inner').exists()).toBe(true);
     });
 
     it('renders exactly 5 hex segments', async () => {
       const { wrapper } = await mountHeader(true);
-      const segs = wrapper.findAll('.shell-header__hex-seg');
+      const segs = wrapper.findAll('.hex-gate-icon__seg');
       expect(segs).toHaveLength(5);
     });
 
     it('renders each of the 5 numbered segment modifier classes', async () => {
       const { wrapper } = await mountHeader(true);
       for (let i = 1; i <= 5; i++) {
-        expect(wrapper.find(`.shell-header__hex-seg--${i}`).exists()).toBe(true);
+        expect(wrapper.find(`.hex-gate-icon__seg--${i}`).exists()).toBe(true);
       }
     });
 
     it('hex segments have aria-hidden="true"', async () => {
       const { wrapper } = await mountHeader(true);
-      const inner = wrapper.find('.shell-header__hex-inner');
+      const inner = wrapper.find('.hex-gate-icon__inner');
       expect(inner.attributes('aria-hidden')).toBe('true');
     });
 

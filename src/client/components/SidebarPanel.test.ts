@@ -13,6 +13,8 @@ import type { Session } from '../../shared/types/session.js';
 import SidebarPanel from './SidebarPanel.vue';
 import { sessionListKey } from '../composables/useSessionList.js';
 import type { SessionListState } from '../composables/useSessionList.js';
+import { layoutKey } from '../composables/useLayout.js';
+import type { LayoutState } from '../composables/useLayout.js';
 
 vi.mock('../composables/useUpload.js', () => ({
   useUpload: () => ({
@@ -68,14 +70,30 @@ function makeSessionListState(overrides: Partial<SessionListState> = {}): Sessio
   };
 }
 
+function makeLayoutState(isMobile: boolean): { layout: LayoutState; closeMobileOverlay: ReturnType<typeof vi.fn> } {
+  const closeMobileOverlay = vi.fn();
+  const layout: LayoutState = {
+    isSidebarOpen: ref(true),
+    isMobile: ref(isMobile),
+    isMobileOverlayOpen: ref(true),
+    openMobileOverlay: vi.fn(),
+    closeMobileOverlay,
+    toggleSidebar: vi.fn(),
+  };
+  return { layout, closeMobileOverlay };
+}
+
 /** Mounts SidebarPanel with an injected session list state and a test router. */
-async function mountWithState(state: SessionListState) {
+async function mountWithState(state: SessionListState, layoutState?: LayoutState) {
   const router = createTestRouter();
   await router.push('/');
   const Wrapper = defineComponent({
     components: { SidebarPanel },
     setup() {
       provide(sessionListKey, state);
+      if (layoutState) {
+        provide(layoutKey, layoutState);
+      }
       return {};
     },
     template: '<SidebarPanel />',
@@ -432,6 +450,71 @@ describe('SidebarPanel', () => {
       const wrapper = await mountWithState(state);
       const fileInput = wrapper.find('input[type="file"][accept=".cast"]');
       expect(fileInput.attributes('multiple')).toBeDefined();
+    });
+  });
+
+  describe('mobile close button', () => {
+    it('renders the mobile header when isMobile is true', async () => {
+      const state = makeSessionListState();
+      const { layout } = makeLayoutState(true);
+      const wrapper = await mountWithState(state, layout);
+      expect(wrapper.find('.sidebar__mobile-header').exists()).toBe(true);
+    });
+
+    it('does not render the mobile header when isMobile is false', async () => {
+      const state = makeSessionListState();
+      const { layout } = makeLayoutState(false);
+      const wrapper = await mountWithState(state, layout);
+      expect(wrapper.find('.sidebar__mobile-header').exists()).toBe(false);
+    });
+
+    it('does not render the mobile header when no layout is provided', async () => {
+      const state = makeSessionListState();
+      const wrapper = await mountWithState(state);
+      expect(wrapper.find('.sidebar__mobile-header').exists()).toBe(false);
+    });
+
+    it('renders a close button inside the mobile header', async () => {
+      const state = makeSessionListState();
+      const { layout } = makeLayoutState(true);
+      const wrapper = await mountWithState(state, layout);
+      const header = wrapper.find('.sidebar__mobile-header');
+      expect(header.find('button').exists()).toBe(true);
+    });
+
+    it('close button has aria-label="Close navigation"', async () => {
+      const state = makeSessionListState();
+      const { layout } = makeLayoutState(true);
+      const wrapper = await mountWithState(state, layout);
+      const header = wrapper.find('.sidebar__mobile-header');
+      const btn = header.find('button');
+      expect(btn.attributes('aria-label')).toBe('Close navigation');
+    });
+
+    it('close button has is-open class (always shows X state)', async () => {
+      const state = makeSessionListState();
+      const { layout } = makeLayoutState(true);
+      const wrapper = await mountWithState(state, layout);
+      const header = wrapper.find('.sidebar__mobile-header');
+      const btn = header.find('button');
+      expect(btn.classes()).toContain('is-open');
+    });
+
+    it('renders the brand name in the mobile header', async () => {
+      const state = makeSessionListState();
+      const { layout } = makeLayoutState(true);
+      const wrapper = await mountWithState(state, layout);
+      expect(wrapper.find('.sidebar__mobile-brand').text()).toBe('Erika');
+    });
+
+    it('clicking the close button calls closeMobileOverlay', async () => {
+      const state = makeSessionListState();
+      const { layout, closeMobileOverlay } = makeLayoutState(true);
+      const wrapper = await mountWithState(state, layout);
+      const header = wrapper.find('.sidebar__mobile-header');
+      const btn = header.find('button');
+      await btn.trigger('click');
+      expect(closeMobileOverlay).toHaveBeenCalledOnce();
     });
   });
 });
