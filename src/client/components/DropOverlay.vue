@@ -51,8 +51,8 @@ withDefaults(defineProps<{ visible?: boolean }>(), { visible: false });
   text-align: center;
   margin: var(--space-3);
   box-shadow:
-    0 0 16px 3px var(--accent-primary-glow, rgba(0, 212, 255, 0.3)),
-    inset 0 0 16px 3px rgba(0, 212, 255, 0.05);
+    0 0 16px 3px color-mix(in srgb, var(--accent-primary) 30%, transparent),
+    inset 0 0 16px 3px color-mix(in srgb, var(--accent-primary) 5%, transparent);
   animation: dropOverlayGlow 2s ease-in-out infinite;
 }
 
@@ -73,13 +73,13 @@ withDefaults(defineProps<{ visible?: boolean }>(), { visible: false });
 @keyframes dropOverlayGlow {
   0%, 100% {
     box-shadow:
-      0 0 16px 3px rgba(0, 212, 255, 0.25),
-      inset 0 0 16px 3px rgba(0, 212, 255, 0.05);
+      0 0 16px 3px color-mix(in srgb, var(--accent-primary) 25%, transparent),
+      inset 0 0 16px 3px color-mix(in srgb, var(--accent-primary) 5%, transparent);
   }
   50% {
     box-shadow:
-      0 0 30px 8px rgba(0, 212, 255, 0.45),
-      inset 0 0 24px 5px rgba(0, 212, 255, 0.1);
+      0 0 30px 8px color-mix(in srgb, var(--accent-primary) 45%, transparent),
+      inset 0 0 24px 5px color-mix(in srgb, var(--accent-primary) 10%, transparent);
   }
 }
 
@@ -87,8 +87,8 @@ withDefaults(defineProps<{ visible?: boolean }>(), { visible: false });
   .drop-overlay__frame {
     animation: none;
     box-shadow:
-      0 0 16px 3px rgba(0, 212, 255, 0.25),
-      inset 0 0 16px 3px rgba(0, 212, 255, 0.05);
+      0 0 16px 3px color-mix(in srgb, var(--accent-primary) 25%, transparent),
+      inset 0 0 16px 3px color-mix(in srgb, var(--accent-primary) 5%, transparent);
   }
 }
 </style>

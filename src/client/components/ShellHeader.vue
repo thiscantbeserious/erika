@@ -217,13 +217,13 @@ defineExpose({ hamburgerRef });
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-wide);
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent);
   line-height: var(--lh-lg);
 }
 
 /* Hover: enhance brand text glow when hovering anywhere on the mobile logotype unit. */
 .shell-header__mobile-brand:hover .shell-header__brand {
-  text-shadow: 0 0 24px rgba(0, 212, 255, 0.3);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 /* Hover: trigger hex gate icon box glow from container hover — mirrors BrandMark's icon glow.

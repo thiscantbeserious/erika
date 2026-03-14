@@ -63,18 +63,18 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   color: var(--accent-primary);
-  background: rgba(0, 212, 255, 0.06);
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
   box-shadow:
-    0 0 8px rgba(0, 212, 255, 0.15),
-    inset 0 0 6px rgba(0, 212, 255, 0.08);
+    0 0 8px color-mix(in srgb, var(--accent-primary) 15%, transparent),
+    inset 0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   transition: box-shadow var(--duration-normal) var(--easing-default);
   flex-shrink: 0;
 }
 
 .brand-mark__logotype:hover .brand-mark__icon {
   box-shadow:
-    0 0 14px rgba(0, 212, 255, 0.35),
-    inset 0 0 8px rgba(0, 212, 255, 0.12);
+    0 0 14px color-mix(in srgb, var(--accent-primary) 35%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .brand-mark__name {
@@ -84,12 +84,12 @@
   letter-spacing: var(--tracking-wide);
   color: var(--text-primary);
   line-height: var(--lh-lg);
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent);
   transition: text-shadow var(--duration-normal) var(--easing-default);
 }
 
 .brand-mark__logotype:hover .brand-mark__name {
-  text-shadow: 0 0 24px rgba(0, 212, 255, 0.3);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 /* Mobile: brand mark is hidden (single-column layout, no sidebar). */

@@ -216,7 +216,7 @@ function handleClick(): void {
 
 /* Selected + hover: slightly stronger background */
 .session-card--selected:hover {
-  background: rgba(0, 212, 255, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 /* Row layout */
@@ -357,11 +357,11 @@ function handleClick(): void {
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(0, 212, 255, 0.03) 30%,
-    rgba(0, 212, 255, 0.08) 40%,
-    rgba(0, 212, 255, 0.15) 50%,
-    rgba(0, 212, 255, 0.08) 60%,
-    rgba(0, 212, 255, 0.03) 70%,
+    color-mix(in srgb, var(--accent-primary) 3%, transparent) 30%,
+    color-mix(in srgb, var(--accent-primary) 8%, transparent) 40%,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 50%,
+    color-mix(in srgb, var(--accent-primary) 8%, transparent) 60%,
+    color-mix(in srgb, var(--accent-primary) 3%, transparent) 70%,
     transparent 100%
   );
   transform: translateX(-100%);

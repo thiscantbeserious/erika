@@ -73,17 +73,17 @@ defineProps<{
   height: 28px;
   border: 1px solid var(--accent-primary);
   border-radius: var(--radius-sm);
-  background: rgba(0, 212, 255, 0.06);
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
   box-shadow:
-    0 0 8px rgba(0, 212, 255, 0.15),
-    inset 0 0 6px rgba(0, 212, 255, 0.08);
+    0 0 8px color-mix(in srgb, var(--accent-primary) 15%, transparent),
+    inset 0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   transition: box-shadow var(--duration-normal) ease;
 }
 
 .hex-gate-icon:hover .hex-gate-icon__box {
   box-shadow:
-    0 0 14px rgba(0, 212, 255, 0.35),
-    inset 0 0 8px rgba(0, 212, 255, 0.12);
+    0 0 14px color-mix(in srgb, var(--accent-primary) 35%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 /* Glow pulse when opening (is-open state). */
@@ -97,41 +97,41 @@ defineProps<{
 
 @keyframes hex-gate-glow-pulse {
   0% {
-    box-shadow: 0 0 8px rgba(0, 212, 255, 0.15), inset 0 0 6px rgba(0, 212, 255, 0.08);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 15%, transparent), inset 0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   }
 
   40% {
     box-shadow:
-      0 0 22px rgba(0, 212, 255, 0.55),
-      0 0 44px rgba(0, 212, 255, 0.2),
-      inset 0 0 12px rgba(0, 212, 255, 0.25);
+      0 0 22px color-mix(in srgb, var(--accent-primary) 55%, transparent),
+      0 0 44px color-mix(in srgb, var(--accent-primary) 20%, transparent),
+      inset 0 0 12px color-mix(in srgb, var(--accent-primary) 25%, transparent);
   }
 
   100% {
     box-shadow:
-      0 0 10px rgba(0, 212, 255, 0.35),
-      inset 0 0 6px rgba(0, 212, 255, 0.08);
+      0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent),
+      inset 0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   }
 }
 
 @keyframes hex-gate-glow-settle {
   0% {
     box-shadow:
-      0 0 10px rgba(0, 212, 255, 0.35),
-      inset 0 0 6px rgba(0, 212, 255, 0.08);
+      0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent),
+      inset 0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   }
 
   30% {
     box-shadow:
-      0 0 18px rgba(0, 212, 255, 0.55),
-      0 0 36px rgba(0, 212, 255, 0.15),
-      inset 0 0 10px rgba(0, 212, 255, 0.25);
+      0 0 18px color-mix(in srgb, var(--accent-primary) 55%, transparent),
+      0 0 36px color-mix(in srgb, var(--accent-primary) 15%, transparent),
+      inset 0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent);
   }
 
   100% {
     box-shadow:
-      0 0 8px rgba(0, 212, 255, 0.15),
-      inset 0 0 6px rgba(0, 212, 255, 0.08);
+      0 0 8px color-mix(in srgb, var(--accent-primary) 15%, transparent),
+      inset 0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   }
 }
 

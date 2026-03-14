@@ -525,7 +525,7 @@ function clearFilters(): void {
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-wide);
   color: var(--text-primary);
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent);
   line-height: var(--lh-lg);
 }
 </style>

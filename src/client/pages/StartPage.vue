@@ -444,22 +444,22 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 }
 
 .sp-node-ring--cyan {
-  stroke: #00d4ff;
-  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.4))
-          drop-shadow(0 0 16px rgba(0, 212, 255, 0.2));
+  stroke: var(--accent-primary);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent))
+          drop-shadow(0 0 16px color-mix(in srgb, var(--accent-primary) 20%, transparent));
 }
 
 .sp-node-ring--pink {
-  stroke: #ff4d6a;
-  filter: drop-shadow(0 0 8px rgba(255, 77, 106, 0.35))
-          drop-shadow(0 0 16px rgba(255, 77, 106, 0.2));
+  stroke: var(--accent-secondary);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-secondary) 35%, transparent))
+          drop-shadow(0 0 16px color-mix(in srgb, var(--accent-secondary) 20%, transparent));
 }
 
 .sp-node-ring--final {
-  stroke: #00d4ff;
+  stroke: var(--accent-primary);
   stroke-width: 1.5;
-  filter: drop-shadow(0 0 14px rgba(0, 212, 255, 0.4))
-          drop-shadow(0 0 30px rgba(0, 212, 255, 0.25));
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-primary) 40%, transparent))
+          drop-shadow(0 0 30px color-mix(in srgb, var(--accent-primary) 25%, transparent));
 }
 
 .sp-node-outer {
@@ -473,15 +473,15 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 }
 
 .sp-node-fill--cyan {
-  fill: rgba(0, 212, 255, 0.15);
+  fill: color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 .sp-node-fill--pink {
-  fill: rgba(255, 77, 106, 0.12);
+  fill: color-mix(in srgb, var(--accent-secondary) 12%, transparent);
 }
 
 .sp-node-fill--final {
-  fill: rgba(0, 212, 255, 0.25);
+  fill: color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 
 .sp-node-label {
@@ -511,8 +511,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   left: 8%;
   width: 4px;
   height: 4px;
-  background: #00d4ff;
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4), 0 0 16px rgba(0, 212, 255, 0.15);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 .sp-particle--2 {
@@ -520,8 +520,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   right: 12%;
   width: 4px;
   height: 4px;
-  background: #ff4d6a;
-  box-shadow: 0 0 8px rgba(255, 77, 106, 0.35), 0 0 16px rgba(255, 77, 106, 0.15);
+  background: var(--accent-secondary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-secondary) 35%, transparent), 0 0 16px color-mix(in srgb, var(--accent-secondary) 15%, transparent);
 }
 
 .sp-particle--3 {
@@ -529,8 +529,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   left: 5%;
   width: 4px;
   height: 4px;
-  background: #00d4ff;
-  box-shadow: 0 0 6px rgba(0, 212, 255, 0.4), 0 0 12px rgba(0, 212, 255, 0.12);
+  background: var(--accent-primary);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 12px color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .sp-particle--4 {
@@ -538,8 +538,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   right: 7%;
   width: 5px;
   height: 5px;
-  background: #00d4ff;
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4), 0 0 16px rgba(0, 212, 255, 0.15);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 .sp-particle--5 {
@@ -547,8 +547,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   left: 15%;
   width: 6px;
   height: 6px;
-  background: #00d4ff;
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.18);
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 20px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 .sp-particle--6 {
@@ -556,8 +556,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   right: 18%;
   width: 4px;
   height: 4px;
-  background: #00d4ff;
-  box-shadow: 0 0 6px rgba(0, 212, 255, 0.4), 0 0 12px rgba(0, 212, 255, 0.12);
+  background: var(--accent-primary);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 12px color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .sp-particle--7 {
@@ -565,8 +565,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   left: 30%;
   width: 4px;
   height: 4px;
-  background: #ff4d6a;
-  box-shadow: 0 0 6px rgba(255, 77, 106, 0.35), 0 0 12px rgba(255, 77, 106, 0.12);
+  background: var(--accent-secondary);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-secondary) 35%, transparent), 0 0 12px color-mix(in srgb, var(--accent-secondary) 12%, transparent);
 }
 
 .sp-particle--8 {
@@ -574,8 +574,8 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   right: 25%;
   width: 5px;
   height: 5px;
-  background: #00d4ff;
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4), 0 0 16px rgba(0, 212, 255, 0.15);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 /* ============================================================
@@ -684,32 +684,32 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 
 @keyframes spNodePulseCyan {
   0%, 100% { transform: scale(1);
-             filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.35))
-                     drop-shadow(0 0 14px rgba(0, 212, 255, 0.15)); }
+             filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-primary) 35%, transparent))
+                     drop-shadow(0 0 14px color-mix(in srgb, var(--accent-primary) 15%, transparent)); }
   50%      { transform: scale(1.3);
-             filter: drop-shadow(0 0 14px rgba(0, 212, 255, 0.65))
-                     drop-shadow(0 0 28px rgba(0, 212, 255, 0.25)); }
+             filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-primary) 65%, transparent))
+                     drop-shadow(0 0 28px color-mix(in srgb, var(--accent-primary) 25%, transparent)); }
 }
 
 @keyframes spNodePulsePink {
   0%, 100% { transform: scale(1);
-             filter: drop-shadow(0 0 6px rgba(255, 77, 106, 0.35))
-                     drop-shadow(0 0 14px rgba(255, 77, 106, 0.15)); }
+             filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-secondary) 35%, transparent))
+                     drop-shadow(0 0 14px color-mix(in srgb, var(--accent-secondary) 15%, transparent)); }
   50%      { transform: scale(1.3);
-             filter: drop-shadow(0 0 14px rgba(255, 77, 106, 0.65))
-                     drop-shadow(0 0 28px rgba(255, 77, 106, 0.25)); }
+             filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-secondary) 65%, transparent))
+                     drop-shadow(0 0 28px color-mix(in srgb, var(--accent-secondary) 25%, transparent)); }
 }
 
 @keyframes spNodePulseFinal {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4))
-            drop-shadow(0 0 20px rgba(0, 212, 255, 0.15));
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-primary) 40%, transparent))
+            drop-shadow(0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent));
   }
   50% {
     transform: scale(1.4);
-    filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.7))
-            drop-shadow(0 0 40px rgba(0, 212, 255, 0.3));
+    filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent-primary) 70%, transparent))
+            drop-shadow(0 0 40px color-mix(in srgb, var(--accent-primary) 30%, transparent));
   }
 }
 
