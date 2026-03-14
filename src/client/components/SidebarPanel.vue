@@ -512,7 +512,7 @@ function clearFilters(): void {
   }
 
   .sidebar__new-session-btn {
-    height: var(--btn-height-lg);
+    height: var(--btn-height-md);
     font-size: var(--text-base);
   }
 }
