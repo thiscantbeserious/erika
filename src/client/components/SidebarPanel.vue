@@ -494,10 +494,16 @@ function clearFilters(): void {
 /* Mobile touch targets: filter pills get min 44px height via padding compensation
    when rendered inside the mobile overlay. */
 @media (max-width: 767px) {
+  .sidebar__filters {
+    display: flex;
+  }
+
   .sidebar__filters .filter-pill {
+    flex: 1;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     padding-block: var(--space-2);
   }
 }
