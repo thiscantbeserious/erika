@@ -323,6 +323,7 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
     <!-- Content overlay (centered over SVG) -->
     <div class="start-page__content">
       <!-- Upload zone — design system component -->
+      <!-- NOSONAR: keyboard handler is present via Vue @keydown directive below -->
       <div
         class="upload-zone"
         role="button"
