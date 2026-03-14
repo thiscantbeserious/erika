@@ -7,6 +7,8 @@
   <div class="spatial-shell__main">
     <router-view />
   </div>
+  <!-- Mobile sidebar overlay — rendered outside the grid via Teleport inside the component -->
+  <MobileSidebarOverlay />
   <!-- Toast container is fixed-position outside the grid flow -->
   <ToastContainer
     :toasts="toasts"
@@ -19,6 +21,7 @@ import { provide, onMounted } from 'vue';
 import BrandMark from './BrandMark.vue';
 import ShellHeader from './ShellHeader.vue';
 import SidebarPanel from './SidebarPanel.vue';
+import MobileSidebarOverlay from './MobileSidebarOverlay.vue';
 import ToastContainer from './ToastContainer.vue';
 import { useLayout, layoutKey } from '../composables/useLayout.js';
 import { useSessionList, sessionListKey } from '../composables/useSessionList.js';

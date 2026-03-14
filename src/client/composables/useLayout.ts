@@ -11,6 +11,12 @@ export interface LayoutState {
   toggleSidebar: () => void;
   /** True when the viewport is narrower than 768px (mobile breakpoint). */
   isMobile: Readonly<Ref<boolean>>;
+  /** Whether the mobile sidebar overlay is currently visible. Always false on desktop. */
+  isMobileOverlayOpen: Readonly<Ref<boolean>>;
+  /** Opens the mobile sidebar overlay. No-op on desktop. */
+  openMobileOverlay: () => void;
+  /** Closes the mobile sidebar overlay and clears open state. */
+  closeMobileOverlay: () => void;
 }
 
 /**
@@ -69,9 +75,24 @@ export function useLayout(): LayoutState {
     }
   }
 
+  const isMobileOverlayOpen = ref(false);
+
+  /** Opens the mobile sidebar overlay. */
+  function openMobileOverlay(): void {
+    isMobileOverlayOpen.value = true;
+  }
+
+  /** Closes the mobile sidebar overlay. */
+  function closeMobileOverlay(): void {
+    isMobileOverlayOpen.value = false;
+  }
+
   return {
     isSidebarOpen: readonly(isSidebarOpen),
     toggleSidebar,
     isMobile: readonly(isMobile),
+    isMobileOverlayOpen: readonly(isMobileOverlayOpen),
+    openMobileOverlay,
+    closeMobileOverlay,
   };
 }

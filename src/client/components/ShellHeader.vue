@@ -3,6 +3,28 @@
     class="spatial-shell__header shell-header"
     aria-label="Application header"
   >
+    <!-- Hamburger: visible only on mobile viewports -->
+    <button
+      v-if="isMobile"
+      ref="hamburgerRef"
+      class="shell-header__hamburger"
+      type="button"
+      aria-label="Open navigation"
+      @click="openMobileOverlay"
+    >
+      <span
+        class="shell-header__hamburger-bar"
+        aria-hidden="true"
+      />
+      <span
+        class="shell-header__hamburger-bar"
+        aria-hidden="true"
+      />
+      <span
+        class="shell-header__hamburger-bar"
+        aria-hidden="true"
+      />
+    </button>
     <div class="shell-header__left">
       <nav
         v-if="isSessionRoute"
@@ -29,18 +51,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { sessionListKey } from '../composables/useSessionList.js';
+import { layoutKey } from '../composables/useLayout.js';
 
 /**
  * ShellHeader renders the application header bar spanning the two right columns.
  * On session detail routes it shows a reactive breadcrumb: Sessions > {filename}.
  * Session filename is resolved from the injected session list (provided by SpatialShell).
+ * On mobile, renders a hamburger toggle that opens the MobileSidebarOverlay.
  */
 
 const route = useRoute();
 const sessionList = inject(sessionListKey);
+const layout = inject(layoutKey);
+
+/** Ref to the hamburger button — used to return focus when overlay closes. */
+const hamburgerRef = ref<HTMLElement | null>(null);
+
+/** True on mobile viewports — drives hamburger visibility. */
+const isMobile = computed(() => layout?.isMobile.value ?? false);
 
 /** True when the current route is a session detail page. */
 const isSessionRoute = computed(() => route.name === 'session-detail');
@@ -55,6 +86,14 @@ const sessionLabel = computed(() => {
   const session = sessionList?.sessions.value.find((s) => s.id === id);
   return session?.filename ?? id;
 });
+
+/** Opens the mobile sidebar overlay. No-op when layout is not injected. */
+function openMobileOverlay(): void {
+  layout?.openMobileOverlay();
+}
+
+/** Exposes hamburgerRef so the overlay can return focus here on close. */
+defineExpose({ hamburgerRef });
 </script>
 
 <style scoped>
@@ -142,5 +181,37 @@ const sessionLabel = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+}
+
+/* Hamburger button — visible only on mobile (v-if driven by isMobile). */
+.shell-header__hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 44px; /* 44px min touch target */
+  height: 44px;
+  padding: var(--space-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.shell-header__hamburger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Three horizontal bars that form the hamburger icon. */
+.shell-header__hamburger-bar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
 }
 </style>

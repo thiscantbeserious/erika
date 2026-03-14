@@ -416,4 +416,15 @@ function clearFilters(): void {
   border: 1px solid var(--border-default);
   color: var(--text-muted);
 }
+
+/* Mobile touch targets: filter pills get min 44px height via padding compensation
+   when rendered inside the mobile overlay. */
+@media (max-width: 767px) {
+  .sidebar__filters .filter-pill {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-block: var(--space-2);
+  }
+}
 </style>
