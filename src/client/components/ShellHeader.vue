@@ -3,20 +3,21 @@
     class="spatial-shell__header shell-header"
     aria-label="Application header"
   >
-    <!-- Hex Gate nav trigger + brand name: visible only on mobile viewports -->
-    <HexGateIcon
+    <!-- Hex Gate nav trigger + brand name: unified mobile logotype unit, visible only on mobile viewports -->
+    <div
       v-if="isMobile"
-      ref="hamburgerRef"
-      class="shell-header__hamburger"
-      :is-open="isMobileOverlayOpen"
-      aria-label="Toggle navigation"
-      :aria-expanded="isMobileOverlayOpen"
-      @click="toggleMobileOverlay"
-    />
-    <span
-      v-if="isMobile"
-      class="shell-header__brand"
-    >Erika</span>
+      class="shell-header__mobile-brand"
+    >
+      <HexGateIcon
+        ref="hamburgerRef"
+        class="shell-header__hamburger"
+        :is-open="isMobileOverlayOpen"
+        aria-label="Toggle navigation"
+        :aria-expanded="isMobileOverlayOpen"
+        @click="toggleMobileOverlay"
+      />
+      <span class="shell-header__brand">Erika</span>
+    </div>
     <div class="shell-header__left">
       <nav
         v-if="isSessionRoute"
@@ -111,6 +112,7 @@ defineExpose({ hamburgerRef });
   background: var(--bg-surface);
   /* Bottom border — continuous gradient line aligned with BrandMark's ::after. */
   position: relative;
+  overflow: hidden;
 }
 
 .shell-header::after {
@@ -143,13 +145,15 @@ defineExpose({ hamburgerRef });
   gap: var(--space-3);
 }
 
-/* Breadcrumb nav — inline flex row with separator. */
+/* Breadcrumb nav — inline flex row with separator. overflow: hidden completes
+   the min-width: 0 chain so text-overflow ellipsis propagates correctly. */
 .shell-header__breadcrumb {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
   min-width: 0;
+  overflow: hidden;
 }
 
 /* "Sessions" home link — muted, underline on hover. */
@@ -183,14 +187,25 @@ defineExpose({ hamburgerRef });
   min-width: 0;
 }
 
-/* Hex gate button — inherits all styles from HexGateIcon component.
-   Negative start margin compensates for the button's internal padding-left (--space-2 = 8px)
+/* Mobile logotype unit — icon + brand name as a single interactive unit matching BrandMark layout.
+   Negative start margin compensates for the HexGateIcon's internal padding-left (--space-2 = 8px)
    so the visible 28px icon box aligns with BrandMark's icon position.
    Header padding is --space-6 (24px), BrandMark padding is --space-4 (16px),
    button internal padding-left is --space-2 (8px).
-   Needed offset: -(24px - 16px + 8px) = -16px = calc(-1 * var(--space-4)) */
-.shell-header__hamburger {
+   Needed offset: -(24px - 16px + 8px) = -16px = calc(-1 * var(--space-4))
+   flex-shrink: 0 prevents this unit from being compressed by a long breadcrumb. */
+.shell-header__mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
   margin-inline-start: calc(-1 * var(--space-4));
+  margin-inline-end: var(--space-4);
+}
+
+/* Hex gate button — inherits all styles from HexGateIcon component. */
+.shell-header__hamburger {
+  /* Margin handled by parent .shell-header__mobile-brand */
 }
 
 /* Brand name shown next to hamburger on mobile — matches SidebarPanel mobile brand typography. */
@@ -202,6 +217,19 @@ defineExpose({ hamburgerRef });
   color: var(--text-primary);
   text-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
   line-height: var(--lh-lg);
-  margin-inline-end: var(--space-4);
+}
+
+/* Hover: enhance brand text glow when hovering anywhere on the mobile logotype unit. */
+.shell-header__mobile-brand:hover .shell-header__brand {
+  text-shadow: 0 0 24px rgba(0, 212, 255, 0.3);
+}
+
+/* Hover: trigger hex gate icon box glow from container hover — mirrors BrandMark's icon glow.
+   Uses :deep() because .hex-gate-icon__box lives inside a child component's scoped styles. */
+.shell-header__mobile-brand:hover :deep(.hex-gate-icon__box) {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-primary) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--accent-primary) 40%, transparent),
+    0 0 24px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 </style>
