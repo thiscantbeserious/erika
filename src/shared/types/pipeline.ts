@@ -5,6 +5,17 @@
  * (SSE event parsing). Keep this type-only — no runtime logic here.
  */
 
+import type { tags } from 'typia';
+
+/** Non-empty string. */
+type NonEmptyString = string & tags.MinLength<1>;
+
+/** Non-negative uint32. */
+type UInt32 = number & tags.Type<'uint32'> & tags.Minimum<0>;
+
+/** Positive uint32 (at least 1). */
+type PositiveUInt32 = number & tags.Type<'uint32'> & tags.Minimum<1>;
+
 /**
  * All valid values for the detection_status column.
  * Includes terminal states (pending, processing, completed, failed) and
@@ -35,16 +46,20 @@ export enum PipelineStage {
 /**
  * Discriminated union of all pipeline events.
  * The `type` field is the discriminant — narrow with `switch (event.type)`.
+ *
+ * All `sessionId` fields are non-empty strings. Numeric payload fields
+ * carry Typia tags for minimum bounds — these activate when validation
+ * middleware (Stage 2b) calls typia.validate() on the event.
  */
 export type PipelineEvent =
-  | { type: 'session.uploaded';  sessionId: string; filename: string }
-  | { type: 'session.validated'; sessionId: string; eventCount: number }
-  | { type: 'session.detected';  sessionId: string; sectionCount: number }
-  | { type: 'session.replayed';  sessionId: string; lineCount: number }
-  | { type: 'session.deduped';   sessionId: string; rawLines: number; cleanLines: number }
-  | { type: 'session.ready';     sessionId: string }
-  | { type: 'session.failed';    sessionId: string; stage: PipelineStage; error: string }
-  | { type: 'session.retrying';  sessionId: string; stage: PipelineStage; attempt: number };
+  | { type: 'session.uploaded';  sessionId: NonEmptyString; filename: NonEmptyString }
+  | { type: 'session.validated'; sessionId: NonEmptyString; eventCount: UInt32 }
+  | { type: 'session.detected';  sessionId: NonEmptyString; sectionCount: UInt32 }
+  | { type: 'session.replayed';  sessionId: NonEmptyString; lineCount: UInt32 }
+  | { type: 'session.deduped';   sessionId: NonEmptyString; rawLines: UInt32; cleanLines: UInt32 }
+  | { type: 'session.ready';     sessionId: NonEmptyString }
+  | { type: 'session.failed';    sessionId: NonEmptyString; stage: PipelineStage; error: string }
+  | { type: 'session.retrying';  sessionId: NonEmptyString; stage: PipelineStage; attempt: PositiveUInt32 };
 
 /** All possible `type` string values — useful for type-safe handler maps. */
 export type PipelineEventType = PipelineEvent['type'];
