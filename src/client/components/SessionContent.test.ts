@@ -325,6 +325,71 @@ describe('SessionContent', () => {
     });
   });
 
+  describe('State B — failed/interrupted states', () => {
+    it('failed + snapshot shows error banner and snapshot content', () => {
+      const snapshot = makeSnapshot(10);
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: snapshot as never, sections: [], detectionStatus: 'failed' },
+      });
+      expect(wrapper.find('.session-content-banner--error').exists()).toBe(true);
+      expect(wrapper.find('.session-content-banner--error').text()).toContain('processing encountered an error');
+      expect(wrapper.find('.terminal-snapshot-stub').exists()).toBe(true);
+    });
+
+    it('failed + no snapshot shows error-only empty state', () => {
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: null, sections: [], detectionStatus: 'failed' },
+      });
+      expect(wrapper.find('.terminal-empty--error').exists()).toBe(true);
+      expect(wrapper.find('.terminal-empty--error').text()).toContain('processing failed');
+    });
+
+    it('interrupted behaves the same as failed when snapshot exists', () => {
+      const snapshot = makeSnapshot(10);
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: snapshot as never, sections: [], detectionStatus: 'interrupted' },
+      });
+      expect(wrapper.find('.session-content-banner--error').exists()).toBe(true);
+    });
+
+    it('error banner CSS class is distinct from info banner', () => {
+      const snapshot = makeSnapshot(10);
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: snapshot as never, sections: [], detectionStatus: 'failed' },
+      });
+      expect(wrapper.find('.session-content-banner--error').exists()).toBe(true);
+      expect(wrapper.find('.session-content-banner--info').exists()).toBe(false);
+    });
+
+    it('non-terminal status shows processing indicator', () => {
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: null, sections: [], detectionStatus: 'processing' },
+      });
+      expect(wrapper.find('.terminal-empty').text()).toContain('being processed');
+      expect(wrapper.find('.session-content-banner--error').exists()).toBe(false);
+      expect(wrapper.find('.session-content-banner--info').exists()).toBe(false);
+    });
+
+    it('pending status shows processing indicator', () => {
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: null, sections: [], detectionStatus: 'pending' },
+      });
+      expect(wrapper.find('.terminal-empty').text()).toContain('being processed');
+    });
+
+    it('failed + sections shows error banner above section content', () => {
+      const snapshot = makeSnapshot(20);
+      const sections: Section[] = [makeCliSection('s1', 0, 10)];
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: snapshot as never, sections, detectionStatus: 'failed' },
+      });
+      expect(wrapper.find('.session-content-banner--error').exists()).toBe(true);
+      expect(wrapper.text()).toContain('processing encountered an error');
+      // Sections should still render
+      expect(wrapper.find('.section-header-stub').exists()).toBe(true);
+    });
+  });
+
   describe('collapsed/expanded toggle (defaultCollapsed prop)', () => {
     it('hides section content by default when defaultCollapsed is true', () => {
       const snapshot = makeSnapshot(20);
