@@ -132,14 +132,40 @@ User initially wanted Typia + tRPC to replace Hono entirely. Research showed:
 
 ## Migration Plan (High Level)
 
+### Stage 0: Remove native module friction
+0a. **Migrate `better-sqlite3` → `node:sqlite`** — Node 22.5+ built-in. Zero dependencies, zero compilation, ESM-native, synchronous API. Same prepare/run/get pattern. Eliminates the SSR external hack entirely.
+0b. **Migrate `packages/vt-wasm/pkg/vt_wasm.js` CJS → ESM** — 3 lines: `exports` → `export`, `require('fs')` → `import`, `__dirname` → `import.meta.url`. Eliminates the other SSR external.
+
+After Stage 0, the entire server runs through Vite's pipeline with zero externals.
+
+### Stage 1: Dev pipeline switch
 1. Install `typia`, `@typia/unplugin`, `@hono/vite-dev-server`, `@hono/typia-validator`
 2. Update `vite.config.ts` with unified config (server + client + Typia)
 3. Replace `tsx watch` in `dev:server` with `@hono/vite-dev-server` (may merge dev:server + dev:client into single `vite` command)
-4. Run `npx typia setup` to configure TypeScript plugin (needed for production builds via tsc)
-5. Incrementally convert `src/shared/types/*.ts` to use Typia validation tags
-6. Add `typiaValidator()` middleware to Hono routes
-7. Add runtime validation in client composables for API responses
-8. Derived properties: helper functions alongside interfaces (Typia doesn't support transforms)
+4. Remove `tsx` from dependencies
+5. Run `npx typia setup` to configure TypeScript plugin (needed for production builds via tsc)
+
+### Stage 2: Schema migration
+6. Incrementally convert `src/shared/types/*.ts` to use Typia validation tags
+7. Add `typiaValidator()` middleware to Hono routes
+8. Add runtime validation in client composables for API responses
+9. Derived properties: helper functions alongside interfaces (Typia doesn't support transforms)
+
+## better-sqlite3 → node:sqlite Migration
+
+`node:sqlite` (built-in since Node 22.5+) replaces `better-sqlite3`:
+
+| | better-sqlite3 | node:sqlite |
+|---|---|---|
+| Install | node-gyp native build | Built-in, zero deps |
+| Sync API | `db.prepare().run()` | `db.prepare().run()` |
+| Vite ESM | Breaks (CJS, needs external) | Works natively |
+| Status | Stable | Release candidate (Node 24+) |
+
+API differences to handle during migration:
+- Import: `require('better-sqlite3')` → `import { DatabaseSync } from 'node:sqlite'`
+- Constructor: `new Database(path)` → `new DatabaseSync(path)`
+- Some method signatures may differ slightly — engineer researches during implementation
 
 ## Open Questions
 
@@ -148,7 +174,7 @@ User initially wanted Typia + tRPC to replace Hono entirely. Research showed:
 - **Production build:** tsc + ts-patch for production, or Vite build for server too?
 - **Error response format:** Typia error objects → API error responses mapping
 - **Single vs dual dev server:** Can @hono/vite-dev-server serve both API (port 3000) and Vue client (port 5173), or do we keep separate ports?
-- **better-sqlite3 native module:** Confirm it works when server runs through Vite's pipeline (needs to be externalized, not bundled)
+- **node:sqlite stability:** Verify all better-sqlite3 features we use (WAL mode, PRAGMAs, user functions) are supported in node:sqlite
 
 ## Known Issues
 
