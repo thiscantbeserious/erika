@@ -1,4 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+
+// Load test-specific env vars — isolated ports and data directory
+// so visual tests never touch the developer's local database.
+config({ path: '.env.test' });
+
+const SERVER_PORT = process.env.PORT || '3001';
+const DEV_SERVER_PORT = process.env.DEV_SERVER_PORT || '5174';
+const DATA_DIR = process.env.DATA_DIR || 'tests/.test-data';
 
 export default defineConfig({
   testDir: './tests/visual',
@@ -9,7 +18,7 @@ export default defineConfig({
   reporter: 'html',
   timeout: 60000,
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://localhost:${DEV_SERVER_PORT}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -31,15 +40,15 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'npm run dev:server',
-      url: 'http://localhost:3000/api/sessions',
-      reuseExistingServer: !process.env.CI,
+      command: `DATA_DIR=${DATA_DIR} PORT=${SERVER_PORT} npm run dev:server`,
+      url: `http://localhost:${SERVER_PORT}/api/sessions`,
+      reuseExistingServer: false,
       timeout: 30000,
     },
     {
-      command: 'npm run dev:client',
-      url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
+      command: `PORT=${SERVER_PORT} DEV_SERVER_PORT=${DEV_SERVER_PORT} npx vite`,
+      url: `http://localhost:${DEV_SERVER_PORT}`,
+      reuseExistingServer: false,
       timeout: 30000,
     },
   ],
