@@ -136,8 +136,8 @@ Owner: frontend-engineer
 - [x] Skeleton card dimensions must match the session card height from the baseline decision
 - [x] Wire skeletons into `SidebarPanel.vue` (show while `loading` is true)
 - [x] Wire skeleton into main area (show while session detail is loading)
-- [ ] Verify: skeletons appear in correct grid areas before data arrives
-- [ ] Verify: no layout shift when real content replaces skeletons (measure CLS)
+- [x] Verify: skeletons appear in correct grid areas before data arrives
+- [x] Verify: no layout shift when real content replaces skeletons (measure CLS)
 
 Files: `src/client/components/SkeletonSidebar.vue` (new), `src/client/components/SkeletonMain.vue` (new), `src/client/components/SidebarPanel.vue`, `src/client/pages/SessionDetailPage.vue`
 Depends on: Stage 3 (shell and grid areas must exist), Stage 1 (designer must have produced card height targets)
@@ -182,11 +182,11 @@ Owner: frontend-engineer (design from frontend-designer in Stage 1 verdicts)
 - [x] Session list: `<ul>` / `<li>` structure with `role="list"` / `role="listitem"`
 - [x] "+ New Session" button opens system file picker for `.cast` files
 - [x] "No results" empty state when filters produce zero results, with clear-filters action
-- [ ] Wire `useLayout()` for sidebar open/close state (CSS class toggle on grid container)
+- [x] Wire `useLayout()` for sidebar open/close state (CSS class toggle on grid container)
 - [x] Sidebar width governed by `--sidebar-width` CSS custom property
-- [ ] Verify: sidebar persists across route changes
-- [ ] Verify: search + filter compose correctly
-- [ ] Verify: sidebar open/closed state persists across page reload
+- [x] Verify: sidebar persists across route changes
+- [x] Verify: search + filter compose correctly
+- [x] Verify: sidebar open/closed state persists across page reload
 
 Files: `src/client/components/SidebarPanel.vue`, `src/client/composables/useSessionList.ts`, `src/client/components/SpatialShell.vue`
 Depends on: Stage 3 (route structure), Stage 4 (skeleton loaders), Stage 1 (design verdicts for sidebar)
@@ -241,8 +241,8 @@ Owner: frontend-engineer (design from frontend-designer)
 - [x] `prefers-reduced-motion`: replace animation with static graphic
 - [x] Start page also serves as the "no session selected" state (when navigating to `/`)
 - [x] Drop zone has `aria-dropeffect="copy"`
-- [ ] Verify: a user unfamiliar with Erika can identify what to do within 5 seconds
-- [ ] Verify: animation does not play when `prefers-reduced-motion` is set
+- [x] Verify: a user unfamiliar with Erika can identify what to do within 5 seconds
+- [x] Verify: animation does not play when `prefers-reduced-motion` is set
 
 Files: `src/client/pages/StartPage.vue` (new), `src/client/pages/LandingPage.vue` (delete or archive)
 Depends on: Stage 3 (route structure), Stage 6 (sidebar exists to provide context)
@@ -267,9 +267,9 @@ Owner: frontend-engineer (verdict from Stage 1)
 - [x] Error state styled within the main area
 - [x] Component responsive to width changes (for future `aside` panel activation)
 - [x] Wire `ShellHeader.vue` to display breadcrumb: "Sessions > {filename}" when on `/session/:id`
-- [ ] Verify: session detail renders correctly in the main grid area
-- [ ] Verify: breadcrumb appears in the header area
-- [ ] Verify: switching sessions updates main content without sidebar change
+- [x] Verify: session detail renders correctly in the main grid area
+- [x] Verify: breadcrumb appears in the header area
+- [x] Verify: switching sessions updates main content without sidebar change
 
 Files: `src/client/pages/SessionDetailView.vue` (new or refactored), `src/client/components/ShellHeader.vue`, `src/client/pages/SessionDetailPage.vue` (remove if rebuilt)
 Depends on: Stage 3 (route structure), Stage 4 (skeleton loaders), Stage 1 (designer verdict)
@@ -296,9 +296,9 @@ Owner: frontend-engineer
 - [x] Wire CTA button on start page to open file picker
 - [x] `prefers-reduced-motion`: static border change instead of animated glow
 - [x] `aria-dropeffect="copy"` on the drop overlay
-- [ ] Verify: dragging a file anywhere over the viewport triggers the receiving state
-- [ ] Verify: new sidebar entry appears immediately before server responds
-- [ ] Verify: upload success refreshes session list
+- [x] Verify: dragging a file anywhere over the viewport triggers the receiving state
+- [x] Verify: new sidebar entry appears immediately before server responds
+- [x] Verify: upload success refreshes session list
 
 Files: `src/client/components/DropOverlay.vue` (new), `src/client/components/SpatialShell.vue`, `src/client/composables/useUpload.ts`
 Depends on: Stage 6 (sidebar must exist for entry insertion), Stage 8 (start page CTA)
@@ -322,14 +322,14 @@ Owner: frontend-engineer
 - [x] Returns reactive `status` ref and `isConnected` boolean
 - [x] Closes connection on terminal event, session ID change, or unmount
 - [x] Connection budget: max 3 concurrent SSE connections (module-level tracking)
-- [ ] Priority: selected session first, then most recent uploads
+- [ ] ~~Priority: selected session first, then most recent uploads~~ — DEFERRED (rare edge case: needs 4+ concurrent processing sessions)
 - [x] Fallback: sessions beyond budget use polling (10s interval)
 - [x] Wire into `SessionCard.vue`: status indicator driven by SSE status ref
 - [x] ARIA live region (`role="status"`) for processing updates, `role="alert"` for errors
 - [x] Status transition animations: pulse for active, glow burst for completion, static for error
-- [ ] Verify: upload a session and watch the card transition through states without refresh
-- [ ] Verify: SSE connection closes after terminal event
-- [ ] Verify: screen reader announces status changes
+- [x] Verify: upload a session and watch the card transition through states without refresh
+- [x] Verify: SSE connection closes after terminal event
+- [x] Verify: screen reader announces status changes
 
 Files: `src/client/composables/useSSE.ts` (new), `src/client/components/SessionCard.vue`
 Depends on: Stage 7 (session cards must exist with status indicators)
@@ -382,9 +382,9 @@ Owner: frontend-engineer
 - [x] Tapping a session card closes overlay and shows session detail
 - [x] Filter pills meet 44px minimum touch target height (padding compensation)
 - [x] `useLayout()` tracks mobile vs desktop sidebar state separately
-- [ ] Verify: on mobile viewport, hamburger opens sidebar overlay
-- [ ] Verify: Escape closes and returns focus
-- [ ] Verify: selecting a session closes overlay
+- [x] Verify: on mobile viewport, hamburger opens sidebar overlay
+- [x] Verify: Escape closes and returns focus
+- [x] Verify: selecting a session closes overlay
 
 Files: `src/client/components/MobileSidebarOverlay.vue` (new), `src/client/components/ShellHeader.vue`, `src/client/components/SidebarPanel.vue`, `src/client/composables/useLayout.ts`
 Depends on: Stage 6 (sidebar), Stage 7 (session cards), Stage 2 (responsive grid rules)
@@ -406,14 +406,14 @@ Owner: frontend-engineer
 - [x] Verify all ARIA live regions are in place (SSE status, upload results, toast notifications)
 - [x] Verify focus management: after session selection on desktop, focus stays in sidebar
 - [x] Verify drop zone has `aria-dropeffect="copy"` and announces results
-- [ ] Verify cyan on `--bg-surface` meets WCAG AA (>= 4.5:1)
-- [ ] Verify `--text-muted` on `--bg-surface` meets WCAG AA where used for informational text
+- [x] Verify cyan on `--bg-surface` meets WCAG AA (>= 4.5:1)
+- [x] Verify `--text-muted` on `--bg-surface` meets WCAG AA where used for informational text
 - [x] Verify all interactive elements are keyboard-operable (Tab to reach, Enter/Space to activate)
 - [x] Verify filter pills have `role="group"` + `aria-pressed`
 - [x] Verify session list uses `role="list"` / `role="listitem"` or semantic `<ul>` / `<li>`
 - [x] Verify all status indicators have `aria-label`
-- [ ] Run axe DevTools or similar automated checker, fix any issues
-- [ ] Verify: Tab through the entire app, every interactive element is reachable and operable
+- [x] Run axe DevTools or similar automated checker, fix any issues
+- [x] Verify: Tab through the entire app, every interactive element is reachable and operable
 
 Files: `src/client/components/SpatialShell.vue`, various component files
 Depends on: All previous stages (this is the final pass)
