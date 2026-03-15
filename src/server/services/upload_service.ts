@@ -16,6 +16,7 @@ import type { SessionAdapter } from '../db/session_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
+import { type ValidationFieldError, mapTypiaErrors } from '../routes/route_validation.js';
 import { logger } from '../logger.js';
 
 const log = logger.child({ module: 'services/upload' });
@@ -30,14 +31,7 @@ export interface UploadServiceDeps {
 
 export type UploadResult =
   | { ok: true; session: Record<string, unknown> }
-  | { ok: false; status: 400 | 413 | 422 | 500; error: string; details?: string; line?: number; fields?: HeaderValidationError[] };
-
-/** Typia-level header field validation error, mapped from IValidation.IError. */
-export interface HeaderValidationError {
-  path: string;
-  expected: string;
-  value: unknown;
-}
+  | { ok: false; status: 400 | 413 | 422 | 500; error: string; details?: string; line?: number; fields?: ValidationFieldError[] };
 
 /**
  * UploadService handles file upload validation, session creation, and pipeline triggering.
@@ -161,6 +155,9 @@ function validateHeader(content: string): { ok: true } | { ok: false; error: Ext
   } catch {
     return { ok: false, error: { ok: false, status: 400, error: 'Invalid asciicast header JSON' } };
   }
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, error: { ok: false, status: 400, error: 'Invalid asciicast header: must be a JSON object' } };
+  }
   const header = normalizeHeader(raw as Record<string, unknown>);
   const result = typia.validate<AsciicastHeader>(header);
   if (!result.success) {
@@ -170,7 +167,7 @@ function validateHeader(content: string): { ok: true } | { ok: false; error: Ext
         ok: false,
         status: 422,
         error: 'Asciicast header failed validation',
-        fields: result.errors.slice(0, 10).map((e) => ({ path: e.path, expected: e.expected, value: e.value })),
+        fields: mapTypiaErrors(result.errors),
       },
     };
   }

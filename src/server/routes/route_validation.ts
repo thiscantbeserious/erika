@@ -64,23 +64,3 @@ export function mapTypiaErrors(errors: IValidation.IError[]): ValidationFieldErr
   }));
 }
 
-/**
- * Format a Typia validation result into a structured API error response.
- * Returns the typed value on success, or a 422 Response on failure.
- *
- * Callers pass in their own typia.validate() result and a human-readable label.
- */
-export function handleTypiaResult<T>(
-  c: Context,
-  result: IValidation<T>,
-  label: string,
-): { ok: true; data: T } | { ok: false; response: Response } {
-  if (result.success) {
-    return { ok: true, data: result.data };
-  }
-  const body: ValidationErrorResponse = {
-    error: `Validation failed: ${label}`,
-    fields: mapTypiaErrors(result.errors),
-  };
-  return { ok: false, response: c.json(body, 422) };
-}

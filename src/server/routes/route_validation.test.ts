@@ -11,7 +11,6 @@ import {
   validatePathId,
   validateQueryParam,
   mapTypiaErrors,
-  handleTypiaResult,
 } from './route_validation.js';
 import type { IValidation } from 'typia';
 
@@ -156,47 +155,3 @@ describe('mapTypiaErrors', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// handleTypiaResult
-// ---------------------------------------------------------------------------
-
-describe('handleTypiaResult', () => {
-  it('returns ok:true with data on successful validation', async () => {
-    const app = new Hono();
-    app.get('/test', (c) => {
-      const successResult: IValidation<{ name: string }> = {
-        success: true,
-        data: { name: 'hello' },
-      };
-      const handled = handleTypiaResult(c, successResult, 'test type');
-      if (!handled.ok) return handled.response;
-      return c.json({ received: handled.data.name });
-    });
-
-    const res = await app.fetch(new Request('http://localhost/test'));
-    const body = await res.json();
-    expect(res.status).toBe(200);
-    expect(body.received).toBe('hello');
-  });
-
-  it('returns ok:false with 422 response on validation failure', async () => {
-    const app = new Hono();
-    app.get('/test', (c) => {
-      const failResult: IValidation<{ name: string }> = {
-        success: false,
-        errors: [{ path: '$input.name', expected: 'string', value: 42 }],
-        data: null as unknown as { name: string },
-      };
-      const handled = handleTypiaResult(c, failResult, 'test type');
-      if (!handled.ok) return handled.response;
-      return c.json({ received: 'ok' });
-    });
-
-    const res = await app.fetch(new Request('http://localhost/test'));
-    const body = await res.json();
-    expect(res.status).toBe(422);
-    expect(body.error).toContain('test type');
-    expect(body.fields).toHaveLength(1);
-    expect(body.fields[0].path).toBe('$input.name');
-  });
-});
