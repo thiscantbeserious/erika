@@ -55,10 +55,10 @@ beforeEach(async () => {
     ping: async () => { /* no-op */ },
     config: {
       dataDir: testDir,
-      sessionsDir: join(testDir, 'sessions'),
       port: 3000,
       corsOrigin: '*',
       maxFileSizeMB: 2,
+      nodeEnv: 'test',
     },
   };
 
