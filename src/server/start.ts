@@ -40,11 +40,15 @@ const server = serve(
 /** Graceful shutdown: stop HTTP server, orchestrator, then DB. */
 function shutdown(signal: string) {
   logger.info({ signal }, 'Shutting down server');
-  server.close(async () => {
+  server.close(() => {
     logger.info('HTTP server closed');
-    await runtime.orchestrator.stop();
-    await runtime.close();
-    process.exit(0);
+    runtime.orchestrator.stop()
+      .then(() => runtime.close())
+      .then(() => process.exit(0))
+      .catch((err) => {
+        logger.error({ err }, 'Error during shutdown');
+        process.exit(1);
+      });
   });
 }
 
