@@ -13,6 +13,9 @@
 
 import { DatabaseSync, type StatementSync } from 'node:sqlite';
 
+/** SQLite parameter types accepted by node:sqlite's StatementSync. */
+type SqlParam = string | number | bigint | Buffer | null;
+
 /** Run result matching better-sqlite3's RunResult shape. */
 export interface RunResult {
   changes: number;
@@ -30,17 +33,17 @@ export interface CompatStatement {
 function wrapStatement(stmt: StatementSync): CompatStatement {
   return {
     run(...params: unknown[]): RunResult {
-      const raw = stmt.run(...params);
+      const raw = stmt.run(...(params as SqlParam[]));
       return {
-        changes: raw.changes,
+        changes: Number(raw.changes),
         lastInsertRowid: Number(raw.lastInsertRowid),
       };
     },
     get(...params: unknown[]): unknown {
-      return stmt.get(...params) ?? undefined;
+      return stmt.get(...(params as SqlParam[])) ?? undefined;
     },
     all(...params: unknown[]): unknown[] {
-      return stmt.all(...params);
+      return stmt.all(...(params as SqlParam[]));
     },
   };
 }
@@ -128,20 +131,19 @@ export class NodeSqliteDatabase {
 }
 
 /**
- * Default export matching better-sqlite3's import pattern.
+ * Default export with merged namespace — mirrors better-sqlite3's pattern.
  * Consumers can swap `import Database from 'better-sqlite3'`
  * to `import Database from './node_sqlite_compat.js'`
  * and continue using `Database.Database` and `Database.Statement` as types.
+ *
+ * TypeScript merges a class and namespace with the same name automatically.
  */
-export default NodeSqliteDatabase;
+class Database extends NodeSqliteDatabase {}
 
-// Namespace declaration mirroring better-sqlite3's ambient namespace.
-// Allows `import type Database from '...'` with `Database.Database` and
-// `Database.Statement` type references in all downstream consumer files.
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace Database {
-  /** The database connection type. Matches better-sqlite3's Database.Database. */
+namespace Database {
   export type Database = NodeSqliteDatabase;
-  /** A prepared statement type. Matches better-sqlite3's Database.Statement. */
   export type Statement = CompatStatement;
 }
+
+export default Database;
