@@ -1,10 +1,14 @@
 import { serve } from '@hono/node-server';
+import { createRequire } from 'node:module';
 import app from './index.js';
 import { logger } from './logger.js';
 
+const require = createRequire(import.meta.url);
+const { name } = require('../../../package.json') as { name: string };
+
 const port = Number(process.env.PORT) || 3000;
 
-logger.info({ port }, 'Starting RAGTS server');
+logger.info({ port, name }, `Starting ${name} server`);
 
 const server = serve(
   { fetch: app.fetch, port },
