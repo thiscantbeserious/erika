@@ -147,7 +147,7 @@ export class UploadService {
  * Validate the asciicast header using Typia AOT tags.
  * Returns ok:true on success, or ok:false with a ready UploadResult error on failure.
  */
-function validateHeader(content: string): { ok: true } | { ok: false; error: Extract<UploadResult, { ok: false }> } {
+export function validateHeader(content: string): { ok: true } | { ok: false; error: Extract<UploadResult, { ok: false }> } {
   const firstLine = content.split('\n').find((l) => l.trim().length > 0) ?? '';
   let raw: unknown;
   try {
