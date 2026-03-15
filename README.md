@@ -20,9 +20,9 @@
 
 *See [VISION.md](VISION.md) for a full vision walkthrough.*
 
-- Self-Hosted, Whitelable Platform for Individuals, Teams and Companies
+- Self-Hosted Platform for Individuals, Teams and Companies
 - Retroactive Learning of what Agents did in Detail (not just looking at a Wall of Text)
-- Adding Context as to what they could do better next time (not just relying on `auto-repl` loops)
+- Adding Context as to what they could do better next time (not just relying on loops)
 - Share that with your Colleagues for Training (not just Agents)
 
 ---
