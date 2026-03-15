@@ -193,7 +193,26 @@ jobs:
 
       - run: npx playwright install --with-deps chromium
 
-      - run: npm run test:visual
+      - name: Run visual tests
+        id: visual
+        continue-on-error: true
+        run: |
+          npm run test:visual 2>&1 | tee /tmp/playwright-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Collect diff details on failure
+        if: steps.visual.outputs.exit_code != '0'
+        id: diffs
+        run: |
+          # Extract mismatched file names and pixel diff ratios from Playwright output
+          DIFF_DETAILS=$(grep -E "Expected:|ratio [0-9]|toHaveScreenshot" /tmp/playwright-output.txt | head -30 || echo "")
+          FAILED_TESTS=$(grep -E "^\s+\[chromium\].*›.*failed" /tmp/playwright-output.txt || echo "")
+          FAILED_COUNT=$(echo "$FAILED_TESTS" | grep -c "›" || echo "0")
+
+          echo "count=$FAILED_COUNT" >> "$GITHUB_OUTPUT"
+          echo "details<<EODIFF" >> "$GITHUB_OUTPUT"
+          echo "$FAILED_TESTS" >> "$GITHUB_OUTPUT"
+          echo "EODIFF" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -205,7 +224,7 @@ jobs:
           retention-days: 7
 
       - name: Notify snapshot mismatch
-        if: failure() && github.event_name == 'pull_request'
+        if: steps.visual.outputs.exit_code != '0' && github.event_name == 'pull_request'
         run: |
           EXISTING=$(gh pr view ${{ github.event.pull_request.number }} --comments --json comments \
             --jq '[.comments[] | select(.body | contains("Visual snapshot mismatch"))] | length')
@@ -213,14 +232,26 @@ jobs:
             echo "Snapshot mismatch comment already posted, skipping"
             exit 0
           fi
-          gh pr comment ${{ github.event.pull_request.number }} --body \
-            "**Visual snapshot mismatch detected**
+          gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'COMMENT'
+          **Visual snapshot mismatch detected** — ${{ steps.diffs.outputs.count }} test(s) failed.
 
-          E2E visual tests failed because screenshots differ from the committed baselines.
+          <details><summary>Failed tests</summary>
 
-          **To review:** download the \`playwright-report\` artifact from this workflow run.
+          ```
+          ${{ steps.diffs.outputs.details }}
+          ```
 
-          **To update baselines:** comment \`/update-snapshots\` on this PR. This will regenerate all visual baselines on the CI runner and commit them to your branch."
+          </details>
+
+          **To review:** download the `playwright-report` artifact from this workflow run.
+
+          **To update baselines:** comment `/update-snapshots` on this PR.
+          COMMENT
+          )"
+
+      - name: Fail if visual tests failed
+        if: steps.visual.outputs.exit_code != '0'
+        run: exit 1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
