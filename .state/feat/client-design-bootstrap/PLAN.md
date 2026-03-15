@@ -24,13 +24,13 @@ Goal: Frontend-designer evaluates Path A (21px), Path B (dual-rhythm), and Path 
 
 Owner: frontend-designer
 
-- [ ] Produce mockups at Path A, Path B, and Path C densities (sidebar cards, header, search bar, filter pills)
-- [ ] Compare against Gemini prototype screenshots in `.state/feat/client-design-bootstrap/references/`
-- [ ] Document the verdict and rationale in `.state/feat/client-design-bootstrap/BASELINE_DECISION.md`
-- [ ] Update `--baseline` value in `design/styles/layout.css`
-- [ ] If Path C: hardcode `--lh-mono` independently (~20px) for terminal reading comfort
-- [ ] If Path C: update background grid repeat from `84px` to `72px` in `layout.css` body background
-- [ ] Verify all derived rhythm tokens recalculate correctly (spot-check `--rhythm-2`, `--btn-height-md`, `--header-height`)
+- [x] Produce mockups at Path A, Path B, and Path C densities (sidebar cards, header, search bar, filter pills)
+- [x] Compare against Gemini prototype screenshots in `.state/feat/client-design-bootstrap/references/`
+- [x] Document the verdict and rationale in `.state/feat/client-design-bootstrap/BASELINE_DECISION.md`
+- [x] Update `--baseline` value in `design/styles/layout.css`
+- [x] If Path C: hardcode `--lh-mono` independently (~20px) for terminal reading comfort
+- [x] If Path C: update background grid repeat from `84px` to `72px` in `layout.css` body background
+- [x] Verify all derived rhythm tokens recalculate correctly (spot-check `--rhythm-2`, `--btn-height-md`, `--header-height`)
 
 Files: `design/styles/layout.css`, `.state/feat/client-design-bootstrap/BASELINE_DECISION.md`
 Depends on: none
@@ -48,16 +48,16 @@ Goal: Frontend-designer reviews each existing component against VISION_STEP.md a
 
 Owner: frontend-designer
 
-- [ ] Review `AppHeader.vue` -- evaluate for grid area split (brand + header), rename to "Erika"
-- [ ] Review `SessionList.vue` -- evaluate for sidebar panel format (page grid is incompatible)
-- [ ] Review `UploadZone.vue` -- evaluate for system-wide drag target conversion
-- [ ] Review `ToastContainer.vue` -- evaluate for ARIA live region additions and design polish
-- [ ] Review `SessionDetailPage.vue` -- evaluate for main grid area placement, breadcrumb extraction
-- [ ] Review `SessionContent.vue` -- evaluate for responsive width changes
-- [ ] Review `SectionHeader.vue` -- evaluate against design system
-- [ ] Document all verdicts in `.state/feat/client-design-bootstrap/DESIGN_VERDICTS.md`
-- [ ] For each "rebuild" verdict, describe the target design (layout, spacing, visual treatment)
-- [ ] For each "adapt" verdict, list specific changes needed
+- [x] Review `AppHeader.vue` -- evaluate for grid area split (brand + header), rename to "Erika"
+- [x] Review `SessionList.vue` -- evaluate for sidebar panel format (page grid is incompatible)
+- [x] Review `UploadZone.vue` -- evaluate for system-wide drag target conversion
+- [x] Review `ToastContainer.vue` -- evaluate for ARIA live region additions and design polish
+- [x] Review `SessionDetailPage.vue` -- evaluate for main grid area placement, breadcrumb extraction
+- [x] Review `SessionContent.vue` -- evaluate for responsive width changes
+- [x] Review `SectionHeader.vue` -- evaluate against design system
+- [x] Document all verdicts in `.state/feat/client-design-bootstrap/DESIGN_VERDICTS.md`
+- [x] For each "rebuild" verdict, describe the target design (layout, spacing, visual treatment)
+- [x] For each "adapt" verdict, list specific changes needed
 
 Files: `.state/feat/client-design-bootstrap/DESIGN_VERDICTS.md`
 Depends on: Stage 0 (baseline must be decided before evaluating component sizing)
@@ -104,16 +104,16 @@ Goal: Convert the router from page-based navigation to a layout route wrapper pa
 
 Owner: frontend-engineer
 
-- [ ] Create `src/client/components/SpatialShell.vue` -- grid container with `<router-view>` in main area
-- [ ] Create stub components: `BrandMark.vue`, `ShellHeader.vue`, `SidebarPanel.vue` (minimal implementations to establish the component tree)
-- [ ] Update `router.ts`: single parent route with `SpatialShell` as component, children for `/` and `/session/:id`
-- [ ] Update `App.vue`: remove `<AppHeader />`, render only `<router-view />`
-- [ ] Create `src/client/composables/useLayout.ts` -- sidebar state management with localStorage persistence
-- [ ] Wire `useLayout()` into `SpatialShell.vue` via provide
-- [ ] Hydration transition suppression: `data-hydrating` attribute removed after first `requestAnimationFrame`
-- [ ] Verify: navigating between `/` and `/session/:id` swaps only the main area content
-- [ ] Verify: sidebar stub persists across route changes
-- [ ] Verify: browser back/forward works between routes
+- [x] Create `src/client/components/SpatialShell.vue` -- grid container with `<router-view>` in main area
+- [x] Create stub components: `BrandMark.vue`, `ShellHeader.vue`, `SidebarPanel.vue` (minimal implementations to establish the component tree)
+- [x] Update `router.ts`: single parent route with `SpatialShell` as component, children for `/` and `/session/:id`
+- [x] Update `App.vue`: remove `<AppHeader />`, render only `<router-view />`
+- [x] Create `src/client/composables/useLayout.ts` -- sidebar state management with localStorage persistence
+- [x] Wire `useLayout()` into `SpatialShell.vue` via provide
+- [x] Hydration transition suppression: `data-hydrating` attribute removed after first `requestAnimationFrame`
+- [x] Verify: navigating between `/` and `/session/:id` swaps only the main area content
+- [x] Verify: sidebar stub persists across route changes
+- [x] Verify: browser back/forward works between routes
 
 Files: `src/client/components/SpatialShell.vue` (new), `src/client/components/BrandMark.vue` (new), `src/client/components/ShellHeader.vue` (new), `src/client/components/SidebarPanel.vue` (new), `src/client/composables/useLayout.ts` (new), `src/client/router.ts`, `src/client/App.vue`
 Depends on: Stage 2 (grid shell CSS must exist)
@@ -155,10 +155,10 @@ Goal: Replace all user-facing "RAGTS" references with "Erika".
 
 Owner: frontend-engineer
 
-- [ ] Update `BrandMark.vue` to show "Erika" (this may already be done if created in Stage 3)
-- [ ] Update `index.html` `<title>` to "Erika" (this may already be done in Stage 2)
-- [ ] Search all `.vue`, `.ts`, and `.html` files for "RAGTS" and replace with "Erika" where user-facing
-- [ ] Verify: no user-visible instance of "RAGTS" remains in the running application
+- [x] Update `BrandMark.vue` to show "Erika" (this may already be done if created in Stage 3)
+- [x] Update `index.html` `<title>` to "Erika" (this may already be done in Stage 2)
+- [x] Search all `.vue`, `.ts`, and `.html` files for "RAGTS" and replace with "Erika" where user-facing
+- [x] Verify: no user-visible instance of "RAGTS" remains in the running application
 
 Files: `src/client/components/BrandMark.vue`, `index.html`, any file containing user-facing "RAGTS"
 Depends on: Stage 3 (BrandMark.vue must exist)
@@ -347,15 +347,15 @@ Goal: Adapt or rebuild toast notifications per designer verdict. Add ARIA live r
 
 Owner: frontend-engineer
 
-- [ ] Apply designer verdict to `ToastContainer.vue` / `useToast.ts`
-- [ ] Toasts fire on: upload success, upload failure, processing complete, processing failed
-- [ ] Toast copy names the session (e.g., "session-1.cast is ready")
-- [ ] Self-dismiss: 4-6s for success/info, 8s for errors (or manual dismiss)
-- [ ] Each toast has `role="status"` (informational) or `role="alert"` (errors)
-- [ ] Screen reader announces toast content
-- [ ] Design polish per the design system tokens
-- [ ] Verify: upload a file and see success toast
-- [ ] Verify: screen reader announces the toast
+- [x] Apply designer verdict to `ToastContainer.vue` / `useToast.ts`
+- [x] Toasts fire on: upload success, upload failure, processing complete, processing failed
+- [x] Toast copy names the session (e.g., "session-1.cast is ready")
+- [x] Self-dismiss: 4-6s for success/info, 8s for errors (or manual dismiss)
+- [x] Each toast has `role="status"` (informational) or `role="alert"` (errors)
+- [x] Screen reader announces toast content
+- [x] Design polish per the design system tokens
+- [x] Verify: upload a file and see success toast
+- [x] Verify: screen reader announces the toast
 
 Files: `src/client/components/ToastContainer.vue`, `src/client/composables/useToast.ts`
 Depends on: Stage 10 (upload flow triggers toasts), Stage 11 (SSE triggers toasts), Stage 1 (designer verdict)
@@ -402,16 +402,16 @@ Goal: Final accessibility audit. Skip link, ARIA live regions, focus management,
 
 Owner: frontend-engineer
 
-- [ ] Add "Skip to main content" link as first focusable element in DOM (visually hidden until focused)
-- [ ] Verify all ARIA live regions are in place (SSE status, upload results, toast notifications)
-- [ ] Verify focus management: after session selection on desktop, focus stays in sidebar
-- [ ] Verify drop zone has `aria-dropeffect="copy"` and announces results
+- [x] Add "Skip to main content" link as first focusable element in DOM (visually hidden until focused)
+- [x] Verify all ARIA live regions are in place (SSE status, upload results, toast notifications)
+- [x] Verify focus management: after session selection on desktop, focus stays in sidebar
+- [x] Verify drop zone has `aria-dropeffect="copy"` and announces results
 - [ ] Verify cyan on `--bg-surface` meets WCAG AA (>= 4.5:1)
 - [ ] Verify `--text-muted` on `--bg-surface` meets WCAG AA where used for informational text
-- [ ] Verify all interactive elements are keyboard-operable (Tab to reach, Enter/Space to activate)
-- [ ] Verify filter pills have `role="group"` + `aria-pressed`
-- [ ] Verify session list uses `role="list"` / `role="listitem"` or semantic `<ul>` / `<li>`
-- [ ] Verify all status indicators have `aria-label`
+- [x] Verify all interactive elements are keyboard-operable (Tab to reach, Enter/Space to activate)
+- [x] Verify filter pills have `role="group"` + `aria-pressed`
+- [x] Verify session list uses `role="list"` / `role="listitem"` or semantic `<ul>` / `<li>`
+- [x] Verify all status indicators have `aria-label`
 - [ ] Run axe DevTools or similar automated checker, fix any issues
 - [ ] Verify: Tab through the entire app, every interactive element is reachable and operable
 
@@ -431,12 +431,12 @@ Goal: Verify all new and rebuilt code uses design system tokens exclusively. No 
 
 Owner: frontend-engineer (or pair-reviewer)
 
-- [ ] Search all new/modified `.vue` and `.css` files for hardcoded color values (hex, rgb, hsl)
-- [ ] Search for hardcoded pixel values for spacing, font sizes, border radii
-- [ ] Verify all new BEM class names follow existing conventions
-- [ ] Fix any violations found
-- [ ] Verify: zero hardcoded color values in new or rebuilt code
-- [ ] Verify: zero hardcoded spacing/sizing values -- all map to tokens
+- [x] Search all new/modified `.vue` and `.css` files for hardcoded color values (hex, rgb, hsl)
+- [x] Search for hardcoded pixel values for spacing, font sizes, border radii
+- [x] Verify all new BEM class names follow existing conventions
+- [x] Fix any violations found
+- [x] Verify: zero hardcoded color values in new or rebuilt code
+- [x] Verify: zero hardcoded spacing/sizing values -- all map to tokens
 
 Files: All files modified in this branch
 Depends on: All previous stages
