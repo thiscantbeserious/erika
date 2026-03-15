@@ -5,7 +5,7 @@
  *
  * This is the ONLY file that knows about node:sqlite internals.
  * All better-sqlite3 API differences are normalised here:
- *   - .pragma() helper (node:sqlite has no built-in pragma method)
+ *   - .pragma() always returns an array, matching better-sqlite3's behaviour
  *   - .transaction() returning a reusable callable (not just BEGIN/COMMIT)
  *   - .open property tracking close state
  *   - result.lastInsertRowid normalised to number (node:sqlite returns bigint)
@@ -46,17 +46,6 @@ function wrapStatement(stmt: StatementSync): CompatStatement {
 }
 
 /**
- * Determines whether a pragma string is a query (returns rows) or a setter.
- * Queries include table_info, index_list, etc. — they contain a parenthesised
- * argument. Setters use `key = value` or bare keys like `optimize`.
- */
-function isPragmaQuery(pragmaStr: string): boolean {
-  const trimmed = pragmaStr.trim();
-  // table_info(t), index_list(t), etc.
-  return /\(/.test(trimmed);
-}
-
-/**
  * Compatibility wrapper for node:sqlite's DatabaseSync.
  * Implements the better-sqlite3 Database API surface used across this codebase.
  */
@@ -91,17 +80,18 @@ export class NodeSqliteDatabase {
   }
 
   /**
-   * Execute a PRAGMA statement, matching better-sqlite3's db.pragma().
-   * For query pragmas (e.g. table_info(t)) returns an array of row objects.
-   * For setter pragmas (e.g. journal_mode = WAL) executes the pragma and
-   * returns undefined (callers in this codebase do not use the return value).
+   * Execute a PRAGMA statement, matching better-sqlite3's db.pragma() exactly.
+   *
+   * better-sqlite3 always returns an array of row objects from db.pragma():
+   *   - Query pragma ('table_info(t)'): array of descriptors
+   *   - Setter pragma ('journal_mode = WAL'): array with result row, or []
+   *   - Bare read pragma ('journal_mode'): array with one row, or []
+   *
+   * Callers in this codebase either ignore the return value (setter pragmas
+   * used for configuration) or cast to Array<{name:string}> (table_info queries).
    */
-  pragma(pragmaStr: string): unknown[] | undefined {
-    if (isPragmaQuery(pragmaStr)) {
-      return this._db.prepare(`PRAGMA ${pragmaStr}`).all();
-    }
-    this._db.exec(`PRAGMA ${pragmaStr}`);
-    return undefined;
+  pragma(pragmaStr: string): unknown[] {
+    return this._db.prepare(`PRAGMA ${pragmaStr}`).all();
   }
 
   /**
@@ -135,4 +125,23 @@ export class NodeSqliteDatabase {
     this._open = false;
     this._db.close();
   }
+}
+
+/**
+ * Default export matching better-sqlite3's import pattern.
+ * Consumers can swap `import Database from 'better-sqlite3'`
+ * to `import Database from './node_sqlite_compat.js'`
+ * and continue using `Database.Database` and `Database.Statement` as types.
+ */
+export default NodeSqliteDatabase;
+
+// Namespace declaration mirroring better-sqlite3's ambient namespace.
+// Allows `import type Database from '...'` with `Database.Database` and
+// `Database.Statement` type references in all downstream consumer files.
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Database {
+  /** The database connection type. Matches better-sqlite3's Database.Database. */
+  export type Database = NodeSqliteDatabase;
+  /** A prepared statement type. Matches better-sqlite3's Database.Statement. */
+  export type Statement = CompatStatement;
 }

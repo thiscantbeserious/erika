@@ -3,10 +3,56 @@
  * Unit tests for the node:sqlite compatibility wrapper.
  * Covers all API surface consumed by the existing codebase:
  * pragma, transaction, prepare/run/get/all, close, and .open.
+ *
+ * All pragma tests verify the array return shape that matches
+ * better-sqlite3's db.pragma() behaviour exactly.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { NodeSqliteDatabase } from './node_sqlite_compat.js';
+import Database, { NodeSqliteDatabase, type RunResult, type CompatStatement } from './node_sqlite_compat.js';
+import type { } from './node_sqlite_compat.js';
+
+describe('Database namespace export', () => {
+  it('default export is constructable (matches better-sqlite3 usage pattern)', () => {
+    // Consumer pattern: import Database from './node_sqlite_compat'
+    // Then: new Database(':memory:') and use Database.Database / Database.Statement types
+    const db = new Database(':memory:');
+    expect(db).toBeInstanceOf(NodeSqliteDatabase);
+    db.close();
+  });
+
+  it('Database.Database type is assignable (namespace type export works)', () => {
+    // Verify the namespace type is usable — no runtime assertion needed,
+    // but we construct via the default export to simulate consumer usage.
+    const db: Database.Database = new Database(':memory:');
+    expect(db.open).toBe(true);
+    db.close();
+  });
+
+  it('Database.Statement type is usable as annotation (prepare returns compatible type)', () => {
+    const db = new Database(':memory:');
+    db.exec('CREATE TABLE t (n INTEGER)');
+    // Assigning prepare() result to Database.Statement annotation must compile
+    const stmt: Database.Statement = db.prepare('SELECT 1');
+    expect(typeof stmt.run).toBe('function');
+    expect(typeof stmt.get).toBe('function');
+    expect(typeof stmt.all).toBe('function');
+    db.close();
+  });
+
+  it('RunResult and CompatStatement named exports are accessible', () => {
+    // Verify structural correctness: these are interface types, checked by TS compiler.
+    // At runtime we just confirm the values behave correctly.
+    const db = new Database(':memory:');
+    db.exec('CREATE TABLE t (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    const result: RunResult = db.prepare('INSERT INTO t VALUES (NULL)').run();
+    expect(typeof result.changes).toBe('number');
+    expect(typeof result.lastInsertRowid).toBe('number');
+    const stmt: CompatStatement = db.prepare('SELECT 1');
+    expect(Array.isArray(stmt.all())).toBe(true);
+    db.close();
+  });
+});
 
 describe('NodeSqliteDatabase — constructor', () => {
   it('opens an in-memory database without throwing', () => {
@@ -101,34 +147,51 @@ describe('NodeSqliteDatabase — pragma', () => {
     if (db.open) db.close();
   });
 
-  it('pragma write (journal_mode = WAL) does not throw', () => {
-    expect(() => db.pragma('journal_mode = WAL')).not.toThrow();
+  // Setter pragmas: better-sqlite3 always returns an array (some empty, some with a row)
+  it('pragma setter (journal_mode = WAL) returns an array', () => {
+    const result = db.pragma('journal_mode = WAL');
+    // In-memory databases do not support WAL — SQLite returns current mode
+    expect(Array.isArray(result)).toBe(true);
   });
 
-  it('pragma write (foreign_keys = ON) does not throw', () => {
-    expect(() => db.pragma('foreign_keys = ON')).not.toThrow();
+  it('pragma setter (journal_mode = WAL) returns the resulting mode object', () => {
+    const result = db.pragma('journal_mode = WAL') as Array<{ journal_mode: string }>;
+    // In-memory databases fall back to 'memory'
+    expect(result.length).toBe(1);
+    expect(typeof result[0]!.journal_mode).toBe('string');
   });
 
-  it('pragma write (auto_vacuum = FULL) does not throw', () => {
-    expect(() => db.pragma('auto_vacuum = FULL')).not.toThrow();
+  it('pragma setter (foreign_keys = ON) returns an array (empty — no result row)', () => {
+    // foreign_keys pragma returns no result row in SQLite; better-sqlite3 returns []
+    const result = db.pragma('foreign_keys = ON');
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toEqual([]);
   });
 
-  it('pragma write (busy_timeout = 5000) does not throw', () => {
-    expect(() => db.pragma('busy_timeout = 5000')).not.toThrow();
+  it('pragma setter (auto_vacuum = FULL) returns an array', () => {
+    expect(Array.isArray(db.pragma('auto_vacuum = FULL'))).toBe(true);
   });
 
-  it('pragma write (synchronous = NORMAL) does not throw', () => {
-    expect(() => db.pragma('synchronous = NORMAL')).not.toThrow();
+  it('pragma setter (busy_timeout = 5000) returns an array with result row', () => {
+    const result = db.pragma('busy_timeout = 5000') as Array<{ timeout: number }>;
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBe(1);
+    expect(result[0]!.timeout).toBe(5000);
   });
 
-  it('pragma write (cache_size = -20000) does not throw', () => {
-    expect(() => db.pragma('cache_size = -20000')).not.toThrow();
+  it('pragma setter (synchronous = NORMAL) returns an array', () => {
+    expect(Array.isArray(db.pragma('synchronous = NORMAL'))).toBe(true);
   });
 
-  it('pragma write (temp_store = MEMORY) does not throw', () => {
-    expect(() => db.pragma('temp_store = MEMORY')).not.toThrow();
+  it('pragma setter (cache_size = -20000) returns an array', () => {
+    expect(Array.isArray(db.pragma('cache_size = -20000'))).toBe(true);
   });
 
+  it('pragma setter (temp_store = MEMORY) returns an array', () => {
+    expect(Array.isArray(db.pragma('temp_store = MEMORY'))).toBe(true);
+  });
+
+  // Query pragmas: always return an array of descriptor objects
   it('pragma table_info returns array of column descriptor objects', () => {
     db.exec('CREATE TABLE t (id INTEGER PRIMARY KEY, val TEXT)');
     const cols = db.pragma('table_info(t)') as Array<{ name: string; type: string }>;
@@ -139,8 +202,44 @@ describe('NodeSqliteDatabase — pragma', () => {
     expect(names).toContain('val');
   });
 
-  it('pragma optimize does not throw', () => {
-    expect(() => db.pragma('optimize')).not.toThrow();
+  it('pragma table_info has correct column metadata shape', () => {
+    db.exec('CREATE TABLE sessions (id TEXT PRIMARY KEY, name TEXT NOT NULL)');
+    const cols = db.pragma('table_info(sessions)') as Array<{ name: string; type: string; notnull: number }>;
+    const nameCol = cols.find(c => c.name === 'name');
+    expect(nameCol).toBeDefined();
+    expect(nameCol!.type).toBe('TEXT');
+    expect(nameCol!.notnull).toBe(1);
+  });
+
+  // Bare read pragmas: return an array with a single row
+  it('pragma bare read (journal_mode) returns array with single row', () => {
+    const result = db.pragma('journal_mode') as Array<{ journal_mode: string }>;
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBe(1);
+    expect(result[0]!.journal_mode).toBe('memory');
+  });
+
+  it('pragma bare read (foreign_keys) reflects previous setter', () => {
+    db.pragma('foreign_keys = ON');
+    const result = db.pragma('foreign_keys') as Array<{ foreign_keys: number }>;
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBe(1);
+    expect(result[0]!.foreign_keys).toBe(1);
+  });
+
+  // Bare pragmas with no result (optimize): return empty array
+  it('pragma optimize returns an array (may be empty)', () => {
+    expect(Array.isArray(db.pragma('optimize'))).toBe(true);
+  });
+
+  // Migration pattern: cast to Array<{name: string}> and use Set of names
+  it('pragma table_info usable in migration column-check pattern', () => {
+    db.exec('CREATE TABLE sessions (id TEXT PRIMARY KEY, name TEXT)');
+    const sessionColumns = db.pragma('table_info(sessions)') as Array<{ name: string }>;
+    const columnNames = new Set(sessionColumns.map(col => col.name));
+    expect(columnNames.has('id')).toBe(true);
+    expect(columnNames.has('name')).toBe(true);
+    expect(columnNames.has('nonexistent')).toBe(false);
   });
 });
 
