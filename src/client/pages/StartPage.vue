@@ -26,11 +26,9 @@ function openFilePicker(): void {
 /** Handles file selection — uses optimistic upload flow for each selected file when sessionList is available. */
 function handleFileChange(event: Event): void {
   const input = event.target as HTMLInputElement;
-  const files = input.files;
-  if (fileInputRef.value) {
-    fileInputRef.value.value = '';
-  }
-  if (!files || files.length === 0 || !sessionList) return;
+  const files = Array.from(input.files ?? []);
+  input.value = '';
+  if (files.length === 0 || !sessionList) return;
   for (const file of files) {
     uploadFileWithOptimistic(file, {
       onOptimisticInsert: (tempSession: Session) => {

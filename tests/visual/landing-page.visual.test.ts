@@ -71,10 +71,10 @@ test.describe('Landing Page', () => {
       buffer: Buffer.from('{"version":3,"term":{"cols":80,"rows":24}}\n[0.1,"o","hello\\n"]\n'),
     });
 
-    // Wait for optimistic card to appear in the sidebar
-    const processingCard = page.locator('.session-card--processing');
+    // Wait for optimistic card to appear in the sidebar (scoped to sidebar to avoid mobile overlay duplicate)
+    const processingCard = page.locator('.spatial-shell__sidebar .session-card--processing').first();
     await expect(processingCard).toBeVisible({ timeout: 3000 });
-    await expect(page.locator('.sidebar-panel')).toHaveScreenshot('upload-zone-uploading.png');
+    await expect(page.locator('.spatial-shell__sidebar').first()).toHaveScreenshot('upload-zone-uploading.png');
   });
 
   test('session card hover', async ({ page }) => {
