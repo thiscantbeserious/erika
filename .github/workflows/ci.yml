@@ -204,12 +204,18 @@ jobs:
         if: steps.visual.outputs.exit_code != '0'
         id: diffs
         run: |
-          # Extract failed test lines from Playwright output
-          FAILED_TESTS=$(grep -E "\[chromium\].*›" /tmp/playwright-output.txt | grep -v "passed" | head -20 || true)
-          FAILED_COUNT=$(echo "$FAILED_TESTS" | grep -c "." || true)
-          if [ -z "$FAILED_TESTS" ]; then
-            FAILED_COUNT="0"
-            FAILED_TESTS="(no details captured)"
+          # Strip ANSI codes for reliable grep
+          sed 's/\x1b\[[0-9;]*m//g' /tmp/playwright-output.txt > /tmp/pw-clean.txt
+
+          # Extract failed test names
+          FAILED_TESTS=$(grep -E "\[chromium\].*›" /tmp/pw-clean.txt | grep -v "passed" | head -20 || true)
+
+          # Extract pixel diff details (e.g. "Expected an image 93px by 28px, received 92px by 28px. 121 pixels (ratio 0.05)")
+          PIXEL_DIFFS=$(grep -E "pixels \(ratio" /tmp/pw-clean.txt | sort -u | head -20 || true)
+
+          FAILED_COUNT="0"
+          if [ -n "$FAILED_TESTS" ]; then
+            FAILED_COUNT=$(echo "$FAILED_TESTS" | wc -l | tr -d ' ')
           fi
 
           echo "count=${FAILED_COUNT}" >> "$GITHUB_OUTPUT"
@@ -217,6 +223,11 @@ jobs:
             echo "details<<EODIFF"
             echo "$FAILED_TESTS"
             echo "EODIFF"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "pixel_diffs<<EOPIXEL"
+            echo "$PIXEL_DIFFS"
+            echo "EOPIXEL"
           } >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
@@ -244,6 +255,14 @@ jobs:
 
           ```
           ${{ steps.diffs.outputs.details }}
+          ```
+
+          </details>
+
+          <details><summary>Pixel diffs</summary>
+
+          ```
+          ${{ steps.diffs.outputs.pixel_diffs }}
           ```
 
           </details>
