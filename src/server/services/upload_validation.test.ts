@@ -1,4 +1,5 @@
 // @vitest-environment node
+import assert from 'node:assert';
 import { describe, it, expect } from 'vitest';
 import { validateHeader, sanitizeFilename, countMarkers } from './upload_service.js';
 
@@ -12,58 +13,56 @@ describe('validateHeader', () => {
     const content = 'not json at all\n[0,"o","hello"]';
     const result = validateHeader(content);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    assert(!result.ok);
       expect(result.error.status).toBe(400);
       expect(result.error.error).toContain('JSON');
-    }
+
   });
 
   it('returns 400 when first line is a JSON array', () => {
     const content = '[1,2,3]\n[0,"o","hello"]';
     const result = validateHeader(content);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    assert(!result.ok);
       expect(result.error.status).toBe(400);
       expect(result.error.error).toContain('object');
-    }
+
   });
 
   it('returns 400 when first line is a JSON string', () => {
     const content = '"just a string"\n[0,"o","hello"]';
     const result = validateHeader(content);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    assert(!result.ok);
       expect(result.error.status).toBe(400);
       expect(result.error.error).toContain('object');
-    }
+
   });
 
   it('returns 400 when first line is JSON null', () => {
     const content = 'null\n[0,"o","hello"]';
     const result = validateHeader(content);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    assert(!result.ok);
       expect(result.error.status).toBe(400);
-    }
+
   });
 
   it('returns 422 when header fails Typia validation (version 2)', () => {
     const content = '{"version":2,"width":80,"height":24}\n[0,"o","hello"]';
     const result = validateHeader(content);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.status).toBe(422);
-      expect(result.error.error).toContain('validation');
-    }
+    assert(!result.ok);
+    expect(result.error.status).toBe(422);
+    expect(result.error.error).toContain('validation');
   });
 
   it('returns 422 when header fails Typia validation (width 0)', () => {
     const content = '{"version":3,"width":0,"height":24}\n[0,"o","hello"]';
     const result = validateHeader(content);
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.status).toBe(422);
-    }
+    assert(!result.ok);
+    expect(result.error.status).toBe(422);
   });
 
   it('returns ok:true for empty lines before header', () => {
