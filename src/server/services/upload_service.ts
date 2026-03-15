@@ -8,12 +8,15 @@
  * JobQueueAdapter (jobs/), EventBusAdapter (events/).
  */
 
+import typia from 'typia';
 import { nanoid } from 'nanoid';
-import { validateAsciicast } from '../../shared/parsers/asciicast.js';
+import { validateAsciicast, normalizeHeader } from '../../shared/parsers/asciicast.js';
+import type { AsciicastHeader } from '../../shared/types/asciicast.js';
 import type { SessionAdapter } from '../db/session_adapter.js';
 import type { StorageAdapter } from '../storage/storage_adapter.js';
 import type { JobQueueAdapter } from '../jobs/job_queue_adapter.js';
 import type { EventBusAdapter } from '../events/event_bus_adapter.js';
+import { type ValidationFieldError, mapTypiaErrors } from '../routes/route_validation.js';
 import { logger } from '../logger.js';
 
 const log = logger.child({ module: 'services/upload' });
@@ -28,7 +31,7 @@ export interface UploadServiceDeps {
 
 export type UploadResult =
   | { ok: true; session: Record<string, unknown> }
-  | { ok: false; status: 400 | 413 | 500; error: string; details?: string; line?: number };
+  | { ok: false; status: 400 | 413 | 422 | 500; error: string; details?: string; line?: number; fields?: ValidationFieldError[] };
 
 /**
  * UploadService handles file upload validation, session creation, and pipeline triggering.
@@ -69,6 +72,11 @@ export class UploadService {
         details: validation.error,
         line: validation.line,
       };
+    }
+
+    const headerResult = validateHeader(content);
+    if (!headerResult.ok) {
+      return headerResult.error;
     }
 
     const id = nanoid();
@@ -135,8 +143,39 @@ export class UploadService {
   }
 }
 
+/**
+ * Validate the asciicast header using Typia AOT tags.
+ * Returns ok:true on success, or ok:false with a ready UploadResult error on failure.
+ */
+export function validateHeader(content: string): { ok: true } | { ok: false; error: Extract<UploadResult, { ok: false }> } {
+  const firstLine = content.split('\n').find((l) => l.trim().length > 0) ?? '';
+  let raw: unknown;
+  try {
+    raw = JSON.parse(firstLine);
+  } catch {
+    return { ok: false, error: { ok: false, status: 400, error: 'Invalid asciicast header JSON' } };
+  }
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, error: { ok: false, status: 400, error: 'Invalid asciicast header: must be a JSON object' } };
+  }
+  const header = normalizeHeader(raw as Record<string, unknown>);
+  const result = typia.validate<AsciicastHeader>(header);
+  if (!result.success) {
+    return {
+      ok: false,
+      error: {
+        ok: false,
+        status: 422,
+        error: 'Asciicast header failed validation',
+        fields: mapTypiaErrors(result.errors),
+      },
+    };
+  }
+  return { ok: true };
+}
+
 /** Sanitize an uploaded filename: keep only safe characters, enforce max length. */
-function sanitizeFilename(name: string): string {
+export function sanitizeFilename(name: string): string {
   const base = name.split(/[/\\]/).pop() ?? 'unnamed.cast';
   const clean = base.replaceAll(/[^a-zA-Z0-9._-]/g, '_');
   const trimmed = clean.slice(0, 255);
@@ -144,7 +183,7 @@ function sanitizeFilename(name: string): string {
 }
 
 /** Count the number of marker events in a raw .cast file (NDJSON lines with type 'm'). */
-function countMarkers(content: string): number {
+export function countMarkers(content: string): number {
   let count = 0;
   for (const line of content.split('\n')) {
     if (line.includes('"m"')) {
