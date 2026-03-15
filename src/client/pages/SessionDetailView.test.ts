@@ -115,7 +115,7 @@ describe('SessionDetailView', () => {
   });
 
   describe('empty content state', () => {
-    it('renders empty state when sections are empty and no snapshot', async () => {
+    it('renders SessionContent when sections are empty and no snapshot (SessionContent owns empty state)', async () => {
       const { router } = mountView({
         loading: ref(false),
         error: ref(null),
@@ -126,8 +126,39 @@ describe('SessionDetailView', () => {
       const wrapper = mount(SessionDetailView, {
         global: { plugins: [router] },
       });
-      expect(wrapper.find('.session-detail-view__state').exists()).toBe(true);
-      expect(wrapper.text()).toContain('no content');
+      expect(wrapper.find('.session-content-stub').exists()).toBe(true);
+      expect(wrapper.find('.session-detail-view__state').exists()).toBe(false);
+    });
+  });
+
+  describe('detectionStatus prop wiring', () => {
+    it('passes detectionStatus from useSession to SessionContent', async () => {
+      const { router } = mountView({
+        loading: ref(false),
+        error: ref(null),
+        sections: ref([]),
+        snapshot: ref(null),
+        detectionStatus: ref('pending'),
+      });
+      await router.push('/session/sess-1');
+
+      // Stub SessionContent to expose the detectionStatus prop it receives
+      const SessionContentStub = {
+        name: 'SessionContentPropsCapture',
+        props: ['snapshot', 'sections', 'defaultCollapsed', 'detectionStatus'],
+        template: '<div class="session-content-props-stub" :data-detection-status="detectionStatus" />',
+      };
+
+      const wrapper = mount(SessionDetailView, {
+        global: {
+          plugins: [router],
+          stubs: { SessionContent: SessionContentStub },
+        },
+      });
+
+      const stub = wrapper.find('.session-content-props-stub');
+      expect(stub.exists()).toBe(true);
+      expect(stub.attributes('data-detection-status')).toBe('pending');
     });
   });
 

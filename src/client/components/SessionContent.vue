@@ -2,6 +2,7 @@
 import { reactive, computed } from 'vue';
 import type { TerminalSnapshot } from '#vt-wasm/types';
 import type { Section } from '../composables/useSession';
+import type { DetectionStatus } from '../../shared/types/pipeline.js';
 import TerminalSnapshotComponent from './TerminalSnapshot.vue';
 import SectionHeader from './SectionHeader.vue';
 import OverlayScrollbar from './OverlayScrollbar.vue';
@@ -10,8 +11,11 @@ const props = withDefaults(defineProps<{
   snapshot: TerminalSnapshot | null;
   sections: Section[];
   defaultCollapsed?: boolean;
+  /** Pipeline detection status — used in Stage 3 to render in-progress/empty states. */
+  detectionStatus?: DetectionStatus;
 }>(), {
   defaultCollapsed: false,
+  detectionStatus: 'completed',
 });
 
 const foldState = reactive<Record<string, boolean>>({});

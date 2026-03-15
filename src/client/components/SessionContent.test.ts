@@ -114,6 +114,23 @@ function makeEmptySection(id: string): Section {
 // ---------------------------------------------------------------------------
 
 describe('SessionContent', () => {
+  describe('detectionStatus prop', () => {
+    it('accepts detectionStatus prop without errors (defaults to completed)', () => {
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: null, sections: [] },
+      });
+      // Component should mount cleanly; no error thrown
+      expect(wrapper.exists()).toBe(true);
+    });
+
+    it('accepts an explicit detectionStatus value', () => {
+      const wrapper = mount(SessionContent, {
+        props: { snapshot: null, sections: [], detectionStatus: 'pending' },
+      });
+      expect(wrapper.exists()).toBe(true);
+    });
+  });
+
   describe('empty / null state', () => {
     it('renders the empty state when snapshot is null and sections is empty', () => {
       const wrapper = mount(SessionContent, {
