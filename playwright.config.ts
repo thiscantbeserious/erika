@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 config({ path: '.env.test' });
 
 const SERVER_PORT = process.env.PORT || '3001';
-const CLIENT_PORT = process.env.VITE_PORT || '5174';
+const CLIENT_PORT = process.env.CLIENT_PORT || '5174';
 const DATA_DIR = process.env.DATA_DIR || 'tests/.test-data';
 
 export default defineConfig({
@@ -46,7 +46,7 @@ export default defineConfig({
       timeout: 30000,
     },
     {
-      command: `PORT=${SERVER_PORT} VITE_PORT=${CLIENT_PORT} npx vite`,
+      command: `PORT=${SERVER_PORT} CLIENT_PORT=${CLIENT_PORT} npx vite`,
       url: `http://localhost:${CLIENT_PORT}`,
       reuseExistingServer: false,
       timeout: 30000,
