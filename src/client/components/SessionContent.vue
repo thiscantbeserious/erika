@@ -47,6 +47,11 @@ const preambleLines = computed(() => {
   }
   return [];
 });
+
+/** True when status is a terminal error (failed or interrupted). */
+const isTerminalError = computed(() =>
+  props.detectionStatus === 'failed' || props.detectionStatus === 'interrupted'
+);
 </script>
 
 <template>
@@ -121,12 +126,33 @@ const preambleLines = computed(() => {
       No content available for this session.
     </div>
 
-    <!-- Fallback for other states (will be extended in Stage 4) -->
+    <!-- State B (failed/interrupted + snapshot): show error banner + full snapshot -->
+    <template v-else-if="isTerminalError && snapshot">
+      <div class="session-content-banner session-content-banner--error">
+        Session processing encountered an error. Showing available content.
+      </div>
+      <OverlayScrollbar class="terminal-scroll">
+        <TerminalSnapshotComponent
+          :lines="snapshot.lines"
+          :start-line-number="1"
+        />
+      </OverlayScrollbar>
+    </template>
+
+    <!-- State B (failed/interrupted + no snapshot): error-only state -->
+    <div
+      v-else-if="isTerminalError"
+      class="terminal-empty terminal-empty--error"
+    >
+      Session processing failed and no content is available.
+    </div>
+
+    <!-- Non-terminal status: session is still being processed -->
     <div
       v-else
       class="terminal-empty"
     >
-      No content available
+      Session is being processed…
     </div>
   </div>
 </template>
@@ -176,5 +202,15 @@ const preambleLines = computed(() => {
   background: var(--status-info-subtle, rgba(0, 150, 255, 0.08));
   color: var(--status-info, #4da6ff);
   border-bottom: 1px solid var(--status-info-subtle, rgba(0, 150, 255, 0.12));
+}
+
+.session-content-banner--error {
+  background: var(--status-error-subtle, rgba(255, 77, 106, 0.08));
+  color: var(--status-error, #ff4d6a);
+  border-bottom: 1px solid var(--status-error-subtle, rgba(255, 77, 106, 0.12));
+}
+
+.terminal-empty--error {
+  color: var(--status-error, #ff4d6a);
 }
 </style>
