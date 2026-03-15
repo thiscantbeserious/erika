@@ -16,8 +16,11 @@ export interface Session {
   filename: string & tags.MinLength<1>;
   /** Non-empty filesystem path to the stored .cast file. */
   filepath: string & tags.MinLength<1>;
-  /** File size in bytes — must be at least 1 (empty files are invalid). */
-  size_bytes: number & tags.Type<'uint32'> & tags.Minimum<1>;
+  /**
+   * File size in bytes — must be at least 1 (empty files are invalid).
+   * uint32 not used here: recordings can exceed 4GB on large sessions.
+   */
+  size_bytes: number & tags.Minimum<1>;
   /** Number of marker events — 0 or more. */
   marker_count: number & tags.Type<'uint32'> & tags.Minimum<0>;
   /** ISO 8601 upload timestamp. */
@@ -40,8 +43,11 @@ export interface SessionCreate {
   filename: string & tags.MinLength<1>;
   /** Non-empty filesystem path to the stored .cast file. */
   filepath: string & tags.MinLength<1>;
-  /** File size in bytes — must be at least 1 (empty files are invalid). */
-  size_bytes: number & tags.Type<'uint32'> & tags.Minimum<1>;
+  /**
+   * File size in bytes — must be at least 1 (empty files are invalid).
+   * uint32 not used here: recordings can exceed 4GB on large sessions.
+   */
+  size_bytes: number & tags.Minimum<1>;
   /** Number of marker events — 0 or more. */
   marker_count: number & tags.Type<'uint32'> & tags.Minimum<0>;
   /** ISO 8601 upload timestamp. */

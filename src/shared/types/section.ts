@@ -20,9 +20,9 @@ export interface Section {
   /** Index of the last event in this section — 0 or greater. */
   endEvent: number & tags.Type<'uint32'> & tags.Minimum<0>;
   /** CLI sections — index into session snapshot. Null for TUI sections. */
-  startLine: number | null;
+  startLine: (number & tags.Type<'uint32'> & tags.Minimum<0>) | null;
   /** CLI sections — index into session snapshot. Null for TUI sections. */
-  endLine: number | null;
+  endLine: (number & tags.Type<'uint32'> & tags.Minimum<0>) | null;
   /** TUI sections — per-section viewport snapshot. Null for CLI sections. */
   snapshot: TerminalSnapshot | null;
 }

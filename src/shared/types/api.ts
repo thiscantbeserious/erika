@@ -36,7 +36,7 @@ export interface SessionStatusResponse {
   sessionId: string & tags.MinLength<1>;
   /** Non-empty current status value. */
   status: string & tags.MinLength<1>;
-  currentStage: string | null;
+  currentStage: (string & tags.MinLength<1>) | null;
   /** Current attempt count — 0 or more. */
   attempts: number & tags.Type<'uint32'> & tags.Minimum<0>;
   /** Maximum allowed attempts — at least 1. */

@@ -67,9 +67,12 @@ export interface ParsedEvent {
  * Marker extracted from events (type "m").
  */
 export interface Marker {
-  time: number;     // cumulative timestamp
-  label: string;    // marker text
-  index: number;    // event index in events array
+  /** Cumulative timestamp in seconds from recording start — 0 or greater. */
+  time: number & tags.Minimum<0>;
+  /** Non-empty marker text label. */
+  label: string & tags.MinLength<1>;
+  /** Event index in the events array — 0 or greater. */
+  index: number & tags.Type<'uint32'> & tags.Minimum<0>;
 }
 
 /**
