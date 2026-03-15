@@ -38,18 +38,10 @@ export default defineConfig({
       },
     },
   ],
-  webServer: [
-    {
-      command: `DATA_DIR=${DATA_DIR} PORT=${SERVER_PORT} npm run dev:server`,
-      url: `http://localhost:${SERVER_PORT}/api/sessions`,
-      reuseExistingServer: false,
-      timeout: 30000,
-    },
-    {
-      command: `PORT=${SERVER_PORT} DEV_SERVER_PORT=${DEV_SERVER_PORT} npx vite`,
-      url: `http://localhost:${DEV_SERVER_PORT}`,
-      reuseExistingServer: false,
-      timeout: 30000,
-    },
-  ],
+  webServer: {
+    command: `DATA_DIR=${DATA_DIR} DEV_SERVER_PORT=${DEV_SERVER_PORT} npm run dev`,
+    url: `http://localhost:${DEV_SERVER_PORT}/api/sessions`,
+    reuseExistingServer: false,
+    timeout: 30000,
+  },
 });

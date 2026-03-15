@@ -10,7 +10,8 @@ import type { Page } from '@playwright/test';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const API_BASE = `http://localhost:${process.env.PORT || '3001'}`;
+// With @hono/vite-dev-server, both client and API run on the same Vite port.
+const API_BASE = `http://localhost:${process.env.DEV_SERVER_PORT || '5174'}`;
 const FIXTURES_DIR = join(__dirname, '..', 'fixtures');
 
 /**
