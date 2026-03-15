@@ -43,6 +43,8 @@ Phase 5 parallelism rules:
 - When PLAN stages have non-overlapping files and no dependencies, spawn `frontend-engineer` and `backend-engineer` in parallel.
 - When stages share files or have dependencies, run them sequentially (frontend first, then backend, or vice versa per the dependency chain).
 - Max 2 parallel agents. Never run two agents on the same files.
+- Assign an integration owner for shared files (e.g. package manifests, shared types).
+- Run an integration pass before review when agents worked in parallel.
 
 ## Git Contract
 

@@ -25,7 +25,7 @@ graph TD
 | 5 | `reviewer` | No blocking findings (includes triage of CodeRabbit/external findings when available) |
 | 6 | `maintainer` | CI green, all approvals |
 
-Phase 4 engineer selection: `backend-engineer` for server/package changes, `frontend-engineer` for client/design changes, coordinator handles config/docs/CI directly.
+Phase 4 engineer selection: `backend-engineer` for server/package/config/CI changes, `frontend-engineer` for client/design changes. The coordinator selects the engineer — it never writes code itself.
 
 ## Git Contract
 

@@ -125,4 +125,4 @@ Limits: max 3 per phase, max 2 follow-ups per question, lead agent owns their ar
 One reviewer agent used at two points in the lifecycle:
 
 - **Per-stage review:** After each PLAN stage, the `reviewer` runs adversarial analysis on the stage diff. BLOCKING findings must be fixed before the next stage.
-- **Final review:** After all stages complete, the `reviewer` runs a full review including triage of external findings (CodeRabbit, SonarCloud) when available.
+- **Final review:** After all stages complete, the `reviewer` runs a full review including triage of external findings (CodeRabbit, SonarCloud, Copilot) when available.
