@@ -44,16 +44,9 @@ export default defineConfig({
     devServer({
       entry: 'src/server/dev.ts',
       exclude: [
-        // Let Vite handle client assets and HMR
-        /^\/@.+$/,
-        /^\/src\/.+/,
-        /^\/design\/.+/,
-        /^\/node_modules\/.*/,
-        /^\/index\.html$/,
-        /^\/?$/,
-        /^\/sessions\/.*/,
-        /^\/session\/.*/,
-        /\.(ts|tsx|js|jsx|css|html|svg|png|jpg|ico|woff2?)$/,
+        // Exclude everything EXCEPT /api/* — Vite handles all non-API requests
+        // (client routes, static assets, HMR, etc.)
+        /^(?!\/api\/).*/,
       ],
     }),
   ],
