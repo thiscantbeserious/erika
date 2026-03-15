@@ -179,7 +179,7 @@ async function extractMarkersFromFile(filePath: string): Promise<Marker[]> {
 async function main() {
   const config = loadConfig();
 
-  console.log('RAGTS v2 Migration Tool');
+  console.log('Erika v2 Migration Tool');
   console.log('=======================');
   console.log(`Data directory: ${config.dataDir}`);
   console.log('');

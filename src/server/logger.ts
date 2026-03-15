@@ -1,5 +1,5 @@
 /**
- * Centralized pino logger for the RAGTS server.
+ * Centralized pino logger for the Erika server.
  *
  * Uses pino-pretty in development for readable output,
  * structured JSON in production for log aggregation.

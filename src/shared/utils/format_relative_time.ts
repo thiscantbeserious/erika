@@ -1,0 +1,38 @@
+/**
+ * Formats a date as a human-readable relative time string.
+ * Returns strings like "just now", "2m ago", "3h ago", "yesterday", "2d ago", "1w ago", "1mo ago", "1y ago".
+ * No external dependencies — pure date arithmetic.
+ * Returns "unknown" for invalid dates; returns "just now" for future dates (handles clock skew).
+ */
+export function formatRelativeTime(date: Date | string): string {
+  const target = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(target.getTime())) return 'unknown';
+
+  const diffMs = Date.now() - target.getTime();
+  // Handles clock skew: future dates are treated as "just now"
+  if (diffMs < 0) return 'just now';
+
+  const diffSeconds = Math.floor(diffMs / 1000);
+
+  if (diffSeconds < 60) return 'just now';
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 4) return `${diffWeeks}w ago`;
+
+  const diffMonths = Math.max(1, Math.floor(diffDays / 30));
+  if (diffMonths >= 12) {
+    const years = Math.floor(diffMonths / 12);
+    return `${years}y ago`;
+  }
+  return `${diffMonths}mo ago`;
+}

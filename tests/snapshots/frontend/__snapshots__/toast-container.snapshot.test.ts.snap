@@ -2,26 +2,174 @@
 
 exports[`ToastContainer component snapshots > error toast 1`] = `
 "<div data-v-dd40d1fc="" class="toast-container">
-  <div data-v-dd40d1fc="" class="toast toast--error"><span data-v-dd40d1fc="" class="toast__message">Upload failed: invalid file type</span><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification"><span data-v-dd40d1fc="" class="icon icon--sm icon-close"></span></button></div>
+  <div data-v-dd40d1fc="" class="toast toast--error" role="alert" aria-live="assertive" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success -->
+      <!-- error --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle data-v-dd40d1fc="" cx="10" cy="10" r="8"></circle>
+        <path data-v-dd40d1fc="" d="M7 7l6 6M13 7l-6 6"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Upload failed</div>
+      <div data-v-dd40d1fc="" class="toast__message">Upload failed: invalid file type</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
+</div>"
+`;
+
+exports[`ToastContainer component snapshots > error toast with custom design-system icon 1`] = `
+"<div data-v-dd40d1fc="" class="toast-container">
+  <div data-v-dd40d1fc="" class="toast toast--error" role="alert" aria-live="assertive" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system --><span data-v-dd40d1fc="" class="icon icon--md icon-error-circle" aria-hidden="true"></span>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Upload failed</div>
+      <div data-v-dd40d1fc="" class="toast__message">Could not upload file</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
 </div>"
 `;
 
 exports[`ToastContainer component snapshots > info toast 1`] = `
 "<div data-v-dd40d1fc="" class="toast-container">
-  <div data-v-dd40d1fc="" class="toast toast--info"><span data-v-dd40d1fc="" class="toast__message">Processing session...</span><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification"><span data-v-dd40d1fc="" class="icon icon--sm icon-close"></span></button></div>
+  <div data-v-dd40d1fc="" class="toast toast--info" role="status" aria-live="polite" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success -->
+      <!-- info (default) --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle data-v-dd40d1fc="" cx="10" cy="10" r="8"></circle>
+        <path data-v-dd40d1fc="" d="M10 9v5M10 6.5v.5"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <!--v-if-->
+      <div data-v-dd40d1fc="" class="toast__message">Processing session...</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
 </div>"
 `;
 
 exports[`ToastContainer component snapshots > multiple toasts stacked 1`] = `
 "<div data-v-dd40d1fc="" class="toast-container">
-  <div data-v-dd40d1fc="" class="toast toast--success"><span data-v-dd40d1fc="" class="toast__message">Upload complete</span><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification"><span data-v-dd40d1fc="" class="icon icon--sm icon-close"></span></button></div>
-  <div data-v-dd40d1fc="" class="toast toast--error"><span data-v-dd40d1fc="" class="toast__message">Another warning</span><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification"><span data-v-dd40d1fc="" class="icon icon--sm icon-close"></span></button></div>
-  <div data-v-dd40d1fc="" class="toast toast--info"><span data-v-dd40d1fc="" class="toast__message">FYI</span><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification"><span data-v-dd40d1fc="" class="icon icon--sm icon-close"></span></button></div>
+  <div data-v-dd40d1fc="" class="toast toast--success" role="status" aria-live="polite" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle data-v-dd40d1fc="" cx="10" cy="10" r="8"></circle>
+        <path data-v-dd40d1fc="" d="M7 10l2 2 4-4"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Session ready</div>
+      <div data-v-dd40d1fc="" class="toast__message">Upload complete</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
+  <div data-v-dd40d1fc="" class="toast toast--error" role="alert" aria-live="assertive" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success -->
+      <!-- error --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle data-v-dd40d1fc="" cx="10" cy="10" r="8"></circle>
+        <path data-v-dd40d1fc="" d="M7 7l6 6M13 7l-6 6"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Upload failed</div>
+      <div data-v-dd40d1fc="" class="toast__message">Another warning</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
+  <div data-v-dd40d1fc="" class="toast toast--info" role="status" aria-live="polite" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success -->
+      <!-- info (default) --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle data-v-dd40d1fc="" cx="10" cy="10" r="8"></circle>
+        <path data-v-dd40d1fc="" d="M10 9v5M10 6.5v.5"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <!--v-if-->
+      <div data-v-dd40d1fc="" class="toast__message">FYI</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
 </div>"
 `;
 
 exports[`ToastContainer component snapshots > success toast 1`] = `
 "<div data-v-dd40d1fc="" class="toast-container">
-  <div data-v-dd40d1fc="" class="toast toast--success"><span data-v-dd40d1fc="" class="toast__message">Session uploaded successfully</span><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification"><span data-v-dd40d1fc="" class="icon icon--sm icon-close"></span></button></div>
+  <div data-v-dd40d1fc="" class="toast toast--success" role="status" aria-live="polite" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle data-v-dd40d1fc="" cx="10" cy="10" r="8"></circle>
+        <path data-v-dd40d1fc="" d="M7 10l2 2 4-4"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Session uploaded</div>
+      <div data-v-dd40d1fc="" class="toast__message">Session uploaded successfully</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
+</div>"
+`;
+
+exports[`ToastContainer component snapshots > success toast with custom design-system icon 1`] = `
+"<div data-v-dd40d1fc="" class="toast-container">
+  <div data-v-dd40d1fc="" class="toast toast--success" role="status" aria-live="polite" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system --><span data-v-dd40d1fc="" class="icon icon--md icon-file-check" aria-hidden="true"></span>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Session ready</div>
+      <div data-v-dd40d1fc="" class="toast__message">file.cast is ready</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
+</div>"
+`;
+
+exports[`ToastContainer component snapshots > warning toast 1`] = `
+"<div data-v-dd40d1fc="" class="toast-container">
+  <div data-v-dd40d1fc="" class="toast toast--warning" role="status" aria-live="polite" aria-atomic="true">
+    <div data-v-dd40d1fc="" class="toast__icon" aria-hidden="true">
+      <!-- Custom icon from design system -->
+      <!-- Default inline SVG icons -->
+      <!-- success -->
+      <!-- warning --><svg data-v-dd40d1fc="" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path data-v-dd40d1fc="" d="M10 2L1.5 17h17L10 2z"></path>
+        <path data-v-dd40d1fc="" d="M10 8v4M10 14v.5"></path>
+      </svg>
+    </div>
+    <div data-v-dd40d1fc="" class="toast__content">
+      <div data-v-dd40d1fc="" class="toast__title">Large file detected</div>
+      <div data-v-dd40d1fc="" class="toast__message">Processing may take longer than usual for files over 10MB.</div>
+    </div><button data-v-dd40d1fc="" class="toast__close" aria-label="Dismiss notification" type="button"><svg data-v-dd40d1fc="" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path data-v-dd40d1fc="" d="M3 3l8 8M11 3l-8 8"></path>
+      </svg></button>
+  </div>
 </div>"
 `;

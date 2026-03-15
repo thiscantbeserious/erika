@@ -1,10 +1,14 @@
 import { serve } from '@hono/node-server';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import app from './index.js';
 import { logger } from './logger.js';
 
+const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8')) as { name: string };
+
 const port = Number(process.env.PORT) || 3000;
 
-logger.info({ port }, 'Starting RAGTS server');
+logger.info({ port, name: pkg.name }, `Starting ${pkg.name} server`);
 
 const server = serve(
   { fetch: app.fetch, port },
