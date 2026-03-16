@@ -43,8 +43,8 @@
 
    How to add a new icon:
      1. Find the Lucide icon name at https://lucide.dev/icons/
-     2. Map it in design/extract-lucide-icons.mjs (erikaToLucide object)
-     3. Run: node design/extract-lucide-icons.mjs
+     2. Map it in .agents/scripts/extract-lucide-icons.mjs (erikaToLucide object)
+     3. Run: node .agents/scripts/extract-lucide-icons.mjs
      4. Copy the generated .icon-{name} CSS class block below
      Alternatively: fetch the SVG manually, normalize attributes per the
      convention above, URL-encode it (replace " with ', # with %23), and
