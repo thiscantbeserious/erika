@@ -143,9 +143,9 @@ All toolbar controls must be reachable and operable by keyboard. Tab order must 
 
 A third-party license file must exist at the repo root containing the complete license texts for Lucide (ISC) and Feather Icons (MIT). The README must reference it. This is a merge blocker.
 
-### FR-22 — Pipeline Data Source
+### FR-22 — Pipeline Data Source (OVERRIDDEN)
 
-The toolbar must reuse existing session list and SSE infrastructure. No new backend API endpoints. The component must access only session name, status, and queue position.
+~~The toolbar must reuse existing session list and SSE infrastructure. No new backend API endpoints.~~ **Override:** A new `/api/pipeline/status` SSE endpoint must be created to provide real-time, server-authoritative pipeline state. The toolbar connects to this global stream. The component must access only session name, status, and queue position — no infrastructure data. This expands scope to full-stack.
 
 ### FR-23 — Pipeline Label
 

@@ -68,10 +68,10 @@ One component contains all toolbar HTML, state, and styles. The mockup HTML is p
 ### Decision 3: Pipeline Data Flow
 
 #### Option A: New global SSE endpoint
-Add a server-side `/api/pipeline/status` SSE stream that broadcasts aggregate pipeline state.
+Add a server-side `/api/pipeline/status` SSE stream that broadcasts aggregate pipeline state (processing count, queued count, session names/statuses, completion events).
 
-- **Pros:** Single connection for global counts, server-authoritative
-- **Cons:** Violates FR-22 (no new backend endpoints), requires server changes (this is a frontend-only branch), adds backend complexity
+- **Pros:** Single connection for global counts, server-authoritative, truly real-time (no polling or session list refresh dependency), clean separation of concerns, enables future pipeline features (progress percentage, ETA)
+- **Cons:** Requires backend work (expands scope to full-stack), adds a new endpoint
 
 #### Option B: Derive from existing session list
 The `useSessionList` composable already holds all sessions. Filter by `detection_status` to compute processing/queued/recently-completed counts. The session list already refreshes via `fetchSessions()` when SSE terminal events fire in `SessionCard`. A new `usePipelineStatus` composable wraps this derivation.
@@ -85,7 +85,7 @@ The toolbar opens its own per-session SSE connections for processing sessions.
 - **Pros:** Real-time per-session status in the toolbar
 - **Cons:** Doubles SSE connections (sidebar cards already open them), hits the MAX_CONNECTIONS budget (3), complex lifecycle management
 
-**Decision: Option B.** The toolbar derives pipeline state from the injected `SessionListState`. A new `usePipelineStatus` composable creates computed properties: `processingCount`, `queuedCount`, `totalActive`, `processingSessions`, `queuedSessions`, `recentlyCompleted`. This reuses the session list that is already SSE-updated via SessionCard watchers. The session list auto-refreshes when any card reaches a terminal state. For the "Recently Completed" section, the composable tracks completion timestamps using a `watch` on the sessions ref, detecting transitions from processing to completed.
+**Decision: Option A (user override of FR-22).** A new `/api/pipeline/status` SSE endpoint broadcasts aggregate pipeline state. The toolbar connects to this single stream for real-time counts and session status. A `usePipelineStatus` composable on the client manages the SSE connection and exposes reactive state: `processingCount`, `queuedCount`, `totalActive`, `processingSessions`, `queuedSessions`, `recentlyCompleted`, `sseConnected`. This expands the branch scope from frontend-only to full-stack. The existing per-session SSE endpoints remain unchanged. The global endpoint uses the existing `EventBusAdapter` to listen for pipeline events and fans them out to connected clients.
 
 ### Decision 4: Collapse Mechanism
 
@@ -166,7 +166,8 @@ A Vite plugin that resolves Lucide icons at build time and injects them into the
 - `icons.css` is larger (24x24 viewBox data URIs are more verbose than 20x20)
 - The header overflow change requires visual verification at multiple viewport widths
 - The collapse animation needs designer approval for the collapsed visual state
-- The `usePipelineStatus` composable depends on the session list refresh cadence for "recently completed" tracking
+- The new SSE endpoint requires backend implementation and testing
+- Branch scope expands from frontend-only to full-stack
 
 ### Follow-ups to scope for later
 - Global SSE endpoint for truly real-time pipeline counts (if session list refresh latency proves insufficient)
@@ -179,7 +180,7 @@ A Vite plugin that resolves Lucide icons at build time and injects them into the
 
 1. **Icon delivery: mask-image data URIs preserved.** Lucide SVGs replace the path data but the CSS rendering mechanism is unchanged. This satisfies FR-14 and FR-15 with zero migration risk.
 2. **Toolbar: decomposed component tree.** `ToolbarPill` > `PipelineRingTrigger` + `PipelineDropdown` + `ToolbarButton` + `ToolbarAvatar`. Enables per-stage implementation and testing.
-3. **Pipeline data: derived from existing session list.** A `usePipelineStatus` composable wraps computed properties over the injected `SessionListState`. No new backend endpoints (FR-22).
+3. **Pipeline data: new global SSE endpoint (user override of FR-22).** A `/api/pipeline/status` SSE stream provides server-authoritative, real-time pipeline state. Expands scope to full-stack.
 4. **Collapse: Vue reactive state + CSS transition.** `ref<boolean>` in ToolbarPill, survives navigation naturally via SpatialShell lifecycle, resets on page reload per FR-09.
 5. **Header overflow: change to `visible`.** The breadcrumb truncation chain is self-contained. `z-index: 50` on the header ensures dropdown stacking. Visual verification required.
 6. **Lucide extraction: one-time Node.js script.** Repeatable, committed to repo, generates CSS declarations from Lucide source SVGs.

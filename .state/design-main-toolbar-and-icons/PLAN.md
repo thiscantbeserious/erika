@@ -7,7 +7,7 @@ References: ADR.md
 Implementation challenges to solve (architect identifies, engineers resolve):
 
 1. **Breadcrumb truncation after overflow change.** Does changing `.shell-header` from `overflow: clip` to `overflow: visible` break breadcrumb text-overflow ellipsis? The inner chain (`min-width: 0` + `overflow: hidden` on the breadcrumb nav) should be sufficient, but must be verified at 1024px viewport with a long filename.
-2. **Recently Completed tracking.** The session list does not currently track completion timestamps. The `usePipelineStatus` composable needs to detect when sessions transition from processing to completed and maintain a time-limited list. This may require a `watch` with a small internal cache.
+2. **Global SSE endpoint design.** The new `/api/pipeline/status` SSE stream must broadcast aggregate pipeline state (processing/queued counts, session names+statuses, completion events). Must integrate with existing `EventBusAdapter`. Recently completed sessions need server-side tracking with a time-limited window.
 3. **Collapse animation CSS.** Animating `width` or `max-width` with `overflow: hidden` on the pill. Need to determine whether `width: auto` to `width: 30px` (avatar only) can be transitioned smoothly, or whether a fixed expanded width is needed.
 4. **Designer approval needed.** Three states are NOT in the approved mockup: (a) dormant/inactive pill, (b) collapsed pill, (c) SSE disconnection indicator. These require designer drafts and user approval before implementation. Stages that depend on these states are marked accordingly.
 
@@ -73,9 +73,49 @@ Complexity: M
 
 Considerations:
 - The overflow change is the riskiest part. If breadcrumb ellipsis breaks, fall back to Option C from the ADR (wrapper element with absolute positioning for the dropdown).
-- `usePipelineStatus` must not open any SSE connections itself. It reads from the injected session list, which is already SSE-updated via SessionCard.
-- The `recentlyCompleted` derivation needs a `watch` on the sessions array to detect completion transitions and record timestamps. Entries expire after ~5 minutes.
 - `ToolbarPill.vue` at this stage is an empty glass pill container. Sub-components are added in subsequent stages.
+- `usePipelineStatus` composable is created as a stub with empty reactive state — wired to the real SSE endpoint in Stage 2b.
+
+---
+
+### Stage 2b: Global Pipeline SSE Endpoint + Composable
+
+Goal: Create the server-side `/api/pipeline/status` SSE stream and the client-side `usePipelineStatus` composable that connects to it.
+
+Owner: backend-engineer (server), frontend-engineer (composable)
+
+Server:
+- [ ] Create route `GET /api/pipeline/status` that opens an SSE stream
+- [ ] The stream emits the current pipeline snapshot on connection (all processing + queued sessions)
+- [ ] The stream emits events when sessions change status (processing, queued, completed, failed)
+- [ ] Recently completed sessions tracked server-side with a 5-minute rolling window
+- [ ] Event format: `{ type: 'pipeline-status', data: { processing: [...], queued: [...], recentlyCompleted: [...] } }`
+- [ ] Each session entry: `{ id, name, status, queuePosition?, progress? }`
+- [ ] No infrastructure data exposed (no worker count, thread count, memory)
+- [ ] Integrate with existing `EventBusAdapter` to listen for pipeline events
+- [ ] Write integration tests for the SSE endpoint
+
+Client:
+- [ ] Create `usePipelineStatus` composable in `src/client/composables/`
+- [ ] Connects to `/api/pipeline/status` SSE endpoint
+- [ ] Exposes reactive state: `processingSessions`, `queuedSessions`, `recentlyCompleted`, `processingCount`, `queuedCount`, `totalActive`, `connected` (boolean for SSE connection health)
+- [ ] Handles SSE disconnection: sets `connected = false`, attempts reconnect with backoff
+- [ ] Handles SSE reconnection: sets `connected = true`, state refreshes from the snapshot event
+- [ ] Write unit tests for the composable
+
+Files:
+- `src/server/routes/pipeline_status.ts` (create)
+- `src/server/routes/pipeline_status.test.ts` (create)
+- `src/client/composables/use_pipeline_status.ts` (create)
+- `src/client/composables/use_pipeline_status.test.ts` (create)
+
+Depends on: Stage 1 (icons must be migrated first so the toolbar can use Lucide icons)
+Complexity: M
+
+Considerations:
+- The SSE endpoint must follow the same pattern as existing SSE endpoints in the codebase
+- The `connected` boolean in the composable feeds FR-08 (SSE disconnection indicator)
+- The composable should be provided at the SpatialShell level so all toolbar sub-components can inject it
 
 ---
 
@@ -86,7 +126,7 @@ Goal: Add the SVG progress ring with count display and the pipeline label. Imple
 Owner: frontend-engineer
 
 - [ ] Create `PipelineRingTrigger.vue` with the SVG progress ring markup (copied from mockup: `progress-ring`, `progress-ring__bg`, `progress-ring__fill`, `ring-count`)
-- [ ] Bind the ring count to `totalActive` from `usePipelineStatus`
+- [ ] Bind the ring count to `totalActive` from `usePipelineStatus` (wired to the global SSE endpoint from Stage 2b)
 - [ ] Compute `stroke-dashoffset` from pipeline progress (or use a simple active/inactive binary for now since per-session progress percentage is out of scope)
 - [ ] Implement dormant state: when `totalActive === 0`, reduce ring opacity, fade label to `--text-disabled`, remove glow
 - [ ] Implement active state: when `totalActive > 0`, full opacity ring with cyan glow and animated stroke fill
@@ -100,7 +140,7 @@ Files:
 - `src/client/components/PipelineRingTrigger.test.ts` (create)
 - `src/client/components/ToolbarPill.vue` (modify: mount PipelineRingTrigger)
 
-Depends on: Stage 2
+Depends on: Stage 2, Stage 2b
 Complexity: M
 
 Considerations:
