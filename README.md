@@ -139,3 +139,7 @@ Protected files carry a copyright header pointing to their accompanying LICENSE 
 ### Application Code (AGPL-3.0)
 
 The application source code is copyleft open-source. You can use, modify, and distribute it, but network use requires sharing your source.
+
+### Third-Party Licenses
+
+Icons are sourced from [Lucide](https://lucide.dev) (ISC license, derived from Feather Icons under MIT). See [THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES) for full attribution.

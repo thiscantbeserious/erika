@@ -31,6 +31,12 @@ export interface SessionAdapter {
   findAll(): Promise<Session[]>;
 
   /**
+   * Find sessions matching any of the given detection statuses.
+   * Returns only sessions whose detection_status is in the provided set.
+   */
+  findByStatuses(statuses: DetectionStatus[]): Promise<Session[]>;
+
+  /**
    * Find a session by ID.
    * Returns null if not found.
    */

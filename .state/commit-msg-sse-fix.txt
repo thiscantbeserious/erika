@@ -1,0 +1,10 @@
+fix(server): serialize SSE writes, replace polling with abort signal
+
+- Add serial write queue (busy flag + pendingSnapshot) to handlePipelineStatus
+  so concurrent writes never interleave SSE frames and errors on a closed
+  stream are caught without unhandled rejections
+- Replace 1-second polling waitUntilClosed with c.req.raw.signal abort event
+  so the connection closes immediately on client disconnect with no polling overhead
+- Remove now-unused waitUntilClosed helper
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
