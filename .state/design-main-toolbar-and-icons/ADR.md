@@ -13,7 +13,7 @@ The approved design (Draft 2b) introduces a glass pill toolbar with pipeline sta
 
 - **Mockup is the spec.** `draft-2b-lucide.html` contains exact CSS values. The engineer must copy them, not reinterpret them.
 - **Zero new runtime dependencies** (FR-15). Icons must remain CSS mask-image data URIs. No `lucide-vue-next`, no icon font, no CDN.
-- **Existing SSE is session-scoped.** The current `useSSE` composable opens a connection per session ID (`/api/sessions/:id/events`). There is no global SSE endpoint. The toolbar needs aggregate pipeline counts derived from the session list, not a new backend stream.
+- **Existing SSE is session-scoped.** The current `useSSE` composable opens a connection per session ID (`/api/sessions/:id/events`). There is no global SSE endpoint. A new `/api/pipeline/status` SSE endpoint provides aggregate pipeline state for the toolbar (Decision 3, user override of FR-22).
 - **Header overflow is `clip`.** The current `.shell-header` uses `overflow: clip` to truncate breadcrumb text without creating a scroll context. The pipeline dropdown must extend below the header, requiring this to change.
 - **Spatial shell grid is fixed.** The toolbar must fit within `shell-header__right` without grid changes.
 - **Lucide license (ISC/MIT) requires attribution** in a `THIRD-PARTY-LICENSES` file. This is a merge blocker.
@@ -170,11 +170,27 @@ A Vite plugin that resolves Lucide icons at build time and injects them into the
 - Branch scope expands from frontend-only to full-stack
 
 ### Follow-ups to scope for later
-- Global SSE endpoint for truly real-time pipeline counts (if session list refresh latency proves insufficient)
 - Clickable session names in the pipeline dropdown (navigation shortcut, out of scope)
 - Mobile toolbar adaptation (responsive behavior deferred)
 - Settings page destination (toolbar provides the entry point only)
 - Notification system infrastructure (bell is a placeholder)
+
+## Risks
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|-----------|
+| Icon visual regressions at small sizes | Medium | Medium | Visual regression tests; review at xs and sm sizes |
+| Overflow change breaks breadcrumb truncation | Medium | Low | Architect confirms approach; test breadcrumb behavior |
+| Dropdown z-index conflicts with sidebar | Low | Medium | Verify z-index layering with sidebar open |
+| SSE disconnection hard to test in dev | Low | Low | Test helper or manual backend kill |
+| Missed raw color value in toolbar CSS | Medium | Low | Code review searches for raw values |
+| Collapse animation causes layout shift | Low | Medium | Test at multiple viewport widths |
+| License attribution omitted before merge | Low | High | Merge blocker; reviewer checklist |
+| Global SSE connection budget conflict | Medium | Medium | The existing client-side `useSSE` enforces `MAX_CONNECTIONS = 3` for per-session SSE. The new global pipeline SSE is a permanent connection (never closes on terminal events), which would permanently consume a budget slot if it shares the budget tracker. The `usePipelineStatus` composable must bypass the per-session budget entirely since it connects to a different endpoint (`/api/pipeline/status` vs `/api/sessions/:id/events`). |
+| Server-side SSE lifecycle differs from per-session | Medium | Low | The existing server-side `acquireConnection`/`releaseConnection` in `sse_connections.ts` assumes connections close on terminal events. The global endpoint has no terminal state -- it stays open for the client's lifetime. If the global endpoint reuses the same connection tracking, it permanently holds a slot. The global endpoint should either bypass server-side connection tracking or use a separate budget. |
+| SessionAdapter dependency for aggregate snapshot | Low | Low | The `/api/pipeline/status` endpoint must query `SessionAdapter` on initial connection to build the current pipeline snapshot (all processing + queued sessions). This dependency is not present in the existing SSE route pattern (which only reads one session by ID). The `PipelineStatusService` must accept `SessionAdapter` as a dependency in its constructor. |
+| Branch name vs full-stack git contract mismatch | Medium | Medium | The branch is named `design-main-toolbar-and-icons` (design prefix). The full-stack workflow variant requires `feat/` or `fix/` branch prefix. Either rename the branch to `feat/main-toolbar-and-icons` before server-side work begins, or document an explicit git contract exception in the PLAN. The `.husky/commit-msg` hook validates scopes but not branch prefixes, so this is a process risk, not a tooling blocker. |
+| Recently completed rolling window lost on server restart | Low | Low | The 5-minute rolling window for "recently completed" sessions is tracked in server memory (completion timestamps). On server restart, this state is lost -- the dropdown will show no recently completed sessions until new sessions finish. This is acceptable for a dev/self-hosted tool but should be documented. A future enhancement could reconstruct the window from `detection_status = 'completed'` rows with recent `updated_at` timestamps on startup. |
 
 ## Decision History
 

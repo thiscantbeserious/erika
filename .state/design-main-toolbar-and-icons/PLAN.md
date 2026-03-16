@@ -10,6 +10,7 @@ Implementation challenges to solve (architect identifies, engineers resolve):
 2. **Global SSE endpoint design.** The new `/api/pipeline/status` SSE stream must broadcast aggregate pipeline state (processing/queued counts, session names+statuses, completion events). Must integrate with existing `EventBusAdapter`. Recently completed sessions need server-side tracking with a time-limited window.
 3. **Collapse animation CSS.** Animating `width` or `max-width` with `overflow: hidden` on the pill. Need to determine whether `width: auto` to `width: 30px` (avatar only) can be transitioned smoothly, or whether a fixed expanded width is needed.
 4. **Designer approval needed.** Three states are NOT in the approved mockup: (a) dormant/inactive pill, (b) collapsed pill, (c) SSE disconnection indicator. These require designer drafts and user approval before implementation. Stages that depend on these states are marked accordingly.
+5. **Branch name vs full-stack git contract.** The branch is `design-main-toolbar-and-icons` but the scope is now full-stack (Decision 3 override). The full-stack variant requires `feat/` or `fix/` prefix. Decision needed before server-side work begins: rename branch to `feat/main-toolbar-and-icons` or document an explicit exception.
 
 ## Stages
 
@@ -54,18 +55,14 @@ Owner: frontend-engineer
 - [ ] Change `.shell-header` `overflow` from `clip` to `visible` in the scoped styles of `ShellHeader.vue`
 - [ ] Add `z-index: 50` to `.spatial-shell__header` in `shell.css` (matching the mockup)
 - [ ] Create `ToolbarPill.vue` with the glass pill container markup and styles (copied from mockup: `toolbar-pill` class with backdrop-filter, border, box-shadow)
-- [ ] Create `usePipelineStatus.ts` composable that injects `sessionListKey` and derives: `processingSessions`, `queuedSessions`, `processingCount`, `queuedCount`, `totalActive`, `recentlyCompleted`
 - [ ] Mount `ToolbarPill.vue` inside `ShellHeader.vue`'s `shell-header__right` div
 - [ ] Verify: breadcrumb text-overflow ellipsis still works with a long filename at 1024px viewport
 - [ ] Verify: the empty pill renders in the correct position, vertically centered, right-aligned
-- [ ] Write unit tests for `usePipelineStatus` composable (processing/queued filtering, count derivation)
 - [ ] Write unit test for `ShellHeader.vue` confirming the toolbar is rendered
 
 Files:
 - `src/client/components/ShellHeader.vue` (modify: add overflow change, mount ToolbarPill)
 - `src/client/components/toolbar/ToolbarPill.vue` (create)
-- `src/client/composables/usePipelineStatus.ts` (create)
-- `src/client/composables/usePipelineStatus.test.ts` (create)
 - `design/styles/shell.css` (modify: add z-index to `.spatial-shell__header`)
 
 Depends on: Stage 1
@@ -73,49 +70,57 @@ Complexity: M
 
 Considerations:
 - The overflow change is the riskiest part. If breadcrumb ellipsis breaks, fall back to Option C from the ADR (wrapper element with absolute positioning for the dropdown).
-- `ToolbarPill.vue` at this stage is an empty glass pill container. Sub-components are added in subsequent stages.
-- `usePipelineStatus` composable is created as a stub with empty reactive state — wired to the real SSE endpoint in Stage 2b.
+- `ToolbarPill.vue` at this stage is an empty glass pill container. Sub-components are added in subsequent stages. The composable is created in Stage 2b.
 
 ---
 
 ### Stage 2b: Global Pipeline SSE Endpoint + Composable
 
-Goal: Create the server-side `/api/pipeline/status` SSE stream and the client-side `usePipelineStatus` composable that connects to it.
+Goal: Create the server-side `/api/pipeline/status` SSE stream, the `PipelineStatusService`, and the client-side `usePipelineStatus` composable that connects to it.
 
 Owner: backend-engineer (server), frontend-engineer (composable)
 
 Server:
+- [ ] Create `PipelineStatusService` that manages aggregate pipeline state: subscribes to `EventBusAdapter` for all pipeline events, maintains an in-memory map of active sessions (processing + queued), tracks recently completed sessions in a 5-minute rolling window, and provides a snapshot method for initial SSE connection data
+- [ ] The service must accept `SessionAdapter` to query current pipeline state on startup (reconstruct active sessions from DB on first connection or service init)
 - [ ] Create route `GET /api/pipeline/status` that opens an SSE stream
 - [ ] The stream emits the current pipeline snapshot on connection (all processing + queued sessions)
 - [ ] The stream emits events when sessions change status (processing, queued, completed, failed)
-- [ ] Recently completed sessions tracked server-side with a 5-minute rolling window
 - [ ] Event format: `{ type: 'pipeline-status', data: { processing: [...], queued: [...], recentlyCompleted: [...] } }`
 - [ ] Each session entry: `{ id, name, status, queuePosition?, progress? }`
 - [ ] No infrastructure data exposed (no worker count, thread count, memory)
-- [ ] Integrate with existing `EventBusAdapter` to listen for pipeline events
+- [ ] Register route in `app.ts` (`createApp` function) with the new service wired to dependencies
 - [ ] Write integration tests for the SSE endpoint
+- [ ] Write unit tests for `PipelineStatusService` (state tracking, rolling window, snapshot generation)
 
 Client:
-- [ ] Create `usePipelineStatus` composable in `src/client/composables/`
-- [ ] Connects to `/api/pipeline/status` SSE endpoint
+- [ ] Create `usePipelineStatus` composable in `src/client/composables/usePipelineStatus.ts`
+- [ ] Connects to `/api/pipeline/status` SSE endpoint (bypasses the per-session `MAX_CONNECTIONS` budget -- this is a different endpoint with a different lifecycle)
 - [ ] Exposes reactive state: `processingSessions`, `queuedSessions`, `recentlyCompleted`, `processingCount`, `queuedCount`, `totalActive`, `connected` (boolean for SSE connection health)
 - [ ] Handles SSE disconnection: sets `connected = false`, attempts reconnect with backoff
 - [ ] Handles SSE reconnection: sets `connected = true`, state refreshes from the snapshot event
 - [ ] Write unit tests for the composable
 
 Files:
+- `src/server/services/pipeline_status_service.ts` (create)
+- `src/server/services/pipeline_status_service.test.ts` (create)
 - `src/server/routes/pipeline_status.ts` (create)
 - `src/server/routes/pipeline_status.test.ts` (create)
-- `src/client/composables/use_pipeline_status.ts` (create)
-- `src/client/composables/use_pipeline_status.test.ts` (create)
+- `src/server/app.ts` (modify: register `/api/pipeline/status` route, wire PipelineStatusService)
+- `src/client/composables/usePipelineStatus.ts` (create)
+- `src/client/composables/usePipelineStatus.test.ts` (create)
 
-Depends on: Stage 1 (icons must be migrated first so the toolbar can use Lucide icons)
-Complexity: M
+Depends on: none (data plumbing layer -- no icon or UI dependency)
+Complexity: L
 
 Considerations:
-- The SSE endpoint must follow the same pattern as existing SSE endpoints in the codebase
+- The SSE endpoint must follow the same pattern as existing SSE endpoints in the codebase (thin route delegating to service, `streamSSE` from `hono/streaming`, keepalive)
 - The `connected` boolean in the composable feeds FR-08 (SSE disconnection indicator)
 - The composable should be provided at the SpatialShell level so all toolbar sub-components can inject it
+- The global SSE connection has no terminal state (unlike per-session SSE which closes on `session.ready`/`session.failed`). The server-side connection tracking in `sse_connections.ts` should NOT be reused for this endpoint -- use a separate tracking mechanism or bypass it entirely
+- The composable must NOT use the per-session `MAX_CONNECTIONS` budget from `useSSE.ts`. It manages its own single connection independently
+- The 5-minute rolling window for recently completed sessions is tracked in server memory. On server restart, this state is lost. Acceptable for now; a future enhancement could reconstruct from DB rows with recent `updated_at` timestamps
+- The `PipelineStatusService` constructor needs: `EventBusAdapter` (subscribe to pipeline events), `SessionAdapter` (query initial pipeline snapshot on startup)
 
 ---
 
@@ -256,24 +261,22 @@ Goal: Show a subtle warning state on the pipeline ring when real-time updates ar
 
 Owner: frontend-engineer
 
-- [ ] Extend `usePipelineStatus` to track SSE connection health. Since the composable reads from the session list (not from SSE directly), disconnection detection needs a different approach: monitor whether the session list has stale data by checking if any processing sessions have not changed status within a timeout threshold
-- [ ] Alternatively: add a lightweight global SSE health check by attempting a HEAD request to the server periodically when sessions are processing
-- [ ] When disconnected: show a subtle visual state on the pipeline ring (grey ring, reduced opacity, small disconnect icon)
-- [ ] When reconnected: restore normal ring appearance and refresh the session list
+- [ ] Read the `connected` boolean from `usePipelineStatus` composable (already exposed by Stage 2b -- tracks the global SSE connection health directly)
+- [ ] When `connected === false`: show a subtle visual state on the pipeline ring (grey ring, reduced opacity, small disconnect icon)
+- [ ] When `connected` transitions back to `true`: restore normal ring appearance (state refreshes automatically from the SSE snapshot event on reconnect)
 - [ ] No error toast or modal (FR-08: ambient, not disruptive)
-- [ ] Write unit tests: disconnection state applies when health check fails, recovers on success
+- [ ] Write unit tests: disconnection state applies when `connected` is false, recovers when `connected` is true
 
 Files:
-- `src/client/composables/usePipelineStatus.ts` (modify: add connection health tracking)
-- `src/client/components/toolbar/PipelineRingTrigger.vue` (modify: add disconnection visual state)
+- `src/client/components/toolbar/PipelineRingTrigger.vue` (modify: add disconnection visual state based on `connected` prop/inject)
 
-Depends on: Stage 3
-Complexity: M
+Depends on: Stage 3, Stage 2b
+Complexity: S
 
 Considerations:
 - **SSE disconnection visual is NOT in the approved mockup. Designer approval required.** Implementation must wait for designer to produce and user to approve the disconnection state visual.
-- The current architecture does not have a global SSE connection. The toolbar cannot directly know if SSE connections are healthy since those connections are per-SessionCard. A pragmatic approach: if any processing session's `useSSE` instance reports `isConnected: false`, consider the pipeline disconnected. This requires either lifting `isConnected` state up or using a lightweight server health check.
-- A simple approach: periodic `fetch('/api/health')` when `totalActive > 0`. If it fails, show the disconnection state. This is simpler than plumbing SSE connection state from individual SessionCards.
+- The `connected` boolean from the `usePipelineStatus` composable directly reflects the global SSE connection health. No additional health-check mechanism is needed -- the composable handles reconnection with backoff and updates the boolean on disconnect/reconnect.
+- The `PipelineRingTrigger` component receives the `connected` state either via props (from `ToolbarPill`) or by injecting the composable directly.
 
 ---
 
@@ -371,10 +374,13 @@ Considerations:
 ```mermaid
 graph TD
     S1[Stage 1: Lucide Icons] --> S2[Stage 2: Overflow + Shell]
+    S1 --> S2b[Stage 2b: SSE Endpoint + Composable]
     S2 --> S3[Stage 3: Pipeline Ring]
+    S2b --> S3
     S2 --> S5[Stage 5: Buttons + Avatar]
     S3 --> S4[Stage 4: Pipeline Dropdown]
     S3 --> S7[Stage 7: SSE Disconnect]
+    S2b --> S7
     S5 --> S6[Stage 6: Collapse Animation]
     S4 --> S8[Stage 8: Keyboard A11y]
     S5 --> S8
@@ -384,17 +390,25 @@ graph TD
     S9 --> S10[Stage 10: Visual Tests]
 ```
 
+**Note:** Stage 2b has no dependency on Stage 1. The arrow from S1 to S2b in the graph is removed from the dependency chain below. The graph shows it branching from S1 only for visual layout -- the textual dependencies are authoritative.
+
+**Corrected dependency chain:**
+
 - Stage 2 depends on Stage 1 (icons must be migrated first so the toolbar uses Lucide icons from day one)
-- Stage 3 depends on Stage 2 (needs the pill container and composable)
+- **Stage 2b depends on nothing** (pure data plumbing -- server SSE endpoint + client composable, no UI dependency)
+- Stage 3 depends on Stage 2 and Stage 2b (needs both the pill container and the composable)
 - Stage 4 depends on Stage 3 (needs the ring trigger to open the dropdown)
 - Stage 5 depends on Stage 2 (needs the pill container; can run in parallel with Stages 3-4)
 - Stage 6 depends on Stage 5 (needs the avatar component for the collapse trigger)
-- Stage 7 depends on Stage 3 (needs the pipeline ring to show disconnection state)
+- Stage 7 depends on Stage 3 and Stage 2b (needs the pipeline ring and the composable's `connected` boolean)
 - Stage 8 depends on Stages 4 and 5 (needs all interactive elements to test keyboard nav)
 - Stage 9 depends on Stages 4, 5, and 6 (needs all raw values present to extract)
 - Stage 10 depends on Stage 9 (final visual verification after all implementation and cleanup)
 
-**Parallelizable:** Stages 3 and 5 can run in parallel after Stage 2 completes (no file overlap). Stage 7 can run in parallel with Stage 4 if designer approval is available.
+**Parallelizable:**
+- **Stage 2b can run in parallel with Stage 1** (no file overlap, no dependency). This is the most impactful parallelization -- backend work starts immediately.
+- Stages 3 and 5 can run in parallel after Stage 2 completes (no file overlap).
+- Stage 7 can run in parallel with Stage 4 if designer approval is available.
 
 ## Progress
 
@@ -403,7 +417,8 @@ Updated by engineers as work progresses.
 | Stage | Status | Notes |
 |-------|--------|-------|
 | 1 | pending | Lucide icon migration + license |
-| 2 | pending | Overflow fix + toolbar shell + composable |
+| 2 | pending | Overflow fix + toolbar shell |
+| 2b | pending | SSE endpoint + composable (can start in parallel with Stage 1) |
 | 3 | pending | Pipeline ring (needs designer approval for dormant state) |
 | 4 | pending | Pipeline dropdown |
 | 5 | pending | Settings, bell, avatar |
