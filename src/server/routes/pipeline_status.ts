@@ -48,9 +48,32 @@ export async function handlePipelineStatus(
       service.offUpdate(handleUpdate);
     };
 
+    // Serial write queue — coalesces rapid updates, prevents interleaved frames,
+    // and catches write errors on a closed stream without unhandled rejections.
+    let writing = false;
+    let pendingSnapshot: PipelineStatusSnapshot | null = null;
+
+    const drainQueue = async (): Promise<void> => {
+      writing = true;
+      while (pendingSnapshot !== null && !stream.closed) {
+        const snap = pendingSnapshot;
+        pendingSnapshot = null;
+        try {
+          await writeStatusEvent(stream, snap);
+        } catch {
+          cleanup();
+          writing = false;
+          return;
+        }
+      }
+      writing = false;
+    };
+
     const handleUpdate = (snapshot: PipelineStatusSnapshot) => {
       if (closed || stream.closed) { cleanup(); return; }
-      void writeStatusEvent(stream, snapshot);
+      pendingSnapshot = snapshot;
+      if (writing) return; // current drainQueue will pick up pendingSnapshot
+      void drainQueue();
     };
 
     service.onUpdate(handleUpdate);
@@ -61,9 +84,12 @@ export async function handlePipelineStatus(
       const snapshot = service.getSnapshot();
       await writeStatusEvent(stream, snapshot);
 
-      // Keep stream open until client disconnects.
-      // The keepalive timer and the onUpdate callback drive further writes.
-      await waitUntilClosed(stream);
+      // Keep stream open until client disconnects using the request abort signal.
+      // Falls back to stream.closed check when the signal is already aborted.
+      await new Promise<void>((resolve) => {
+        if (c.req.raw.signal.aborted) { resolve(); return; }
+        c.req.raw.signal.addEventListener('abort', () => resolve(), { once: true });
+      });
     } finally {
       stopKeepalive();
       cleanup();
@@ -82,16 +108,3 @@ async function writeStatusEvent(
   });
 }
 
-/**
- * Poll until the stream closes. Resolves when stream.closed becomes true.
- * Uses a short polling interval to avoid blocking the event loop.
- */
-async function waitUntilClosed(stream: { closed: boolean }): Promise<void> {
-  return new Promise<void>((resolve) => {
-    const check = () => {
-      if (stream.closed) { resolve(); return; }
-      setTimeout(check, 1000);
-    };
-    check();
-  });
-}
