@@ -70,7 +70,7 @@ export class WorkerPool<TPayload, TResult> {
   private readonly maxCrashesPerSlot: number;
 
   private slots: WorkerSlot<TPayload, TResult>[] = [];
-  private queue: PendingJob<TPayload, TResult>[] = [];
+  private readonly queue: PendingJob<TPayload, TResult>[] = [];
   private nextJobId = 0;
   private shuttingDown = false;
 
@@ -248,9 +248,9 @@ export class WorkerPool<TPayload, TResult> {
   private handleWorkerMessage(slot: WorkerSlot<TPayload, TResult>, msg: WorkerMessage): void {
     if (msg.type !== 'result') return;
 
-    const job = slot.currentJob;
-    if (!job || job.id !== msg.id) return;
+    if (slot.currentJob?.id !== msg.id) return;
 
+    const job = slot.currentJob;
     slot.currentJob = null;
     slot.state = 'idle';
 

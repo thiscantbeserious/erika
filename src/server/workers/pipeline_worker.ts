@@ -50,7 +50,6 @@ async function handleJob(msg: JobMessage): Promise<void> {
   let stageName = 'validate';
 
   try {
-    stageName = 'validate';
     const validateResult = await validate(payload.filePath, payload.sessionId);
 
     stageName = 'detect';
@@ -87,8 +86,10 @@ async function main(): Promise<void> {
   });
 }
 
-main().catch((err: unknown) => {
+try {
+  await main();
+} catch (err: unknown) {
   // Fatal: WASM init failed. Worker cannot function — exit so the pool respawns.
   process.stderr.write(`pipeline_worker fatal: ${err instanceof Error ? err.message : String(err)}\n`);
   process.exit(1);
-});
+}

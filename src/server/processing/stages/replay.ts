@@ -32,7 +32,7 @@ const SCROLLBACK_SIZE = 200000;
 function countLFs(str: string): number {
   let count = 0;
   for (let i = 0; i < str.length; i++) {
-    if (str.charCodeAt(i) === 10) count++;
+    if (str.codePointAt(i) === 10) count++;
   }
   return count;
 }
@@ -125,6 +125,8 @@ interface ReplayState {
   approxLineCount: number;
   batchText: string;
   batchCount: number;
+  epochBoundaries: EpochBoundary[];
+  sectionData: Array<{ lineCount: number | null; snapshot: TerminalSnapshot | null }>;
 }
 
 /** Process a single critical event (clear-screen or section boundary). */
@@ -135,8 +137,6 @@ function processCriticalEvent(
   str: string,
   j: number,
   boundaryIdx: number | undefined,
-  epochBoundaries: EpochBoundary[],
-  sectionData: Array<{ lineCount: number | null; snapshot: TerminalSnapshot | null }>
 ): void {
   if (state.batchText) {
     vt.feed(state.batchText);
@@ -151,13 +151,13 @@ function processCriticalEvent(
   if (!state.inAltScreen) {
     state.approxLineCount += countLFs(fed);
     if (str.includes('\x1b[2J') || str.includes('\x1b[3J')) {
-      recordEpochBoundary(j, state.approxLineCount, epochBoundaries);
+      recordEpochBoundary(j, state.approxLineCount, state.epochBoundaries);
     }
   }
 
   if (boundaryIdx !== undefined) {
     state.highWaterLineCount = captureSectionSnapshot(
-      vt, state.inAltScreen, boundaryIdx, state.highWaterLineCount, state.approxLineCount, sectionData
+      vt, state.inAltScreen, boundaryIdx, state.highWaterLineCount, state.approxLineCount, state.sectionData
     );
   }
 }
@@ -199,9 +199,6 @@ export function replaySync(
     const eventCount = events.length;
     const sectionEndMap = buildSectionEndMap(boundaries, eventCount);
     const criticalIndices = buildCriticalIndices(events, sectionEndMap);
-    const sectionData = initSectionData(boundaries.length);
-    const epochBoundaries: EpochBoundary[] = [];
-
     const state: ReplayState = {
       inAltScreen: false,
       highWaterLineCount: 0,
@@ -209,6 +206,8 @@ export function replaySync(
       approxLineCount: 0,
       batchText: '',
       batchCount: 0,
+      epochBoundaries: [],
+      sectionData: initSectionData(boundaries.length),
     };
 
     for (let j = 0; j < eventCount; j++) {
@@ -234,7 +233,7 @@ export function replaySync(
       const boundaryIdx = sectionEndMap.get(j + 1);
 
       if (isCritical || boundaryIdx !== undefined) {
-        processCriticalEvent(vt, state, fed, str, j, boundaryIdx, epochBoundaries, sectionData);
+        processCriticalEvent(vt, state, fed, str, j, boundaryIdx);
       } else {
         processBatchedEvent(vt, state, fed, str);
       }
@@ -245,7 +244,7 @@ export function replaySync(
     }
 
     const rawSnapshot = vt.getAllLines();
-    return { rawSnapshot, sectionData, epochBoundaries };
+    return { rawSnapshot, sectionData: state.sectionData, epochBoundaries: state.epochBoundaries };
   } finally {
     vt.free();
   }
