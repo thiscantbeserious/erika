@@ -45,13 +45,20 @@ export function useSession(sessionId: MaybeRef<string>) {
 
   const filename = computed(() => session.value?.filename ?? '');
 
-  async function fetchSession(id: string): Promise<void> {
-    loading.value = true;
-    error.value = null;
-    session.value = null;
-    sections.value = [];
-    snapshot.value = null;
-    detectionStatus.value = 'pending';
+  /**
+   * Fetch session data. When `soft` is true, keeps existing data visible
+   * during the fetch (no skeleton flash). Used for SSE-triggered refreshes
+   * where the UI already has content to display.
+   */
+  async function fetchSession(id: string, soft = false): Promise<void> {
+    if (!soft) {
+      loading.value = true;
+      error.value = null;
+      session.value = null;
+      sections.value = [];
+      snapshot.value = null;
+      detectionStatus.value = 'pending';
+    }
     try {
       const res = await fetch(`/api/sessions/${id}`);
       if (res.status === 404) {
@@ -90,12 +97,17 @@ export function useSession(sessionId: MaybeRef<string>) {
     if (id) fetchSession(id);
   }, { immediate: true });
 
-  // SSE integration — re-fetch when pipeline reaches a terminal state
+  // SSE integration — soft re-fetch when pipeline reaches a terminal state.
+  // Only triggers when transitioning FROM a non-terminal state TO a terminal one,
+  // preventing duplicate fetches when SSE syncs an already-completed session.
   const { status: sseStatus } = useSSE(sessionIdRef, detectionStatus);
-  watch(sseStatus, (next) => {
+  const TERMINAL = new Set(['completed', 'failed', 'interrupted']);
+  watch(sseStatus, (next, prev) => {
     const id = toValue(sessionId);
-    if (id && (next === 'completed' || next === 'failed')) {
-      void fetchSession(id);
+    if (!id || !next) return;
+    // Only refetch on actual transition to terminal (not if already terminal)
+    if (TERMINAL.has(next) && !TERMINAL.has(prev ?? '')) {
+      void fetchSession(id, true);
     }
   });
 
