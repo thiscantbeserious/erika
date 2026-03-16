@@ -144,17 +144,14 @@ export class PipelineStatusService {
 
   /** Load current pipeline state from DB to reconstruct in-memory map. */
   private async loadInitialState(): Promise<void> {
-    const sessions = await this.sessionAdapter.findAll();
+    const activeStatuses: DetectionStatus[] = [...PROCESSING_STATUSES, 'queued'];
+    const sessions = await this.sessionAdapter.findByStatuses(activeStatuses);
     for (const session of sessions) {
-      const status = session.detection_status;
-      if (!status) continue;
-      if (PROCESSING_STATUSES.has(status) || status === 'queued') {
-        this.activeSessions.set(session.id, {
-          id: session.id,
-          name: session.filename,
-          status,
-        });
-      }
+      this.activeSessions.set(session.id, {
+        id: session.id,
+        name: session.filename,
+        status: session.detection_status!,
+      });
     }
   }
 

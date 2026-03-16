@@ -129,6 +129,15 @@ export class SqliteSessionImpl implements SessionAdapter {
     return this.findAllStmt.all() as Session[];
   }
 
+  async findByStatuses(statuses: DetectionStatus[]): Promise<Session[]> {
+    if (statuses.length === 0) return [];
+    const placeholders = statuses.map(() => '?').join(', ');
+    const stmt = this.db.prepare(
+      `SELECT * FROM sessions WHERE detection_status IN (${placeholders}) ORDER BY created_at DESC`
+    );
+    return stmt.all(...statuses) as Session[];
+  }
+
   async findById(id: string): Promise<Session | null> {
     const session = this.findByIdStmt.get(id) as Session | undefined;
     return session || null;

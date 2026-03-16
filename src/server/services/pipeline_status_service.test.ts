@@ -36,6 +36,9 @@ function makeSessionAdapter(sessions: Session[] = []): SessionAdapter {
     create: vi.fn(),
     createWithId: vi.fn(),
     findAll: vi.fn().mockResolvedValue(sessions),
+    findByStatuses: vi.fn().mockImplementation((statuses: string[]) =>
+      Promise.resolve(sessions.filter(s => statuses.includes(s.detection_status!)))
+    ),
     findById: vi.fn(),
     deleteById: vi.fn(),
     updateDetectionStatus: vi.fn(),
