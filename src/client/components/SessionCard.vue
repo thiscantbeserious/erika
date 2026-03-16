@@ -129,11 +129,11 @@ watch(liveStatus, (next, prev) => {
     addToast(`${props.session.filename} is ready`, 'success', { title: 'Session ready', icon: 'icon-file-check' });
     setTimeout(() => { justCompleted.value = false; }, 700);
     // Refresh sidebar list so section counts and status reflect server state
-    if (sessionList) void sessionList.refreshOnSessionComplete();
+    sessionList?.refreshOnSessionComplete();
   } else if ((next === 'failed' || next === 'interrupted') && !hasNotifiedTerminal.value) {
     hasNotifiedTerminal.value = true;
     addToast(`${props.session.filename} processing failed`, 'error', { title: 'Processing failed', icon: 'icon-error-circle' });
-    if (sessionList) void sessionList.refreshOnSessionComplete();
+    sessionList?.refreshOnSessionComplete();
   }
 });
 
