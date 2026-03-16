@@ -239,4 +239,4 @@ The running component must visually match the approved mockup at 1440x900 viewpo
 - **Vision:** `.state/design-main-toolbar-and-icons/VISION_STEP.md`
 
 ---
-**Sign-off:** Pending
+**Sign-off:** Approved (2026-03-16)
