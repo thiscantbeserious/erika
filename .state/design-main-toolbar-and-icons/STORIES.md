@@ -165,7 +165,7 @@ Acceptance:
 
 ### Developer — dropdown overflow fix
 
-As a frontend developer, I want the `spatial-shell__header` `overflow` to be changed from `hidden` to `visible` so that the pipeline dropdown can extend below the header boundary without being clipped.
+As a frontend developer, I want the `.shell-header` `overflow` to be changed from `clip` to `visible` so that the pipeline dropdown can extend below the header boundary without being clipped.
 
 Acceptance:
 - Pipeline dropdown renders fully below the header with no clipping at any viewport height

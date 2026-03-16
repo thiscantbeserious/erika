@@ -56,7 +56,7 @@ The progress ring MUST display the total count of sessions currently in the pipe
 
 ### FR-03 — Pipeline Ring Animation Transitions (Story: Platform user — pipeline awareness)
 
-State transitions between dormant and active MUST use `--duration-normal` and `--easing-default` design tokens. The transition from "0" to "1" MUST be visible in peripheral vision without requiring user interaction.
+State transitions between dormant and active MUST use `--duration-normal` and `--easing-default` design tokens. The transition MUST include both opacity and the cyan glow `drop-shadow` change, with duration >= `--duration-normal` (250ms), ensuring the visual change is noticeable without requiring user interaction.
 
 ### FR-04 — Pipeline Dropdown Opens on Ring Click (Story: Platform user — pipeline inspection)
 
@@ -85,7 +85,7 @@ On Escape, focus MUST return to the pipeline ring trigger button.
 
 ### FR-08 — SSE Disconnection Indicator (Story: Platform user — pipeline awareness — SSE disconnection)
 
-When the SSE connection drops, the pipeline ring MUST show a subtle ambient warning state (dim/grey ring or a small disconnect indicator). When SSE reconnects, the ring MUST return to its normal state and refresh the count. No error toast or modal is shown for this condition.
+When the SSE connection drops, the pipeline ring MUST show a subtle ambient warning state (ring stroke changes to `var(--text-disabled)`, glow `drop-shadow` removed). When SSE reconnects, the ring MUST return to its normal state and refresh the count. If the pipeline dropdown is open when SSE reconnects, the dropdown content MUST refresh to reflect the current pipeline state. No error toast or modal is shown for this condition. NOTE: the SSE disconnection visual is NOT in the approved mockup — the designer must approve the disconnection state CSS before the engineer implements it.
 
 ### FR-09 — Toolbar Collapse / Expand (Story: Platform user — toolbar collapse)
 
@@ -123,6 +123,13 @@ A comment block at the top of `icons.css` MUST document the pattern for adding a
 
 The Vue component MUST be built by copying the HTML/CSS from `draft-2b-lucide.html` verbatim first, then progressively enhancing with reactivity and composables. The implementation MUST NOT reimplement the design from memory or from prose description.
 
+**Explicit deviations from the mockup (approved):**
+- Add `aria-label` attributes to icon-only buttons (mockup has `title` only — accessibility improvement)
+- Replace `<span class="toolbar-icon" data-icon="...">` pattern with `.icon .icon-{name}` classes from `icons.css` (consistency with the rest of the app — the mockup uses a runtime fetch pattern for development convenience only)
+- Add collapsed-state CSS (not in mockup — requires designer approval before implementation)
+- Add dormant/idle ring CSS (not in mockup — requires designer approval before implementation)
+- Add SSE disconnection indicator CSS (not in mockup — requires designer approval before implementation)
+
 ### FR-18 — Design Token Extraction (Story: Developer — design token extraction)
 
 No raw `rgba()` color values MAY appear in the toolbar component's `<style>` block. All colors MUST reference `var(--*)` tokens. Toolbar-specific tokens (e.g., `--toolbar-glass-bg`, `--toolbar-separator`, `--toolbar-btn-hover-bg`, `--toolbar-btn-hover-border`) MUST be defined as scoped custom properties in the component or promoted to `layout.css` if reusable.
@@ -141,11 +148,19 @@ The `.shell-header` `overflow` property MUST be changed from `overflow: clip` to
 
 ### FR-21 — Lucide License Attribution (Story: Legal / compliance — Lucide attribution)
 
-A `THIRD-PARTY-LICENSES` file MUST exist at the repository root. It MUST contain: Lucide copyright notice, ISC license text, and Feather Icons MIT attribution (Lucide is a Feather fork). The project README MUST reference this file.
+A `THIRD-PARTY-LICENSES` file MUST exist at the repository root. It MUST contain the **complete** ISC license text (header, body, and copyright notice) for Lucide, plus the **complete** MIT license text for Feather Icons (Lucide is a Feather fork). Not just a one-line attribution — the full license text as required by ISC and MIT terms. The project README MUST reference this file. This is a merge blocker.
 
 ### FR-22 — Pipeline Data Source (Story: Self-hosting operator — pipeline transparency without exposure)
 
 The toolbar MUST source pipeline data from the existing session list and SSE event infrastructure already consumed by sidebar components. No new backend API endpoints are required. The component MUST access only: session name, status, and queue position. No infrastructure fields (worker count, thread count, memory) may be read or rendered.
+
+### FR-23 — Pipeline Label Text
+
+The pipeline ring trigger MUST include a "Pipeline" text label (as shown in the mockup). In dormant state (0 sessions), the label color MUST change to `var(--text-disabled)`. In collapsed toolbar state, the label is hidden along with the rest of the pill content. The label uses `var(--text-secondary)` in active state.
+
+### FR-24 — Minimum Viewport Width
+
+The toolbar dropdown MUST render without viewport overflow at viewport widths >= 1024px. Behavior at narrower viewports is out of scope (desktop-first).
 
 ## Non-Functional Requirements
 
