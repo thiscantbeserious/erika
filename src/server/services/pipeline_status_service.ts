@@ -157,24 +157,26 @@ export class PipelineStatusService {
 
   /** Subscribe to all pipeline event types on the event bus. */
   private subscribeToEvents(): void {
+    // Upload creates a new active session entry
     this.registerHandler('session.uploaded', (event) => {
       this.handleUploaded(event);
     });
-    this.registerHandler('session.validated', (event) => {
-      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.validated']!);
-    });
-    this.registerHandler('session.detected', (event) => {
-      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.detected']!);
-    });
-    this.registerHandler('session.replayed', (event) => {
-      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.replayed']!);
-    });
-    this.registerHandler('session.deduped', (event) => {
-      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.deduped']!);
-    });
+
+    // Progress events advance the session's status to the next pipeline stage
+    for (const eventType of Object.keys(EVENT_TO_STATUS) as PipelineEventType[]) {
+      if (eventType === 'session.uploaded') continue; // handled above
+      const nextStatus = EVENT_TO_STATUS[eventType]!;
+      this.registerHandler(eventType, (event) => {
+        this.handleProgressEvent(event.sessionId, nextStatus);
+      });
+    }
+
+    // Retry keeps the session active in processing state
     this.registerHandler('session.retrying', (event) => {
       this.handleProgressEvent(event.sessionId, 'processing');
     });
+
+    // Terminal events move sessions to recentlyCompleted
     this.registerHandler('session.ready', (event) => {
       this.handleTerminal(event.sessionId, 'completed');
     });
