@@ -137,7 +137,8 @@ describe('PipelineStatusService — event bus subscriptions', () => {
     const snapshot = service.getSnapshot();
     const session = snapshot.processing.find(s => s.id === 'sess-1');
     expect(session).toBeTruthy();
-    expect(session!.status).toBe('validating');
+    // session.validated means validation finished — next stage is detecting
+    expect(session!.status).toBe('detecting');
   });
 
   it('keeps session in processing when session.detected event fires', () => {
@@ -147,7 +148,8 @@ describe('PipelineStatusService — event bus subscriptions', () => {
     const snapshot = service.getSnapshot();
     const session = snapshot.processing.find(s => s.id === 'sess-1');
     expect(session).toBeTruthy();
-    expect(session!.status).toBe('detecting');
+    // session.detected means detection finished — next stage is replaying
+    expect(session!.status).toBe('replaying');
   });
 
   it('keeps session in processing when session.replayed event fires', () => {
@@ -157,7 +159,8 @@ describe('PipelineStatusService — event bus subscriptions', () => {
     const snapshot = service.getSnapshot();
     const session = snapshot.processing.find(s => s.id === 'sess-1');
     expect(session).toBeTruthy();
-    expect(session!.status).toBe('replaying');
+    // session.replayed means replay finished — next stage is deduplicating
+    expect(session!.status).toBe('deduplicating');
   });
 
   it('keeps session in processing when session.deduped event fires', () => {
@@ -167,7 +170,8 @@ describe('PipelineStatusService — event bus subscriptions', () => {
     const snapshot = service.getSnapshot();
     const session = snapshot.processing.find(s => s.id === 'sess-1');
     expect(session).toBeTruthy();
-    expect(session!.status).toBe('deduplicating');
+    // session.deduped means dedup finished — next stage is storing
+    expect(session!.status).toBe('storing');
   });
 
   it('moves session from processing to recentlyCompleted when session.ready fires', () => {
@@ -179,6 +183,21 @@ describe('PipelineStatusService — event bus subscriptions', () => {
     const completed = snapshot.recentlyCompleted.find(s => s.id === 'sess-1');
     expect(completed).toBeTruthy();
     expect(completed!.status).toBe('completed');
+  });
+
+  it('keeps session in processing when session.retrying event fires', () => {
+    eventBus.emit({ type: 'session.uploaded', sessionId: 'sess-1', filename: 'test.cast' });
+    eventBus.emit({
+      type: 'session.retrying',
+      sessionId: 'sess-1',
+      attempt: 2,
+      stage: 'validate' as import('../../shared/types/pipeline.js').PipelineStage,
+    });
+
+    const snapshot = service.getSnapshot();
+    const session = snapshot.processing.find(s => s.id === 'sess-1');
+    expect(session).toBeTruthy();
+    expect(session!.status).toBe('processing');
   });
 
   it('moves session from processing to recentlyCompleted when session.failed fires', () => {
@@ -254,6 +273,29 @@ describe('PipelineStatusService — 5-minute rolling window', () => {
 
     const snapshot = service.getSnapshot();
     expect(snapshot.recentlyCompleted).toHaveLength(1);
+  });
+
+  it('prunes expired entries from recentlyCompleted when a new terminal event fires', async () => {
+    const eventBus = new EmitterEventBusImpl();
+    const sessionAdapter = makeSessionAdapter([]);
+    const service = new PipelineStatusService({ eventBus, sessionAdapter });
+    await service.init();
+
+    // Complete first session
+    eventBus.emit({ type: 'session.uploaded', sessionId: 'sess-1', filename: 'a.cast' });
+    eventBus.emit({ type: 'session.ready', sessionId: 'sess-1' });
+
+    // Advance past the TTL so sess-1 is expired
+    vi.advanceTimersByTime(5 * 60 * 1000 + 1);
+
+    // Complete a second session — this should prune the expired sess-1 entry
+    eventBus.emit({ type: 'session.uploaded', sessionId: 'sess-2', filename: 'b.cast' });
+    eventBus.emit({ type: 'session.ready', sessionId: 'sess-2' });
+
+    const snapshot = service.getSnapshot();
+    // Only the fresh sess-2 entry should remain; the expired sess-1 was pruned on insert
+    expect(snapshot.recentlyCompleted).toHaveLength(1);
+    expect(snapshot.recentlyCompleted[0]!.id).toBe('sess-2');
   });
 });
 

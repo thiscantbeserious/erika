@@ -106,7 +106,7 @@ export function createApp(deps: AppDeps): Hono {
     eventBus,
     sessionAdapter: sessionRepository,
   });
-  void pipelineStatusService.init();
+  void pipelineStatusService.init().catch(err => log.error({ err }, 'PipelineStatusService init failed'));
 
   app.get('/api/health', async (c) => {
     try {

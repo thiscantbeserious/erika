@@ -24,13 +24,17 @@ const PROCESSING_STATUSES = new Set<DetectionStatus>([
   'pending', 'processing', 'validating', 'detecting', 'replaying', 'deduplicating', 'storing',
 ]);
 
-/** Maps pipeline event types to the resulting session detection_status. */
+/**
+ * Maps pipeline event types to the *next* detection_status.
+ * Each event signals that a stage completed, so the status advances to the
+ * following stage. Matches the EVENT_TO_STATUS mapping in useSSE.ts.
+ */
 const EVENT_TO_STATUS: Partial<Record<PipelineEventType, DetectionStatus>> = {
   'session.uploaded': 'processing',
-  'session.validated': 'validating',
-  'session.detected': 'detecting',
-  'session.replayed': 'replaying',
-  'session.deduped': 'deduplicating',
+  'session.validated': 'detecting',
+  'session.detected': 'replaying',
+  'session.replayed': 'deduplicating',
+  'session.deduped': 'storing',
 };
 
 /** Recently completed entry with completion timestamp for rolling window. */
@@ -160,16 +164,19 @@ export class PipelineStatusService {
       this.handleUploaded(event);
     });
     this.registerHandler('session.validated', (event) => {
-      this.handleProgressEvent(event.sessionId, 'validating');
+      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.validated']!);
     });
     this.registerHandler('session.detected', (event) => {
-      this.handleProgressEvent(event.sessionId, 'detecting');
+      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.detected']!);
     });
     this.registerHandler('session.replayed', (event) => {
-      this.handleProgressEvent(event.sessionId, 'replaying');
+      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.replayed']!);
     });
     this.registerHandler('session.deduped', (event) => {
-      this.handleProgressEvent(event.sessionId, 'deduplicating');
+      this.handleProgressEvent(event.sessionId, EVENT_TO_STATUS['session.deduped']!);
+    });
+    this.registerHandler('session.retrying', (event) => {
+      this.handleProgressEvent(event.sessionId, 'processing');
     });
     this.registerHandler('session.ready', (event) => {
       this.handleTerminal(event.sessionId, 'completed');
@@ -221,7 +228,12 @@ export class PipelineStatusService {
       completedAt: new Date().toISOString(),
     };
 
-    this.recentlyCompleted.push({ session: completedSession, completedAt: Date.now() });
+    const now = Date.now();
+    const cutoff = now - RECENTLY_COMPLETED_TTL_MS;
+
+    // Prune expired entries before appending to prevent unbounded growth.
+    this.recentlyCompleted = this.recentlyCompleted.filter(e => e.completedAt > cutoff);
+    this.recentlyCompleted.push({ session: completedSession, completedAt: now });
     this.notifyCallbacks();
   }
 
