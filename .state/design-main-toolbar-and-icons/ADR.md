@@ -1,7 +1,7 @@
 # ADR: Main Toolbar and Lucide Icon Migration
 
 ## Status
-Proposed
+Approved (2026-03-16)
 
 ## Context
 
