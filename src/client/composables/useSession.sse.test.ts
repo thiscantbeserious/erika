@@ -30,7 +30,6 @@ vi.mock('./useSSE.js', () => ({
 // Import AFTER mocks
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line import/first
 import { useSession } from './useSession.js';
 
 // ---------------------------------------------------------------------------

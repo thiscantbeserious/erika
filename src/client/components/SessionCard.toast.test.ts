@@ -46,7 +46,6 @@ vi.mock('vue-router', () => ({
 // Import component AFTER mocks are registered
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line import/first
 import SessionCard from './SessionCard.vue';
 
 // ---------------------------------------------------------------------------
