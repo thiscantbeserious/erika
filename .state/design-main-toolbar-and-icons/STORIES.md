@@ -206,4 +206,4 @@ Acceptance:
 - Dark / light theme switching (Erika is dark-theme only at this stage)
 
 ---
-**Sign-off:** Pending
+**Sign-off:** Approved (2026-03-16)
