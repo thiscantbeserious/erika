@@ -10,6 +10,7 @@
  * Connections: EventBus (events/), JobQueueAdapter (jobs/), WorkerPool (workers/).
  */
 
+import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { EventBusAdapter, EventHandler } from '../events/event_bus_adapter.js';
@@ -74,10 +75,20 @@ export class PipelineOrchestrator {
    * Must be awaited before the server handles requests.
    */
   async start(): Promise<void> {
-    const workerEntry = join(
-      dirname(fileURLToPath(import.meta.url)),
-      '../workers/pipeline_worker.ts'
+    // In source: this file is at src/server/processing/, worker is at src/server/workers/
+    // In production (Vite bundle): start.js is at dist/server/, worker is at dist/server/workers/
+    // Try both relative paths to find the worker entry.
+    const thisDir = dirname(fileURLToPath(import.meta.url));
+    const candidates = [
+      join(thisDir, '../workers/pipeline_worker.ts'),   // source layout
+      join(thisDir, 'workers/pipeline_worker.ts'),      // bundled layout (dist/server/)
+    ];
+    const workerEntry = candidates.find(p =>
+      existsSync(p) || existsSync(p.replace(/\.ts$/, '.js'))
     );
+    if (!workerEntry) {
+      throw new Error(`Pipeline worker not found. Tried: ${candidates.join(', ')}`);
+    }
     this.builtWorker = await resolveWorkerScript(workerEntry);
 
     this.pool = new WorkerPool<PipelinePayload, ProcessedSession>({
