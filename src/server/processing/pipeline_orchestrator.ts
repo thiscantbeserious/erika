@@ -157,16 +157,19 @@ export class PipelineOrchestrator {
       await this.advanceStage(job.id, sessionId, PipelineStage.Validate);
       const validateResult = await validate(session.filepath, sessionId);
       this.eventBus.emit({ type: 'session.validated', sessionId, eventCount: validateResult.eventCount });
+      await new Promise(resolve => setImmediate(resolve));
 
       // Stage 2: detect
       await this.advanceStage(job.id, sessionId, PipelineStage.Detect);
       const detectResult = detect(validateResult.events, validateResult.markers);
       this.eventBus.emit({ type: 'session.detected', sessionId, sectionCount: detectResult.sectionCount });
+      await new Promise(resolve => setImmediate(resolve));
 
       // Stage 3: replay
       await this.advanceStage(job.id, sessionId, PipelineStage.Replay);
       const replayResult = replay(validateResult.header, validateResult.events, detectResult.boundaries);
       this.eventBus.emit({ type: 'session.replayed', sessionId, lineCount: replayResult.rawSnapshot.lines.length });
+      await new Promise(resolve => setImmediate(resolve));
 
       // Stage 4: dedup
       await this.advanceStage(job.id, sessionId, PipelineStage.Dedup);
@@ -180,6 +183,7 @@ export class PipelineOrchestrator {
       );
       const cleanLines = (JSON.parse(processed.snapshot) as { lines?: unknown[] }).lines?.length ?? 0;
       this.eventBus.emit({ type: 'session.deduped', sessionId, rawLines: replayResult.rawSnapshot.lines.length, cleanLines });
+      await new Promise(resolve => setImmediate(resolve));
 
       // Stage 5: store
       await this.advanceStage(job.id, sessionId, PipelineStage.Store);
