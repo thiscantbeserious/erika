@@ -5,6 +5,7 @@
 
 import Database from './node_sqlite_compat.js';
 import { nanoid } from 'nanoid';
+import typia from 'typia';
 import type { Session, SessionCreate } from '../../../shared/types/session.js';
 import type { SessionAdapter } from '../session_adapter.js';
 import type { DetectionStatus } from '../../../shared/types/pipeline.js';
@@ -24,6 +25,8 @@ export class SqliteSessionImpl implements SessionAdapter {
   private readonly deleteSectionsStmt: Database.Statement;
   private readonly insertSectionStmt: Database.Statement;
   private readonly completeProcessingTxn: (session: ProcessedSession) => void;
+
+  private readonly findByStatusesFn: (statuses: DetectionStatus[]) => Session[];
 
   constructor(db: Database.Database) {
     // Prepare statements once at construction
@@ -77,9 +80,31 @@ export class SqliteSessionImpl implements SessionAdapter {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // Synchronous transaction: atomically replaces sections and marks session completed.
-    // Using db.transaction() ensures all writes succeed or none do, even if insert loop
-    // partially completes. Called from the async completeProcessing method.
+    // Pre-prepare statements for status filtering. Closure captures db without
+    // storing it as a class field (adapter pattern). Typia validates each status
+    // at runtime against the DetectionStatus union — rejects invalid values before
+    // they reach SQL. Statements are cached per cardinality to avoid re-preparing.
+    const statusStmtCache = new Map<number, Database.Statement>();
+    this.findByStatusesFn = (statuses: DetectionStatus[]) => {
+      if (statuses.length === 0) return [];
+      // Runtime type guard via typia — ensures only valid DetectionStatus values reach SQL
+      for (const s of statuses) {
+        if (!typia.is<DetectionStatus>(s)) {
+          throw new Error(`Invalid detection status: ${String(s)}`);
+        }
+      }
+      const n = statuses.length;
+      let stmt = statusStmtCache.get(n);
+      if (!stmt) {
+        const placeholders = Array.from({ length: n }, () => '?').join(', ');
+        stmt = db.prepare(
+          `SELECT * FROM sessions WHERE detection_status IN (${placeholders}) ORDER BY created_at DESC`
+        );
+        statusStmtCache.set(n, stmt);
+      }
+      return stmt.all(...statuses) as Session[];
+    };
+
     this.completeProcessingTxn = db.transaction((session: ProcessedSession) => {
       this.deleteSectionsStmt.run(session.sessionId);
       for (const section of session.sections) {
@@ -130,12 +155,7 @@ export class SqliteSessionImpl implements SessionAdapter {
   }
 
   async findByStatuses(statuses: DetectionStatus[]): Promise<Session[]> {
-    if (statuses.length === 0) return [];
-    const placeholders = statuses.map(() => '?').join(', ');
-    const stmt = this.db.prepare(
-      `SELECT * FROM sessions WHERE detection_status IN (${placeholders}) ORDER BY created_at DESC`
-    );
-    return stmt.all(...statuses) as Session[];
+    return this.findByStatusesFn(statuses);
   }
 
   async findById(id: string): Promise<Session | null> {
