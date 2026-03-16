@@ -167,6 +167,101 @@ Phase 2 — **LanceDB + Transformers.js** for semantic similarity. Embed section
 - UI treatment: subtle label? different fold styling? tooltip?
 - Threshold: below what confidence do we fall back to unsectioned view?
 
+## Workspaces (Multi-Tenancy Foundation)
+
+> [!info] Status: Backlog
+
+**Core idea:** A Workspace is the tenant boundary in Erika — it owns sessions, members, agent tokens, and (eventually) domains. Everything a team works with lives inside a workspace. Without workspaces, Erika is single-user/single-tenant only.
+
+**What a Workspace provides:**
+
+- **Isolation** — sessions, sections, curated segments, and domains belong to a workspace. Users in workspace A cannot see workspace B's data.
+- **Membership** — users are invited to workspaces with roles (owner, admin, member, viewer). A user can belong to multiple workspaces.
+- **Agent tokens** — scoped credentials for agent retrieval access, tied to a workspace. Agents query only the workspace they're authorized for.
+- **Configuration** — per-workspace settings: detection thresholds, retention policies, default pipeline options.
+
+**Relationship to Auth:**
+
+Workspaces depend on Identity (planned, see ARCHITECTURE.md Section 5). The sequence is likely:
+
+1. Built-in auth (email + password, invite-only)
+2. Workspaces (create, invite, isolate)
+3. OIDC/SSO delegation (Authelia, Authentik, Keycloak, Entra ID, Okta)
+
+Workspaces without auth are meaningless. Auth without workspaces is single-tenant only. They're a pair.
+
+**Data model implications:**
+
+- Every existing table (sessions, sections) needs a `workspace_id` foreign key
+- API routes need workspace scoping (`/api/workspaces/:wid/sessions` or implicit from auth context)
+- File storage needs workspace-level directories
+- Database migrations must handle the transition from "no workspaces" to "default workspace for existing data"
+
+**Open questions:**
+
+- Implicit vs explicit workspace in URLs? `/api/sessions` with workspace from auth token, or `/api/workspaces/:id/sessions`?
+- Default workspace: on first run, auto-create a "default" workspace and assign all existing data to it?
+- Cross-workspace sharing: ever? Or strict isolation always?
+- Workspace limits: max sessions, max members, max storage? Or unlimited (self-hosted, your hardware)?
+- How does this interact with Git-Native Project Integration? One workspace per project repo, or many-to-many?
+
+**Connections:** Prerequisite for Domains (domains live inside workspaces), Agent Tokens (scoped to workspace), and any multi-user feature. Referenced in ARCHITECTURE.md as a planned core entity.
+
+## Domains (Knowledge Bases for Agent Instruction Generation)
+
+> [!info] Status: Backlog
+
+**Core idea:** A "Domain" is a curated knowledge base — like a book — that users build to generate specific instruction sets for LLMs. Instead of agents guessing from generic context, they get purpose-built, human-curated instruction snippets drawn from real session data and domain expertise.
+
+**What a Domain could contain:**
+
+- **Lines** — individual instruction fragments or knowledge snippets
+- **Sections** — grouped lines forming a coherent topic or workflow
+- **Markers** — tagged points of interest within sections (error patterns, best practices, decision points)
+- **Freetext entries** — custom instruction notes, prose, context — anything the user wants to attach that isn't derived from sessions. Think "here's what I know about this pattern" written directly into the domain.
+- **Connections** — visual, drag-and-drop links between any of the above, forming a graph of related knowledge
+
+This list is deliberately open. A domain is a container for *whatever helps generate better instructions* — session-derived content, hand-written notes, external references, structured data. The exact building blocks will emerge through use.
+
+**The interaction model (exploratory):**
+
+Users mark and drag markers onto each other in a connection-based UI, building a knowledge graph visually. Think mind-mapping meets session curation — you're connecting "this error pattern" to "this recovery strategy" to "this architectural decision," and the result is a structured instruction set that an LLM can consume. Freetext notes can be connected the same way — a hand-written "always check X before deploying" links to the session where that lesson was learned.
+
+**What it could enable:**
+
+- "For project X, always follow these patterns" — domain-specific agent instructions generated from curated connections
+- Team knowledge capture — senior engineers curate domains, juniors and agents benefit
+- Cross-session synthesis — a domain pulls from many sessions to build one coherent instruction set
+- Custom instruction generation — connect freetext notes + session evidence into tailored agent configs
+- Version-controlled knowledge — domains evolve as the team learns
+
+**Infrastructure implications:**
+
+- Will likely need a **vector database** for semantic search across domain content (see Cross-Session Intelligence entry)
+- The connection graph maps naturally to the LadybugDB/FalkorDB graph layer
+- Embedding domain content enables "find related knowledge" across domains
+
+**How to get there:**
+
+This vision is broad and largely fictional at this stage. The path forward needs deliberate narrowing — possible approaches:
+
+- **Start with the simplest useful thing:** a named collection of freetext notes + session references, no graph, no vector DB. Validate whether people actually curate domains before building the fancy connection UI.
+- **Prototype the connection UX independently:** a canvas-based drag-and-drop prototype (HTML+CSS, no backend) to test whether the interaction model makes sense before committing to infrastructure.
+- **Lean on existing primitives:** curated segments (planned) + tags could be a low-cost "domain v0" without new entities.
+- **Research phase first:** study how tools like Obsidian, Notion, and Roam handle user-built knowledge graphs. What works, what's friction.
+
+**Open questions:**
+
+- Storage model: domains as first-class entities with their own tables, or built on top of curated segments?
+- Export format: what structure do LLMs consume best? Markdown? Structured JSON? Tool-use schemas?
+- Collaboration: can multiple users contribute to the same domain? Conflict resolution?
+- Versioning: snapshot domains at a point in time, or always-latest?
+- UI: canvas-based connection editor? How does the drag-and-drop linking work at scale (100+ markers)?
+- Scope boundary: where does "domain" end and "project integration" begin? Are domains per-workspace or cross-workspace?
+- Freetext vs structured: how much structure should Erika impose vs letting users write freely?
+
+**Connections:** Builds on Cross-Session Intelligence (graph + vector layer), Manual Section Marking (users create the raw material), and Git-Native Project Integration (domains could be synced back to project repos as agent configs).
+
 ## Manual Section Marking
 
 > [!info] Status: Backlog
