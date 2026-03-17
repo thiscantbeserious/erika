@@ -90,30 +90,36 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
   function createCentralStar(): void {
     if (!scene) return;
 
-    // Tiny bright core
-    const coreGeo = new THREE.SphereGeometry(0.03, 16, 16);
-    const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    // Bright core sphere — sized relative to smallest planet
+    const coreGeo = new THREE.SphereGeometry(0.06, 16, 16);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xeef4ff });
     disposables.push(coreGeo, coreMat);
     scene.add(new THREE.Mesh(coreGeo, coreMat));
 
-    // Soft glow sprite — canvas-generated radial gradient (transparent bg)
-    const size = 128;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d')!;
-    const cx = size / 2;
-    const grad = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
-    grad.addColorStop(0, 'rgba(220, 240, 255, 1)');
-    grad.addColorStop(0.08, 'rgba(180, 220, 255, 0.6)');
-    grad.addColorStop(0.25, 'rgba(0, 180, 255, 0.15)');
-    grad.addColorStop(0.5, 'rgba(0, 100, 200, 0.04)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, size, size);
+    // Helper: create a canvas radial glow texture
+    function makeGlowCanvas(): HTMLCanvasElement {
+      const size = 128;
+      const c = document.createElement('canvas');
+      c.width = size;
+      c.height = size;
+      const ctx2 = c.getContext('2d')!;
+      const half = size / 2;
+      const g = ctx2.createRadialGradient(half, half, 0, half, half, half);
+      g.addColorStop(0, 'rgba(220, 240, 255, 1)');
+      g.addColorStop(0.06, 'rgba(180, 220, 255, 0.7)');
+      g.addColorStop(0.2, 'rgba(0, 180, 255, 0.2)');
+      g.addColorStop(0.45, 'rgba(0, 100, 200, 0.05)');
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx2.fillStyle = g;
+      ctx2.fillRect(0, 0, size, size);
+      return c;
+    }
 
-    const glowTex = new THREE.CanvasTexture(canvas);
+    const glowCanvas = makeGlowCanvas();
+    const glowTex = new THREE.CanvasTexture(glowCanvas);
     disposables.push(glowTex);
+
+    // Main round glow
     const glowMat = new THREE.SpriteMaterial({
       map: glowTex,
       transparent: true,
@@ -122,8 +128,34 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     });
     disposables.push(glowMat);
     const glow = new THREE.Sprite(glowMat);
-    glow.scale.set(1.2, 1.2, 1);
+    glow.scale.set(1.8, 1.8, 1);
     scene.add(glow);
+
+    // Horizontal flare streak
+    const hFlareMat = new THREE.SpriteMaterial({
+      map: glowTex,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      opacity: 0.3,
+    });
+    disposables.push(hFlareMat);
+    const hFlare = new THREE.Sprite(hFlareMat);
+    hFlare.scale.set(4.5, 0.25, 1);
+    scene.add(hFlare);
+
+    // Vertical flare streak
+    const vFlareMat = new THREE.SpriteMaterial({
+      map: glowTex,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      opacity: 0.2,
+    });
+    disposables.push(vFlareMat);
+    const vFlare = new THREE.Sprite(vFlareMat);
+    vFlare.scale.set(0.2, 3.5, 1);
+    scene.add(vFlare);
 
     // Point light
     const pointLight = new THREE.PointLight(0xccddff, 1.2, 12);
