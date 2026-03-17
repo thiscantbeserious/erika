@@ -41,10 +41,15 @@ const NODES: OrbitalNode[] = [
   { label: 'curate',   angle: (8 * Math.PI) / 5,  color: [255, 77, 106], ambient: [90, 26, 58] },
 ];
 
-const ORBIT_TILT = 75 * (Math.PI / 180); // 75° — nearly top-down, horizontal ring like viewing Earth's equator from above
-const ORBIT_SPEED = (2 * Math.PI) / 25;  // full rotation in 25s
+const ORBIT_TILT_BASE = 75; // degrees — base tilt (top-down horizontal ring)
+const ORBIT_TILT_RANGE = 40; // degrees — how much mouse can shift the view (±)
+const ORBIT_SPEED = (2 * Math.PI) / 25;
 const PERSPECTIVE = 600;
-const BASE_SPHERE_RADIUS = 14; // base radius in px at z=0
+const BASE_SPHERE_RADIUS = 14;
+
+/** Current tilt in radians — updated by mousemove, interpolated smoothly. */
+let targetTilt = ORBIT_TILT_BASE * (Math.PI / 180);
+let currentTilt = targetTilt;
 
 function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, time: number): void {
   const dpr = globalThis.devicePixelRatio || 1;
@@ -66,10 +71,13 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
 
   for (const node of NODES) {
     const a = rotation + node.angle;
+    // Smooth interpolation toward target tilt
+    currentTilt += (targetTilt - currentTilt) * 0.05;
+
     // 3D position on tilted orbit ring
     const x3 = Math.cos(a) * orbitRadius;
-    const y3 = Math.sin(a) * orbitRadius * Math.cos(ORBIT_TILT);
-    const z3 = Math.sin(a) * orbitRadius * Math.sin(ORBIT_TILT);
+    const y3 = Math.sin(a) * orbitRadius * Math.cos(currentTilt);
+    const z3 = Math.sin(a) * orbitRadius * Math.sin(currentTilt);
 
     // Perspective projection
     const scale = PERSPECTIVE / (PERSPECTIVE + z3);
@@ -194,12 +202,21 @@ function startOrbitAnimation(): void {
   animFrameId = requestAnimationFrame(loop);
 }
 
+/** Mouse Y maps to orbit tilt: top of page = more tilted (see from above), bottom = less tilted (edge-on). */
+function handleMouseMove(e: MouseEvent): void {
+  const normalizedY = e.clientY / globalThis.innerHeight; // 0 (top) to 1 (bottom)
+  const tiltDeg = ORBIT_TILT_BASE + ORBIT_TILT_RANGE * (0.5 - normalizedY); // center = base, top = more, bottom = less
+  targetTilt = tiltDeg * (Math.PI / 180);
+}
+
 onMounted(() => {
   startOrbitAnimation();
+  document.addEventListener('mousemove', handleMouseMove);
 });
 
 onUnmounted(() => {
   if (animFrameId) cancelAnimationFrame(animFrameId);
+  document.removeEventListener('mousemove', handleMouseMove);
 });
 
 /** Opens the system file picker. Upload zone, browse link, and keyboard trigger this. */
