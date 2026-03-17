@@ -19,8 +19,8 @@ import * as THREE from 'three';
 const ORBIT_SPEED = 0.0015;
 const SELF_ROTATE_SPEED = 0.004;
 const LERP_FACTOR = 0.04;
-const CAMERA_Y_MIN = 1.5;
-const CAMERA_Y_MAX = 5;
+const CAMERA_Y_MIN = 2.5;
+const CAMERA_Y_MAX = 6;
 const CAMERA_Z = 12;
 
 interface PlanetConfig {
@@ -92,7 +92,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
 
     // Textured star core — moon texture with bright emissive for a 3D sun shape
     const loader = new THREE.TextureLoader();
-    const sunTex = loader.load('/textures/2k_moon.jpg');
+    const sunTex = loader.load('/textures/2k_sun.jpg');
     disposables.push(sunTex);
     const coreGeo = new THREE.SphereGeometry(0.08, 32, 32);
     const coreMat = new THREE.MeshPhongMaterial({
@@ -193,7 +193,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
-    camera.position.set(0, 3, CAMERA_Z);
+    camera.position.set(0, 4, CAMERA_Z);
     camera.lookAt(0, 0, 0);
 
     // Subtle ambient + directional
@@ -302,7 +302,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     }
 
     smoothCamera();
-    camera.lookAt(0, 0.3, 0); // look slightly above origin
+    camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
     updateLabels();
   }
