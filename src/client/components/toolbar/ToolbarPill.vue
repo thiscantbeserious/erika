@@ -34,6 +34,7 @@ const isCollapsed = ref(false);
 onMounted(async () => {
   await nextTick();
   const content = pillRef.value?.querySelector('.toolbar-pill__content') as HTMLElement | null;
+  /* istanbul ignore next -- happy-dom returns 0 for scrollWidth; real measurement only works in browser */
   if (content) {
     const style = globalThis.getComputedStyle(content);
     const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
