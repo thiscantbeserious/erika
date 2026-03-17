@@ -30,9 +30,9 @@ describe('ToolbarAvatar', () => {
   });
 
   describe('accessibility', () => {
-    it('has aria-label set to "User menu"', () => {
+    it('has title set to "User menu"', () => {
       const wrapper = mountAvatar();
-      expect(wrapper.find('button').attributes('aria-label')).toBe('User menu');
+      expect(wrapper.find('button').attributes('title')).toBe('User menu');
     });
   });
 

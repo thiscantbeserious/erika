@@ -1,7 +1,7 @@
 <template>
   <button
     class="toolbar-avatar"
-    aria-label="User menu"
+    title="User menu"
     type="button"
   >
     {{ initial }}
