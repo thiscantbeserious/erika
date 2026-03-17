@@ -246,21 +246,21 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
       mesh.userData['orbitRadius'] = planet.orbitRadius;
       mesh.userData['baseAngle'] = planet.angle;
 
-      // Atmosphere — slightly larger sphere with Fresnel rim glow shader
-      const atmoGeo = new THREE.SphereGeometry(planet.size * 1.35, 32, 32);
+      // Atmosphere glow — BackSide Fresnel creates outward halo in planet's color
+      const atmoGeo = new THREE.SphereGeometry(planet.size * 1.6, 32, 32);
       disposables.push(atmoGeo);
 
-      const r = planet.haloColor.r;
-      const g = planet.haloColor.g;
-      const b = planet.haloColor.b;
+      const pr = planet.haloColor.r;
+      const pg = planet.haloColor.g;
+      const pb = planet.haloColor.b;
 
       const atmoMat = new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        side: THREE.FrontSide,
+        side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
         uniforms: {
-          glowColor: { value: new THREE.Vector3(r, g, b) },
+          glowColor: { value: new THREE.Vector3(pr, pg, pb) },
         },
         vertexShader: `
           varying vec3 vNormal;
@@ -278,15 +278,40 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
           void main() {
             vec3 viewDir = normalize(-vPositionW);
             float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
-            rim = pow(rim, 2.5);
-            gl_FragColor = vec4(glowColor, rim * 0.7);
+            float intensity = pow(rim, 2.0) * 0.8;
+            gl_FragColor = vec4(glowColor, intensity);
           }
         `,
       });
       disposables.push(atmoMat);
-
       const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
       mesh.add(atmoMesh);
+
+      // Soft outer glow sprite — blends planet into the dark background
+      const glowCanvas = document.createElement('canvas');
+      glowCanvas.width = 64;
+      glowCanvas.height = 64;
+      const gctx = glowCanvas.getContext('2d')!;
+      const gg = gctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gg.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+      gg.addColorStop(0.3, 'rgba(255, 255, 255, 0.1)');
+      gg.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      gctx.fillStyle = gg;
+      gctx.fillRect(0, 0, 64, 64);
+      const spriteTex = new THREE.CanvasTexture(glowCanvas);
+      disposables.push(spriteTex);
+      const spriteMat = new THREE.SpriteMaterial({
+        map: spriteTex,
+        color: planet.haloColor,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        opacity: 0.4,
+      });
+      disposables.push(spriteMat);
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(planet.size * 4, planet.size * 4, 1);
+      mesh.add(sprite);
 
       meshes.push(mesh);
       orbitGroup.add(mesh);
