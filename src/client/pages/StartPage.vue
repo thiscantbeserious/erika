@@ -35,7 +35,7 @@ interface OrbitalNode {
 
 const NODES: OrbitalNode[] = [
   { label: 'record',   angle: 0,                  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
-  { label: 'validate', angle: (2 * Math.PI) / 5,  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
+  { label: 'validate', angle: (2 * Math.PI) / 5,  color: [255, 77, 106], glowColor: 'rgba(255, 77, 106, 0.4)' },
   { label: 'detect',   angle: (4 * Math.PI) / 5,  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
   { label: 'replay',   angle: (6 * Math.PI) / 5,  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
   { label: 'curate',   angle: (8 * Math.PI) / 5,  color: [255, 77, 106], glowColor: 'rgba(255, 77, 106, 0.4)' },
@@ -87,74 +87,74 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
     const [cr, cg, cb] = node.color;
     const depthAlpha = 0.4 + 0.6 * scale;
 
-    // Atmosphere glow — soft colored haze around the planet
+    // --- Layer 1: Atmosphere glow (drawn outside sphere) ---
     ctx.save();
-    ctx.globalAlpha = depthAlpha * 0.25;
-    const atmo = ctx.createRadialGradient(x, y, r * 0.8, x, y, r * 2.8);
-    atmo.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.35)`);
-    atmo.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, 0.08)`);
-    atmo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.globalAlpha = depthAlpha * 0.35;
+    const atmo = ctx.createRadialGradient(x, y, r * 0.85, x, y, r * 2);
+    atmo.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+    atmo.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, 0.15)`);
+    atmo.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
     ctx.fillStyle = atmo;
     ctx.beginPath();
-    ctx.arc(x, y, r * 2.8, 0, 2 * Math.PI);
+    ctx.arc(x, y, r * 2, 0, 2 * Math.PI);
     ctx.fill();
     ctx.restore();
 
-    // Planet body — dark base with lit hemisphere
+    // --- Layer 2: Base diffuse sphere (white → color → dark navy) ---
     ctx.save();
     ctx.globalAlpha = depthAlpha;
+    // Offset inner circle for directional lighting (upper-left light source)
+    const base = ctx.createRadialGradient(
+      x - r * 0.4, y - r * 0.4, 0,
+      x, y, r
+    );
+    base.addColorStop(0, `rgba(${Math.min(255, cr + 120)}, ${Math.min(255, cg + 120)}, ${Math.min(255, cb + 120)}, 1)`);
+    base.addColorStop(0.4, `rgba(${cr}, ${cg}, ${cb}, 1)`);
+    base.addColorStop(0.75, `rgba(${Math.floor(cr * 0.3)}, ${Math.floor(cg * 0.3)}, ${Math.floor(cb * 0.35)}, 1)`);
+    base.addColorStop(1, 'rgba(10, 10, 30, 1)');
+    ctx.fillStyle = base;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
-    // Gradient from highlight (top-left) to dark terminator (bottom-right)
-    const body = ctx.createRadialGradient(
-      x - r * 0.35, y - r * 0.35, r * 0.05,
-      x + r * 0.15, y + r * 0.15, r * 1.1
-    );
-    // Bright highlight — slightly desaturated lighter version
-    const hlR = Math.min(255, cr + 80);
-    const hlG = Math.min(255, cg + 80);
-    const hlB = Math.min(255, cb + 80);
-    body.addColorStop(0, `rgba(${hlR}, ${hlG}, ${hlB}, 1)`);
-    // Mid tone — the main color
-    body.addColorStop(0.35, `rgba(${cr}, ${cg}, ${cb}, 0.95)`);
-    // Terminator — darker, slightly blued shadow
-    const shR = Math.floor(cr * 0.15);
-    const shG = Math.floor(cg * 0.15);
-    const shB = Math.min(255, Math.floor(cb * 0.25) + 15);
-    body.addColorStop(0.75, `rgba(${shR}, ${shG}, ${shB}, 0.9)`);
-    // Dark side
-    body.addColorStop(1, `rgba(${Math.floor(cr * 0.05)}, ${Math.floor(cg * 0.05)}, ${Math.floor(cb * 0.1)}, 0.85)`);
-    ctx.fillStyle = body;
     ctx.fill();
     ctx.restore();
 
-    // Specular highlight — small bright spot for gloss
+    // --- Layer 3: Specular highlight (screen blend for bright gloss) ---
     ctx.save();
-    ctx.globalAlpha = depthAlpha * 0.7;
-    const spec = ctx.createRadialGradient(
-      x - r * 0.3, y - r * 0.35, 0,
-      x - r * 0.3, y - r * 0.35, r * 0.4
-    );
-    spec.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-    spec.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+    ctx.globalAlpha = depthAlpha * 0.9;
+    ctx.globalCompositeOperation = 'screen';
+    const hlX = x - r * 0.35;
+    const hlY = y - r * 0.35;
+    const spec = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, r * 0.45);
+    spec.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+    spec.addColorStop(0.4, 'rgba(255, 255, 255, 0.2)');
     spec.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = spec;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
     ctx.restore();
 
-    // Subtle rim light on the dark side — backlight effect
+    // --- Layer 4: Rim light (backlight on dark edge, lighter blend) ---
     ctx.save();
-    ctx.globalAlpha = depthAlpha * 0.3;
+    ctx.globalAlpha = depthAlpha * 0.4;
+    ctx.globalCompositeOperation = 'lighter';
+    const rim = ctx.createRadialGradient(
+      x + r * 0.3, y + r * 0.3, r * 0.6,
+      x, y, r
+    );
+    rim.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    rim.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
+    rim.addColorStop(0.9, `rgba(${cr}, ${cg}, ${cb}, 0.25)`);
+    rim.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0.1)`);
+    ctx.fillStyle = rim;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
-    ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.4)`;
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
     ctx.restore();
 
-    // Label — always 2D, HUD style
+    // --- Label — always 2D, HUD style ---
     ctx.save();
     ctx.globalAlpha = depthAlpha * 0.7;
     const fontSize = Math.max(9, 11 * scale);
