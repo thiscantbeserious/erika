@@ -89,25 +89,49 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
 
   function createCentralStar(): void {
     if (!scene) return;
-    const loader = new THREE.TextureLoader();
 
-    // Sun sprite — same approach as Asterank
-    const sunTex = loader.load('/textures/sunsprite.png');
-    disposables.push(sunTex);
+    // Small glowing core sphere
+    const coreGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    disposables.push(coreGeo, coreMat);
+    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+    scene.add(coreMesh);
 
-    const sunMat = new THREE.SpriteMaterial({
-      map: sunTex,
+    // Outer glow — Fresnel shader sphere (same technique as planet atmo but bigger)
+    const glowGeo = new THREE.SphereGeometry(0.6, 32, 32);
+    disposables.push(glowGeo);
+    const glowMat = new THREE.ShaderMaterial({
       transparent: true,
-      blending: THREE.AdditiveBlending,
       depthWrite: false,
-      color: 0xccddff,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        glowColor: { value: new THREE.Vector3(0.8, 0.9, 1.0) },
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vPositionW;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vPositionW = (modelViewMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 glowColor;
+        varying vec3 vNormal;
+        varying vec3 vPositionW;
+        void main() {
+          vec3 viewDir = normalize(-vPositionW);
+          float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
+          float intensity = pow(rim, 1.5) * 0.8;
+          gl_FragColor = vec4(glowColor, intensity);
+        }
+      `,
     });
-    disposables.push(sunMat);
-
-    const sunSprite = new THREE.Sprite(sunMat);
-    sunSprite.scale.set(1.5, 1.5, 1);
-    sunSprite.position.set(0, 0, 0);
-    scene.add(sunSprite);
+    disposables.push(glowMat);
+    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+    scene.add(glowMesh);
 
     // Point light at center
     const pointLight = new THREE.PointLight(0xccddff, 1.5, 15);
