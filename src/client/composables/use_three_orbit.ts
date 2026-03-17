@@ -92,12 +92,21 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
 
     // Textured star core — moon texture with bright emissive for a 3D sun shape
     const loader = new THREE.TextureLoader();
-    const sunTex = loader.load('/textures/2k_moon.jpg');
+    const sunTex = loader.load('/textures/2k_sun.jpg');
     disposables.push(sunTex);
     const coreGeo = new THREE.SphereGeometry(0.08, 32, 32);
+    // Sun texture faded toward white — surface detail barely visible
     const coreMat = new THREE.MeshBasicMaterial({
       map: sunTex,
+      color: 0xffffff,
+      opacity: 0.3,
+      transparent: true,
     });
+    // White base sphere underneath so the texture fades into white
+    const baseGeo = new THREE.SphereGeometry(0.079, 32, 32);
+    const baseMat = new THREE.MeshBasicMaterial({ color: 0xeef4ff });
+    disposables.push(baseGeo, baseMat);
+    scene.add(new THREE.Mesh(baseGeo, baseMat));
     disposables.push(coreGeo, coreMat);
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
     if (!prefersReduced) {
@@ -108,19 +117,21 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     meshes.push(coreMesh);
 
     // Helper: create a canvas radial glow texture
+    // Pure white radial gradient — color is applied via SpriteMaterial.color
+    // to avoid additive blending artifacts (orange/yellow sparkles)
     function makeGlowCanvas(): HTMLCanvasElement {
-      const size = 128;
+      const size = 256;
       const c = document.createElement('canvas');
       c.width = size;
       c.height = size;
       const ctx2 = c.getContext('2d')!;
       const half = size / 2;
       const g = ctx2.createRadialGradient(half, half, 0, half, half, half);
-      g.addColorStop(0, 'rgba(220, 240, 255, 1)');
-      g.addColorStop(0.06, 'rgba(180, 220, 255, 0.7)');
-      g.addColorStop(0.2, 'rgba(0, 180, 255, 0.2)');
-      g.addColorStop(0.45, 'rgba(0, 100, 200, 0.05)');
-      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      g.addColorStop(0.08, 'rgba(255, 255, 255, 0.5)');
+      g.addColorStop(0.25, 'rgba(255, 255, 255, 0.12)');
+      g.addColorStop(0.5, 'rgba(255, 255, 255, 0.03)');
+      g.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx2.fillStyle = g;
       ctx2.fillRect(0, 0, size, size);
       return c;
@@ -130,9 +141,10 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     const glowTex = new THREE.CanvasTexture(glowCanvas);
     disposables.push(glowTex);
 
-    // Main round glow
+    // Main round glow — tinted cool blue-white via color
     const glowMat = new THREE.SpriteMaterial({
       map: glowTex,
+      color: 0xccddff,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -145,6 +157,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     // Horizontal flare streak
     const hFlareMat = new THREE.SpriteMaterial({
       map: glowTex,
+      color: 0xccddff,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -158,6 +171,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     // Vertical flare streak
     const vFlareMat = new THREE.SpriteMaterial({
       map: glowTex,
+      color: 0xccddff,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -304,10 +318,14 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     updateLabels();
   }
 
+  let currentCameraZ = CAMERA_Z;
+
   function smoothCamera(): void {
     if (!camera) return;
     currentCameraY += (targetCameraY - currentCameraY) * LERP_FACTOR;
+    currentCameraZ += (targetCameraZ - currentCameraZ) * LERP_FACTOR;
     camera.position.y = currentCameraY;
+    camera.position.z = currentCameraZ;
   }
 
   // ---------------------------------------------------------------------------
@@ -360,9 +378,16 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
   // Mouse
   // ---------------------------------------------------------------------------
 
+  let targetCameraZ = CAMERA_Z;
+
   function handleMouseMove(e: MouseEvent): void {
     const normalizedY = e.clientY / (globalThis.innerHeight || 1);
     targetCameraY = CAMERA_Y_MAX - normalizedY * (CAMERA_Y_MAX - CAMERA_Y_MIN);
+  }
+
+  function handleWheel(e: WheelEvent): void {
+    e.preventDefault();
+    targetCameraZ = Math.max(4, Math.min(25, targetCameraZ + e.deltaY * 0.01));
   }
 
   // ---------------------------------------------------------------------------
@@ -377,11 +402,13 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     resizeObserver = new ResizeObserver(() => handleResize(container));
     resizeObserver.observe(container);
     document.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('wheel', handleWheel, { passive: false });
   }
 
   function unmount(): void {
     cancelAnimationFrame(animFrameId);
     document.removeEventListener('mousemove', handleMouseMove);
+    containerRef.value?.removeEventListener('wheel', handleWheel);
     resizeObserver?.disconnect();
     for (const d of disposables) d.dispose();
     renderer?.dispose();
