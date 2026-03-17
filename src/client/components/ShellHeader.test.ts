@@ -10,6 +10,8 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import ShellHeader from './ShellHeader.vue';
 import ToolbarPill from './toolbar/ToolbarPill.vue';
 import PipelineRingTrigger from './toolbar/PipelineRingTrigger.vue';
+import ToolbarButton from './toolbar/ToolbarButton.vue';
+import ToolbarAvatar from './toolbar/ToolbarAvatar.vue';
 
 // ShellHeader mounts PipelineRingTrigger which uses usePipelineStatus (EventSource).
 // Must be a regular function (not arrow) to work as a constructor with `new`.
@@ -91,6 +93,39 @@ describe('ShellHeader', () => {
     it('renders PipelineRingTrigger as slot content inside ToolbarPill', async () => {
       const wrapper = await mountShellHeader();
       expect(wrapper.findComponent(PipelineRingTrigger).exists()).toBe(true);
+    });
+
+    it('renders two ToolbarButton components (settings and bell)', async () => {
+      const wrapper = await mountShellHeader();
+      const buttons = wrapper.findAllComponents(ToolbarButton);
+      expect(buttons.length).toBe(2);
+    });
+
+    it('renders the settings ToolbarButton with correct icon and label', async () => {
+      const wrapper = await mountShellHeader();
+      const buttons = wrapper.findAllComponents(ToolbarButton);
+      const settings = buttons.find((b) => b.props('icon') === 'icon-settings');
+      expect(settings).toBeTruthy();
+      expect(settings?.props('label')).toBe('Settings');
+    });
+
+    it('renders the bell ToolbarButton with correct icon and label', async () => {
+      const wrapper = await mountShellHeader();
+      const buttons = wrapper.findAllComponents(ToolbarButton);
+      const bell = buttons.find((b) => b.props('icon') === 'icon-bell');
+      expect(bell).toBeTruthy();
+      expect(bell?.props('label')).toBe('Notifications');
+    });
+
+    it('renders the ToolbarAvatar component', async () => {
+      const wrapper = await mountShellHeader();
+      expect(wrapper.findComponent(ToolbarAvatar).exists()).toBe(true);
+    });
+
+    it('renders two separator dividers inside the pill', async () => {
+      const wrapper = await mountShellHeader();
+      const separators = wrapper.findAll('.toolbar-pill__separator');
+      expect(separators.length).toBe(2);
     });
   });
 });
