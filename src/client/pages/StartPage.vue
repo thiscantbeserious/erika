@@ -31,56 +31,15 @@ interface OrbitalNode {
   angle: number;
   color: [number, number, number];
   ambient: [number, number, number];
-  texture?: HTMLImageElement | HTMLCanvasElement;
-  textureOffset: number;
 }
 
 const NODES: OrbitalNode[] = [
-  { label: 'record',   angle: 0,                  color: [0, 212, 255], ambient: [26, 26, 90], textureOffset: 0 },
-  { label: 'validate', angle: (2 * Math.PI) / 5,  color: [255, 77, 106], ambient: [90, 26, 58], textureOffset: 0 },
-  { label: 'detect',   angle: (4 * Math.PI) / 5,  color: [0, 212, 255], ambient: [26, 26, 90], textureOffset: 0 },
-  { label: 'replay',   angle: (6 * Math.PI) / 5,  color: [0, 212, 255], ambient: [26, 26, 90], textureOffset: 0 },
-  { label: 'curate',   angle: (8 * Math.PI) / 5,  color: [255, 77, 106], ambient: [90, 26, 58], textureOffset: 0 },
+  { label: 'record',   angle: 0,                  color: [0, 212, 255], ambient: [26, 26, 90] },
+  { label: 'validate', angle: (2 * Math.PI) / 5,  color: [255, 77, 106], ambient: [90, 26, 58] },
+  { label: 'detect',   angle: (4 * Math.PI) / 5,  color: [0, 212, 255], ambient: [26, 26, 90] },
+  { label: 'replay',   angle: (6 * Math.PI) / 5,  color: [0, 212, 255], ambient: [26, 26, 90] },
+  { label: 'curate',   angle: (8 * Math.PI) / 5,  color: [255, 77, 106], ambient: [90, 26, 58] },
 ];
-
-/** Generate a procedural planet surface texture on an offscreen canvas.
- *  Uses layered noise-like patterns (sin/cos) for organic surface detail. */
-function generateTexture(cr: number, cg: number, cb: number, seed: number): HTMLCanvasElement {
-  const size = 128;
-  const tc = document.createElement('canvas');
-  tc.width = size;
-  tc.height = size;
-  const tctx = tc.getContext('2d')!;
-  const imgData = tctx.createImageData(size, size);
-  const d = imgData.data;
-
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
-      const i = (py * size + px) * 4;
-      // Layered sine noise for organic feel
-      const n1 = Math.sin(px * 0.08 + seed) * Math.cos(py * 0.06 + seed * 0.7);
-      const n2 = Math.sin(px * 0.15 + py * 0.12 + seed * 1.3) * 0.5;
-      const n3 = Math.cos(px * 0.03 - py * 0.05 + seed * 2.1) * 0.3;
-      const noise = (n1 + n2 + n3) * 0.33; // -1 to 1
-
-      // Vary brightness ±25% around base color
-      const factor = 0.75 + noise * 0.25;
-      d[i]     = Math.min(255, Math.max(0, Math.floor(cr * factor)));
-      d[i + 1] = Math.min(255, Math.max(0, Math.floor(cg * factor)));
-      d[i + 2] = Math.min(255, Math.max(0, Math.floor(cb * factor)));
-      d[i + 3] = 255;
-    }
-  }
-  tctx.putImageData(imgData, 0, 0);
-  return tc;
-}
-
-// Pre-generate textures
-for (let i = 0; i < NODES.length; i++) {
-  const n = NODES[i]!;
-  const tex = generateTexture(n.color[0], n.color[1], n.color[2], i * 7.3);
-  n.texture = tex as unknown as HTMLImageElement; // canvas is drawable like an image
-}
 
 const ORBIT_TILT_BASE = 75; // degrees — base tilt (top-down horizontal ring)
 const ORBIT_TILT_RANGE = 40; // degrees — how much mouse can shift the view (±)
@@ -151,45 +110,21 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
     ctx.fill();
     ctx.restore();
 
-    // --- Layer 2: Planet body (texture if loaded, otherwise color gradient) ---
+    // --- Layer 2: Core diffuse sphere ---
     ctx.save();
     ctx.globalAlpha = depthAlpha;
+    const core = ctx.createRadialGradient(
+      x - r * 0.35, y - r * 0.35, 0,
+      x, y, r * 1.1
+    );
+    core.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    core.addColorStop(0.2, `rgba(${cr}, ${cg}, ${cb}, 1)`);
+    core.addColorStop(0.6, `rgba(${cr}, ${cg}, ${cb}, 1)`);
+    core.addColorStop(1, `rgba(${ar}, ${ag}, ${ab}, 1)`);
+    ctx.fillStyle = core;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
-    ctx.clip();
-
-    if (node.texture) {
-      // Draw texture into the clipped circle with slow scroll for rotation feel
-      const texShift = (time * 0.00004) % 1;
-      const d = r * 2;
-      const offsetX = texShift * d;
-      ctx.drawImage(node.texture, x - r - offsetX, y - r, d, d);
-      ctx.drawImage(node.texture, x - r - offsetX + d, y - r, d, d);
-
-      // Lighting overlay on top of texture
-      const lighting = ctx.createRadialGradient(
-        x - r * 0.35, y - r * 0.35, 0,
-        x, y, r * 1.1
-      );
-      lighting.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-      lighting.addColorStop(0.3, 'rgba(255, 255, 255, 0.03)');
-      lighting.addColorStop(0.6, 'rgba(0, 0, 0, 0)');
-      lighting.addColorStop(1, `rgba(${ar}, ${ag}, ${ab}, 0.45)`);
-      ctx.fillStyle = lighting;
-      ctx.fillRect(x - r, y - r, d, d);
-    } else {
-      // Fallback: color gradient sphere
-      const core = ctx.createRadialGradient(
-        x - r * 0.35, y - r * 0.35, 0,
-        x, y, r * 1.1
-      );
-      core.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      core.addColorStop(0.2, `rgba(${cr}, ${cg}, ${cb}, 1)`);
-      core.addColorStop(0.6, `rgba(${cr}, ${cg}, ${cb}, 1)`);
-      core.addColorStop(1, `rgba(${ar}, ${ag}, ${ab}, 1)`);
-      ctx.fillStyle = core;
-      ctx.fillRect(x - r, y - r, r * 2, r * 2);
-    }
+    ctx.fill();
     ctx.restore();
 
     // --- Layer 3: Specular highlight (soft, wide — screen blend) ---
