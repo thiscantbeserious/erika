@@ -107,16 +107,16 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
       x - r * 0.3, y - r * 0.3, 0,
       x + r * 0.1, y + r * 0.1, r
     );
-    // Gentle highlight — just slightly brighter, not white
-    const hlR = Math.min(255, cr + 40);
-    const hlG = Math.min(255, cg + 40);
-    const hlB = Math.min(255, cb + 40);
+    // Very subtle highlight — barely brighter than base
+    const hlR = Math.min(255, cr + 20);
+    const hlG = Math.min(255, cg + 20);
+    const hlB = Math.min(255, cb + 20);
     base.addColorStop(0, `rgba(${hlR}, ${hlG}, ${hlB}, 1)`);
-    base.addColorStop(0.25, `rgba(${cr}, ${cg}, ${cb}, 0.95)`);
-    // Very gradual transition into shadow
-    base.addColorStop(0.5, `rgba(${Math.floor(cr * 0.7)}, ${Math.floor(cg * 0.7)}, ${Math.floor(cb * 0.7)}, 0.9)`);
-    base.addColorStop(0.75, `rgba(${Math.floor(cr * 0.35)}, ${Math.floor(cg * 0.35)}, ${Math.floor(cb * 0.4)}, 0.85)`);
-    base.addColorStop(1, `rgba(${Math.floor(cr * 0.12)}, ${Math.floor(cg * 0.12)}, ${Math.floor(cb * 0.18)}, 0.8)`);
+    base.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, 0.95)`);
+    // Shadow stays close to the base color — never dark, just slightly muted
+    base.addColorStop(0.6, `rgba(${Math.floor(cr * 0.8)}, ${Math.floor(cg * 0.8)}, ${Math.floor(cb * 0.8)}, 0.9)`);
+    base.addColorStop(0.85, `rgba(${Math.floor(cr * 0.6)}, ${Math.floor(cg * 0.6)}, ${Math.floor(cb * 0.65)}, 0.85)`);
+    base.addColorStop(1, `rgba(${Math.floor(cr * 0.45)}, ${Math.floor(cg * 0.45)}, ${Math.floor(cb * 0.5)}, 0.8)`);
     ctx.fillStyle = base;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
