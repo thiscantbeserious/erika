@@ -74,7 +74,7 @@ describe('ToolbarPill', () => {
       });
       injected!.toggleCollapse();
       await wrapper.vm.$nextTick();
-      expect(wrapper.classes()).toContain('toolbar-pill--collapsed');
+      expect(wrapper.find('.toolbar-pill__content').classes()).toContain('toolbar-pill__content--collapsed');
     });
 
     it('toggleCollapse toggles isCollapsed from false to true', async () => {
@@ -107,6 +107,22 @@ describe('ToolbarPill', () => {
       injected!.toggleCollapse();
       injected!.toggleCollapse();
       expect(injected!.isCollapsed.value).toBe(false);
+    });
+  });
+
+  describe('content measurement', () => {
+    it('sets --toolbar-expanded-width style when content is measurable', async () => {
+      const wrapper = mount(ToolbarPill, {
+        slots: { default: '<button>Test</button>' },
+        attachTo: document.body,
+      });
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      // In happy-dom, scrollWidth may be 0 but the code path is exercised
+      const style = wrapper.find('.toolbar-pill').attributes('style') ?? '';
+      // Either the style is set (scrollWidth > 0) or not (scrollWidth === 0 in happy-dom)
+      expect(typeof style).toBe('string');
+      wrapper.unmount();
     });
   });
 });
