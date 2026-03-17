@@ -262,7 +262,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
       mesh.userData['baseAngle'] = planet.angle;
 
       // Atmosphere — BackSide Fresnel sphere slightly larger than planet
-      const atmoGeo = new THREE.SphereGeometry(planet.size * 1.2, 32, 32);
+      const atmoGeo = new THREE.SphereGeometry(planet.size * 1.4, 32, 32);
       disposables.push(atmoGeo);
       const atmoMat = new THREE.ShaderMaterial({
         transparent: true,
