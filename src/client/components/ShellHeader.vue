@@ -40,18 +40,35 @@
       </nav>
     </div>
     <div class="shell-header__right">
-      <ToolbarPill />
+      <ToolbarPill>
+        <PipelineRingTrigger />
+        <div class="toolbar-pill__separator" />
+        <ToolbarButton
+          icon="icon-settings"
+          label="Settings"
+          @click="navigateToSettings"
+        />
+        <ToolbarButton
+          icon="icon-bell"
+          label="Notifications"
+        />
+        <div class="toolbar-pill__separator" />
+        <ToolbarAvatar />
+      </ToolbarPill>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { sessionListKey } from '../composables/useSessionList.js';
 import { layoutKey } from '../composables/useLayout.js';
 import HexGateIcon from './HexGateIcon.vue';
 import ToolbarPill from './toolbar/ToolbarPill.vue';
+import PipelineRingTrigger from './toolbar/PipelineRingTrigger.vue';
+import ToolbarButton from './toolbar/ToolbarButton.vue';
+import ToolbarAvatar from './toolbar/ToolbarAvatar.vue';
 
 /**
  * ShellHeader renders the application header bar spanning the two right columns.
@@ -61,6 +78,7 @@ import ToolbarPill from './toolbar/ToolbarPill.vue';
  */
 
 const route = useRoute();
+const router = useRouter();
 const sessionList = inject(sessionListKey);
 const layout = inject(layoutKey);
 
@@ -94,6 +112,11 @@ function toggleMobileOverlay(): void {
   } else {
     layout?.openMobileOverlay();
   }
+}
+
+/** Navigates to the settings page. */
+function navigateToSettings(): void {
+  router.push('/settings');
 }
 
 /** Exposes hamburgerRef so the overlay can return focus here on close. */
@@ -237,5 +260,14 @@ defineExpose({ hamburgerRef });
     0 0 0 1px color-mix(in srgb, var(--accent-primary) 60%, transparent),
     0 0 12px color-mix(in srgb, var(--accent-primary) 40%, transparent),
     0 0 24px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+
+/* Toolbar pill separator — a thin vertical line dividing logical groups within the pill.
+   Defined here (where the markup lives) rather than in ToolbarPill to keep co-location clear. */
+.toolbar-pill__separator {
+  width: 1px;
+  height: 18px;
+  background: rgba(0, 212, 255, 0.15);
+  flex-shrink: 0;
 }
 </style>
