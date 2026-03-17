@@ -63,7 +63,7 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
   const cx = w / 2;
   const cy = h / 2;
   const orbitRadius = Math.min(w, h) * 0.3;
-  const sphereRadius = Math.max(10, Math.min(w, h) * 0.025);
+  const sphereRadius = Math.max(8, Math.min(w, h) * 0.018);
   const rotation = time * 0.001 * ORBIT_SPEED;
 
   // Project each node into 2D with depth
@@ -208,7 +208,7 @@ function startOrbitAnimation(): void {
  *  - Mouse at bottom: 20° (nearly edge-on — ring is a line) */
 function handleMouseMove(e: MouseEvent): void {
   const normalizedY = e.clientY / globalThis.innerHeight; // 0 (top) to 1 (bottom)
-  const tiltDeg = 88 - normalizedY * 68;
+  const tiltDeg = 88 - normalizedY * 40;
   targetTilt = tiltDeg * (Math.PI / 180);
 }
 
