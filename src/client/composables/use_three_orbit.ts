@@ -246,7 +246,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
       const mat = new THREE.MeshPhongMaterial({
         map: tex,
         emissive: planet.tint,
-        emissiveIntensity: 0.15,
+        emissiveIntensity: 0.25,
         shininess: 20,
       });
       disposables.push(mat);
@@ -407,8 +407,11 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     camera.aspect = w / h;
     // Scale camera distance so the orbit fills the viewport proportionally.
     // Reference: 800px wide = CAMERA_Z distance. Wider = pull back, narrower = move in.
+    // Only adjust if user hasn't zoomed (targetCameraZ is still at default).
     const scaleFactor = Math.max(w, 600) / 800;
-    camera.position.z = CAMERA_Z / scaleFactor;
+    const autoZ = CAMERA_Z / scaleFactor;
+    targetCameraZ = autoZ;
+    currentCameraZ = autoZ;
     camera.updateProjectionMatrix();
   }
 
