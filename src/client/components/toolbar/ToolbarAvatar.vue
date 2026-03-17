@@ -24,7 +24,7 @@ import { toolbarCollapseKey } from './toolbar_collapse.js';
 
 withDefaults(defineProps<{ initial?: string }>(), { initial: 'S' });
 
-const emit = defineEmits<{ (e: 'click', event: MouseEvent): void }>();
+const emit = defineEmits<{ click: [event: MouseEvent] }>();
 
 const collapseContext = inject(toolbarCollapseKey, undefined);
 

@@ -105,8 +105,7 @@ const props = defineProps<{
   open: boolean;
 }>();
 
-// Suppress unused prop warning — open is used in the v-if template directive.
-void props;
+// props.open is consumed by the v-if in the template.
 
 const pipelineStatus = inject(pipelineStatusKey);
 
