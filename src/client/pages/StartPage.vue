@@ -214,8 +214,11 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
       <span class="start-page__cursor-chevron">&gt;</span><span class="start-page__cursor-blink">_</span>
     </div>
 
-    <!-- Content overlay (centered over SVG) -->
-    <div class="start-page__content">
+    <!-- Content overlay (centered over SVG) — hidden when sessions exist -->
+    <div
+      v-if="!hasSessions"
+      class="start-page__content"
+    >
       <!-- Upload zone — design system component -->
       <div
         class="upload-zone"
@@ -245,17 +248,13 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
           </svg>
         </div>
         <div class="upload-zone__title">
-          {{ hasSessions ? 'Add another session.' : 'No sessions yet. Fix that.' }}
+          No sessions yet. Fix that.
         </div>
-        <div
-          v-if="!hasSessions"
-          class="upload-zone__subtitle"
-        >
+        <div class="upload-zone__subtitle">
           Drop a <code>.cast</code> file here or click to browse
           — watch it unfold into something you can actually read.
         </div>
         <span
-          v-if="!hasSessions"
           class="upload-zone__browse"
           aria-hidden="true"
         >Browse Files</span>
@@ -340,16 +339,20 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  perspective: 800px;
+  perspective: 600px;
   pointer-events: none;
   z-index: 1;
+  /* Scale orbit with viewport */
+  --orbit-size: min(60vw, 60vh, 500px);
+  --orbit-radius: calc(var(--orbit-size) / 2);
+  --node-size: clamp(16px, 3vw, 32px);
 }
 
 .sp-orbit__ring {
-  width: 300px;
-  height: 300px;
+  width: var(--orbit-size);
+  height: var(--orbit-size);
   transform-style: preserve-3d;
-  animation: orbit-rotate 20s linear infinite;
+  animation: orbit-rotate 25s linear infinite;
   position: relative;
 }
 
@@ -360,49 +363,55 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   transform-style: preserve-3d;
 }
 
-.sp-orbit__node--1 { transform: rotateZ(0deg) translateX(150px); }
-.sp-orbit__node--2 { transform: rotateZ(72deg) translateX(150px); }
-.sp-orbit__node--3 { transform: rotateZ(144deg) translateX(150px); }
-.sp-orbit__node--4 { transform: rotateZ(216deg) translateX(150px); }
-.sp-orbit__node--5 { transform: rotateZ(288deg) translateX(150px); }
+/* 5 nodes evenly distributed at 72° intervals */
+.sp-orbit__node--1 { transform: rotateZ(0deg) translateX(var(--orbit-radius)); }
+.sp-orbit__node--2 { transform: rotateZ(72deg) translateX(var(--orbit-radius)); }
+.sp-orbit__node--3 { transform: rotateZ(144deg) translateX(var(--orbit-radius)); }
+.sp-orbit__node--4 { transform: rotateZ(216deg) translateX(var(--orbit-radius)); }
+.sp-orbit__node--5 { transform: rotateZ(288deg) translateX(var(--orbit-radius)); }
 
+/* Counter-rotate inner content so labels stay 2D readable (HUD style).
+   Only cancels the Z rotation — the X tilt from the ring is preserved
+   for depth but the text stays upright and legible. */
 .sp-orbit__node-inner {
-  animation: orbit-counter-rotate 20s linear infinite;
+  animation: orbit-counter-rotate 25s linear infinite;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: calc(var(--node-size) * 0.4);
   transform: translate(-50%, -50%);
 }
 
+/* 3D sphere dots — circles that scale with perspective naturally.
+   Near nodes appear larger, far nodes smaller via the 3D transform. */
 .sp-orbit__node-dot {
-  width: 10px;
-  height: 10px;
+  width: var(--node-size);
+  height: var(--node-size);
   border-radius: var(--radius-full);
 }
 
 .sp-orbit__node-dot--cyan {
   background: var(--accent-primary);
   box-shadow:
-    0 0 8px color-mix(in srgb, var(--accent-primary) 60%, transparent),
-    0 0 20px color-mix(in srgb, var(--accent-primary) 30%, transparent);
+    0 0 calc(var(--node-size) * 0.8) color-mix(in srgb, var(--accent-primary) 60%, transparent),
+    0 0 calc(var(--node-size) * 2) color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 .sp-orbit__node-dot--pink {
   background: var(--accent-secondary);
   box-shadow:
-    0 0 8px color-mix(in srgb, var(--accent-secondary) 60%, transparent),
-    0 0 20px color-mix(in srgb, var(--accent-secondary) 30%, transparent);
+    0 0 calc(var(--node-size) * 0.8) color-mix(in srgb, var(--accent-secondary) 60%, transparent),
+    0 0 calc(var(--node-size) * 2) color-mix(in srgb, var(--accent-secondary) 30%, transparent);
 }
 
 .sp-orbit__node-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: clamp(9px, 1.2vw, 13px);
   letter-spacing: 0.15em;
   color: var(--text-muted);
   text-transform: uppercase;
   white-space: nowrap;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 /* ============================================================
