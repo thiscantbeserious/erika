@@ -95,11 +95,10 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     const sunTex = loader.load('/textures/2k_sun.jpg');
     disposables.push(sunTex);
     const coreGeo = new THREE.SphereGeometry(0.08, 32, 32);
-    const coreMat = new THREE.MeshPhongMaterial({
-      map: sunTex,
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: 0xddeeff,
       emissive: new THREE.Color(0xddeeff),
-      emissiveIntensity: 0.8,
-      shininess: 5,
+      emissiveIntensity: 1.0,
     });
     disposables.push(coreGeo, coreMat);
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
