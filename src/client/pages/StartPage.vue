@@ -7,16 +7,148 @@
  * Respects prefers-reduced-motion by disabling all CSS animations.
  * Upload flow is wired in Stage 10 — for now, upload-zone opens the file picker only.
  */
-import { ref, inject, computed } from 'vue';
+import { ref, inject, computed, onMounted, onUnmounted } from 'vue';
 import { sessionListKey } from '../composables/useSessionList.js';
 import { useUpload } from '../composables/useUpload.js';
 import type { Session } from '../../shared/types/session.js';
 
 const sessionList = inject(sessionListKey, null);
+const isLoading = computed(() => sessionList?.loading.value ?? true);
 const hasSessions = computed(() => (sessionList?.sessions.value.length ?? 0) > 0);
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const { uploadFileWithOptimistic } = useUpload();
+
+// ---------------------------------------------------------------------------
+// 3D orbit canvas — 5 lit spheres orbiting with perspective projection
+// ---------------------------------------------------------------------------
+
+const orbitCanvasRef = ref<HTMLCanvasElement | null>(null);
+let animFrameId = 0;
+
+interface OrbitalNode {
+  label: string;
+  angle: number; // radians offset on the orbit
+  color: [number, number, number]; // RGB
+  glowColor: string; // CSS rgba for glow
+}
+
+const NODES: OrbitalNode[] = [
+  { label: 'record',   angle: 0,                  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
+  { label: 'validate', angle: (2 * Math.PI) / 5,  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
+  { label: 'detect',   angle: (4 * Math.PI) / 5,  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
+  { label: 'replay',   angle: (6 * Math.PI) / 5,  color: [0, 212, 255], glowColor: 'rgba(0, 212, 255, 0.4)' },
+  { label: 'curate',   angle: (8 * Math.PI) / 5,  color: [255, 77, 106], glowColor: 'rgba(255, 77, 106, 0.4)' },
+];
+
+const ORBIT_TILT = 60 * (Math.PI / 180); // 60° tilt toward viewer
+const ORBIT_SPEED = (2 * Math.PI) / 25;  // full rotation in 25s
+const PERSPECTIVE = 600;
+const BASE_SPHERE_RADIUS = 14; // base radius in px at z=0
+
+function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, time: number): void {
+  const dpr = globalThis.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const cy = h / 2;
+  const orbitRadius = Math.min(w, h) * 0.3;
+  const sphereRadius = Math.max(10, Math.min(w, h) * 0.025);
+  const rotation = time * 0.001 * ORBIT_SPEED;
+
+  // Project each node into 2D with depth
+  const projected: { x: number; y: number; z: number; scale: number; node: OrbitalNode }[] = [];
+
+  for (const node of NODES) {
+    const a = rotation + node.angle;
+    // 3D position on tilted orbit ring
+    const x3 = Math.cos(a) * orbitRadius;
+    const y3 = Math.sin(a) * orbitRadius * Math.cos(ORBIT_TILT);
+    const z3 = Math.sin(a) * orbitRadius * Math.sin(ORBIT_TILT);
+
+    // Perspective projection
+    const scale = PERSPECTIVE / (PERSPECTIVE + z3);
+    const sx = cx + x3 * scale;
+    const sy = cy + y3 * scale;
+
+    projected.push({ x: sx, y: sy, z: z3, scale, node });
+  }
+
+  // Sort back-to-front (far first)
+  projected.sort((a, b) => b.z - a.z);
+
+  for (const { x, y, scale, node } of projected) {
+    const r = sphereRadius * scale;
+    const [cr, cg, cb] = node.color;
+
+    // Outer glow
+    ctx.save();
+    ctx.globalAlpha = 0.3 * scale;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 2.5, 0, 2 * Math.PI);
+    const glowGrad = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 2.5);
+    glowGrad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.4)`);
+    glowGrad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+    ctx.fillStyle = glowGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // Sphere with shading — highlight offset top-left to fake a light source
+    ctx.save();
+    ctx.globalAlpha = 0.6 + 0.4 * scale; // near = more opaque
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    const sphereGrad = ctx.createRadialGradient(
+      x - r * 0.3, y - r * 0.3, r * 0.1,  // highlight center (top-left)
+      x, y, r                                // sphere edge
+    );
+    sphereGrad.addColorStop(0, `rgba(${Math.min(255, cr + 100)}, ${Math.min(255, cg + 100)}, ${Math.min(255, cb + 100)}, 1)`);
+    sphereGrad.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, 1)`);
+    sphereGrad.addColorStop(1, `rgba(${Math.floor(cr * 0.3)}, ${Math.floor(cg * 0.3)}, ${Math.floor(cb * 0.3)}, 1)`);
+    ctx.fillStyle = sphereGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // Label — always 2D, HUD style below the sphere
+    ctx.save();
+    ctx.globalAlpha = 0.5 + 0.3 * scale;
+    ctx.font = `500 ${Math.max(9, 11 * scale)}px "Geist Mono", monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#aaaab0';
+    ctx.letterSpacing = '0.15em';
+    ctx.fillText(node.label.toUpperCase(), x, y + r + 14 * scale);
+    ctx.restore();
+  }
+}
+
+function startOrbitAnimation(): void {
+  const canvas = orbitCanvasRef.value;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Check reduced motion preference
+  const prefersReduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  function loop(time: number): void {
+    drawOrbit(canvas!, ctx!, prefersReduced ? 0 : time);
+    animFrameId = requestAnimationFrame(loop);
+  }
+  animFrameId = requestAnimationFrame(loop);
+}
+
+onMounted(() => {
+  startOrbitAnimation();
+});
+
+onUnmounted(() => {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+});
 
 /** Opens the system file picker. Upload zone, browse link, and keyboard trigger this. */
 function openFilePicker(): void {
@@ -132,44 +264,12 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 
     </svg>
 
-    <!-- 3D orbiting pipeline nodes -->
-    <div
-      class="sp-orbit"
+    <!-- 3D orbiting pipeline nodes — Canvas with real projected spheres -->
+    <canvas
+      ref="orbitCanvasRef"
+      class="sp-orbit-canvas"
       aria-hidden="true"
-    >
-      <div class="sp-orbit__ring">
-        <div class="sp-orbit__node sp-orbit__node--1">
-          <div class="sp-orbit__node-inner">
-            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
-            <span class="sp-orbit__node-label">record</span>
-          </div>
-        </div>
-        <div class="sp-orbit__node sp-orbit__node--2">
-          <div class="sp-orbit__node-inner">
-            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
-            <span class="sp-orbit__node-label">validate</span>
-          </div>
-        </div>
-        <div class="sp-orbit__node sp-orbit__node--3">
-          <div class="sp-orbit__node-inner">
-            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
-            <span class="sp-orbit__node-label">detect</span>
-          </div>
-        </div>
-        <div class="sp-orbit__node sp-orbit__node--4">
-          <div class="sp-orbit__node-inner">
-            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
-            <span class="sp-orbit__node-label">replay</span>
-          </div>
-        </div>
-        <div class="sp-orbit__node sp-orbit__node--5">
-          <div class="sp-orbit__node-inner">
-            <div class="sp-orbit__node-dot sp-orbit__node-dot--pink" />
-            <span class="sp-orbit__node-label">curate</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    />
 
     <!-- Ambient particles (8 total — 6 cyan, 2 pink) -->
     <div
@@ -207,7 +307,7 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 
     <!-- Blinking cursor watermark — hidden when sessions already exist -->
     <div
-      v-if="!hasSessions"
+      v-if="!isLoading && !hasSessions"
       class="start-page__cursor-prompt"
       aria-hidden="true"
     >
@@ -216,7 +316,7 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 
     <!-- Content overlay (centered over SVG) — hidden when sessions exist -->
     <div
-      v-if="!hasSessions"
+      v-if="!isLoading && !hasSessions"
       class="start-page__content"
     >
       <!-- Upload zone — design system component -->
@@ -331,87 +431,16 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 }
 
 /* ============================================================
-   3D ORBIT — pipeline nodes rotating around centre
+   3D ORBIT CANVAS — real projected spheres with shading
    ============================================================ */
 
-.sp-orbit {
+.sp-orbit-canvas {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  perspective: 600px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 1;
-  /* Scale orbit with viewport */
-  --orbit-size: min(60vw, 60vh, 500px);
-  --orbit-radius: calc(var(--orbit-size) / 2);
-  --node-size: clamp(16px, 3vw, 32px);
-}
-
-.sp-orbit__ring {
-  width: var(--orbit-size);
-  height: var(--orbit-size);
-  transform-style: preserve-3d;
-  animation: orbit-rotate 25s linear infinite;
-  position: relative;
-}
-
-.sp-orbit__node {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform-style: preserve-3d;
-}
-
-/* 5 nodes evenly distributed at 72° intervals */
-.sp-orbit__node--1 { transform: rotateZ(0deg) translateX(var(--orbit-radius)); }
-.sp-orbit__node--2 { transform: rotateZ(72deg) translateX(var(--orbit-radius)); }
-.sp-orbit__node--3 { transform: rotateZ(144deg) translateX(var(--orbit-radius)); }
-.sp-orbit__node--4 { transform: rotateZ(216deg) translateX(var(--orbit-radius)); }
-.sp-orbit__node--5 { transform: rotateZ(288deg) translateX(var(--orbit-radius)); }
-
-/* Counter-rotate inner content so labels stay 2D readable (HUD style).
-   Only cancels the Z rotation — the X tilt from the ring is preserved
-   for depth but the text stays upright and legible. */
-.sp-orbit__node-inner {
-  animation: orbit-counter-rotate 25s linear infinite;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(var(--node-size) * 0.4);
-  transform: translate(-50%, -50%);
-}
-
-/* 3D sphere dots — circles that scale with perspective naturally.
-   Near nodes appear larger, far nodes smaller via the 3D transform. */
-.sp-orbit__node-dot {
-  width: var(--node-size);
-  height: var(--node-size);
-  border-radius: var(--radius-full);
-}
-
-.sp-orbit__node-dot--cyan {
-  background: var(--accent-primary);
-  box-shadow:
-    0 0 calc(var(--node-size) * 0.8) color-mix(in srgb, var(--accent-primary) 60%, transparent),
-    0 0 calc(var(--node-size) * 2) color-mix(in srgb, var(--accent-primary) 30%, transparent);
-}
-
-.sp-orbit__node-dot--pink {
-  background: var(--accent-secondary);
-  box-shadow:
-    0 0 calc(var(--node-size) * 0.8) color-mix(in srgb, var(--accent-secondary) 60%, transparent),
-    0 0 calc(var(--node-size) * 2) color-mix(in srgb, var(--accent-secondary) 30%, transparent);
-}
-
-.sp-orbit__node-label {
-  font-family: var(--font-mono);
-  font-size: clamp(9px, 1.2vw, 13px);
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: 0.7;
 }
 
 /* ============================================================
@@ -565,15 +594,7 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
    KEYFRAMES
    ============================================================ */
 
-@keyframes orbit-rotate {
-  from { transform: rotateX(60deg) rotateZ(0deg); }
-  to   { transform: rotateX(60deg) rotateZ(360deg); }
-}
 
-@keyframes orbit-counter-rotate {
-  from { transform: translate(-50%, -50%) rotateZ(0deg) rotateX(-60deg); }
-  to   { transform: translate(-50%, -50%) rotateZ(-360deg) rotateX(-60deg); }
-}
 
 @keyframes spGridFadeIn {
   from { opacity: 0; }
