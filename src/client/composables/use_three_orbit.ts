@@ -352,6 +352,10 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     const h = container.clientHeight;
     renderer.setSize(w, h);
     camera.aspect = w / h;
+    // Scale camera distance so the orbit fills the viewport proportionally.
+    // Reference: 800px wide = CAMERA_Z distance. Wider = pull back, narrower = move in.
+    const scaleFactor = Math.max(w, 600) / 800;
+    camera.position.z = CAMERA_Z / scaleFactor;
     camera.updateProjectionMatrix();
   }
 
