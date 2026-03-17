@@ -107,6 +107,19 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     const baseMat = new THREE.MeshBasicMaterial({ color: 0xeef4ff });
     disposables.push(baseGeo, baseMat);
     scene.add(new THREE.Mesh(baseGeo, baseMat));
+
+    // Tight white bloom sphere — slightly larger, blurs the sharp edge
+    const bloomGeo = new THREE.SphereGeometry(0.12, 32, 32);
+    const bloomMat = new THREE.MeshBasicMaterial({
+      color: 0xddeeff,
+      transparent: true,
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    disposables.push(bloomGeo, bloomMat);
+    scene.add(new THREE.Mesh(bloomGeo, bloomMat));
+
     disposables.push(coreGeo, coreMat);
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
     if (!prefersReduced) {
@@ -247,7 +260,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
       mesh.userData['baseAngle'] = planet.angle;
 
       // Atmosphere glow — BackSide Fresnel creates outward halo in planet's color
-      const atmoGeo = new THREE.SphereGeometry(planet.size * 1.6, 32, 32);
+      const atmoGeo = new THREE.SphereGeometry(planet.size * 1.8, 32, 32);
       disposables.push(atmoGeo);
 
       const pr = planet.haloColor.r;
@@ -278,7 +291,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
           void main() {
             vec3 viewDir = normalize(-vPositionW);
             float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
-            float intensity = pow(rim, 2.0) * 0.8;
+            float intensity = pow(rim, 1.5) * 0.9;
             gl_FragColor = vec4(glowColor, intensity);
           }
         `,
@@ -306,11 +319,11 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
         transparent: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        opacity: 0.4,
+        opacity: 0.5,
       });
       disposables.push(spriteMat);
       const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(planet.size * 4, planet.size * 4, 1);
+      sprite.scale.set(planet.size * 5, planet.size * 5, 1);
       mesh.add(sprite);
 
       meshes.push(mesh);
