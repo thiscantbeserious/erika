@@ -118,8 +118,7 @@ export function usePipelineStatus(): PipelineStatusState {
 
     es.addEventListener('pipeline-status', (e: MessageEvent) => {
       try {
-        // TODO: replace with typia runtime validation when composable stabilizes.
-        // Currently cast-trusted because the server owns this SSE endpoint exclusively.
+        // Cast-trusted because the server owns this SSE endpoint exclusively.
         const snapshot = JSON.parse(e.data as string) as PipelineStatusSnapshot;
         applySnapshot(snapshot);
       } catch {

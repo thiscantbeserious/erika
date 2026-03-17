@@ -57,7 +57,6 @@ const totalActive = computed(() => pipelineStatus?.totalActive.value ?? 0);
  * This is a binary active/inactive indicator, not proportional to session count —
  * the ring shows "work in progress" (42% arc) whenever totalActive > 0, and
  * disappears when idle. Proportional fill is deferred pending UX approval.
- * TODO: replace JSON.parse with typia validation when the composable stabilizes.
  */
 const dashOffset = computed(() => {
   if (totalActive.value === 0) return CIRCUMFERENCE;
