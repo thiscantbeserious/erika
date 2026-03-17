@@ -85,42 +85,52 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
   for (const { x, y, scale, node } of projected) {
     const r = sphereRadius * scale;
     const [cr, cg, cb] = node.color;
+    const depthAlpha = 0.4 + 0.6 * scale; // near = brighter, far = dimmer
 
-    // Outer glow
+    // Wide soft glow halo
     ctx.save();
-    ctx.globalAlpha = 0.3 * scale;
+    ctx.globalAlpha = depthAlpha * 0.3;
+    const outerGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+    outerGlow.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.3)`);
+    outerGlow.addColorStop(0.4, `rgba(${cr}, ${cg}, ${cb}, 0.1)`);
+    outerGlow.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+    ctx.fillStyle = outerGlow;
     ctx.beginPath();
-    ctx.arc(x, y, r * 2.5, 0, 2 * Math.PI);
-    const glowGrad = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 2.5);
-    glowGrad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.4)`);
-    glowGrad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
-    ctx.fillStyle = glowGrad;
+    ctx.arc(x, y, r * 3, 0, 2 * Math.PI);
     ctx.fill();
     ctx.restore();
 
-    // Sphere with shading — highlight offset top-left to fake a light source
+    // Inner bright glow
     ctx.save();
-    ctx.globalAlpha = 0.6 + 0.4 * scale; // near = more opaque
+    ctx.globalAlpha = depthAlpha * 0.6;
+    const innerGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 1.5);
+    innerGlow.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.6)`);
+    innerGlow.addColorStop(0.6, `rgba(${cr}, ${cg}, ${cb}, 0.15)`);
+    innerGlow.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+    ctx.fillStyle = innerGlow;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 1.5, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+
+    // Solid core dot
+    ctx.save();
+    ctx.globalAlpha = depthAlpha;
+    ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
+    ctx.shadowColor = `rgba(${cr}, ${cg}, ${cb}, 0.8)`;
+    ctx.shadowBlur = r * 0.8;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
-    const sphereGrad = ctx.createRadialGradient(
-      x - r * 0.3, y - r * 0.3, r * 0.1,  // highlight center (top-left)
-      x, y, r                                // sphere edge
-    );
-    sphereGrad.addColorStop(0, `rgba(${Math.min(255, cr + 100)}, ${Math.min(255, cg + 100)}, ${Math.min(255, cb + 100)}, 1)`);
-    sphereGrad.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, 1)`);
-    sphereGrad.addColorStop(1, `rgba(${Math.floor(cr * 0.3)}, ${Math.floor(cg * 0.3)}, ${Math.floor(cb * 0.3)}, 1)`);
-    ctx.fillStyle = sphereGrad;
     ctx.fill();
     ctx.restore();
 
-    // Label — always 2D, HUD style below the sphere
+    // Label — always 2D readable, HUD style
     ctx.save();
-    ctx.globalAlpha = 0.5 + 0.3 * scale;
-    ctx.font = `500 ${Math.max(9, 11 * scale)}px "Geist Mono", monospace`;
+    ctx.globalAlpha = depthAlpha * 0.7;
+    const fontSize = Math.max(9, 11 * scale);
+    ctx.font = `500 ${fontSize}px "Geist Mono", monospace`;
     ctx.textAlign = 'center';
     ctx.fillStyle = '#aaaab0';
-    ctx.letterSpacing = '0.15em';
     ctx.fillText(node.label.toUpperCase(), x, y + r + 14 * scale);
     ctx.restore();
   }
