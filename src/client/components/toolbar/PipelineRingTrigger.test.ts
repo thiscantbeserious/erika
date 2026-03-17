@@ -220,7 +220,7 @@ describe('PipelineRingTrigger', () => {
 
   describe('dropdown toggle', () => {
     it('dropdown is not rendered by default', () => {
-      const wrapper = mountWithStatus(makePipelineStatus());
+      mountWithStatus(makePipelineStatus());
       expect(!!document.querySelector('.pipeline-dropdown')).toBe(false);
     });
 
