@@ -221,7 +221,7 @@ describe('PipelineRingTrigger', () => {
   describe('dropdown toggle', () => {
     it('dropdown is not rendered by default', () => {
       const wrapper = mountWithStatus(makePipelineStatus());
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(false);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(false);
     });
 
     it('aria-expanded is false by default', () => {
@@ -232,7 +232,7 @@ describe('PipelineRingTrigger', () => {
     it('clicking trigger opens the dropdown', async () => {
       const wrapper = mountWithStatus(makePipelineStatus());
       await wrapper.find('button.pipeline-ring-trigger').trigger('click');
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(true);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(true);
     });
 
     it('aria-expanded is true when dropdown is open', async () => {
@@ -244,31 +244,31 @@ describe('PipelineRingTrigger', () => {
     it('clicking trigger again closes the dropdown', async () => {
       const wrapper = mountWithStatus(makePipelineStatus());
       await wrapper.find('button.pipeline-ring-trigger').trigger('click');
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(true);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(true);
 
       await wrapper.find('button.pipeline-ring-trigger').trigger('click');
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(false);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(false);
     });
 
     it('pressing Escape closes the dropdown', async () => {
       const wrapper = mountWithStatus(makePipelineStatus());
       await wrapper.find('button.pipeline-ring-trigger').trigger('click');
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(true);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(true);
 
       await wrapper.trigger('keydown', { key: 'Escape' });
       await wrapper.vm.$nextTick();
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(false);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(false);
     });
 
     it('clicking outside closes the dropdown', async () => {
       const wrapper = mountWithStatus(makePipelineStatus());
       await wrapper.find('button.pipeline-ring-trigger').trigger('click');
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(true);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(true);
 
       // Simulate outside click via document event
       document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await wrapper.vm.$nextTick();
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(false);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(false);
     });
 
     it('pressing Escape returns focus to the trigger button', async () => {
@@ -276,7 +276,7 @@ describe('PipelineRingTrigger', () => {
       const triggerButton = wrapper.find('button.pipeline-ring-trigger').element as Element & { blur(): void; focus(): void };
 
       await wrapper.find('button.pipeline-ring-trigger').trigger('click');
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(true);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(true);
 
       // Move focus away to simulate real-world dropdown interaction
       triggerButton.blur();
@@ -284,7 +284,7 @@ describe('PipelineRingTrigger', () => {
       await wrapper.trigger('keydown', { key: 'Escape' });
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.find('.pipeline-dropdown').exists()).toBe(false);
+      expect(!!document.querySelector('.pipeline-dropdown')).toBe(false);
       expect(document.activeElement).toBe(triggerButton);
     });
   });

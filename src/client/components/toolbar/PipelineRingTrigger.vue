@@ -87,7 +87,7 @@ const dashOffset = computed(() => {
 // ---------------------------------------------------------------------------
 
 /** Template ref to the trigger button, used to restore focus on close. */
-const triggerButtonRef = ref<HTMLButtonElement | null>(null);
+const triggerButtonRef = ref<HTMLElement | null>(null);
 
 const isOpen = ref(false);
 
@@ -98,7 +98,7 @@ const dropdownStyle = computed(() => {
   return {
     position: 'fixed',
     top: `${rect.bottom}px`,
-    right: `${window.innerWidth - rect.right + 4}px`,
+    right: `${globalThis.innerWidth - rect.right + 4}px`,
   };
 });
 

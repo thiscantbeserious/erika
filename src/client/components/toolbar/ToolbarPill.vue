@@ -35,7 +35,7 @@ onMounted(async () => {
   await nextTick();
   const content = pillRef.value?.querySelector('.toolbar-pill__content') as HTMLElement | null;
   if (content) {
-    const style = getComputedStyle(content);
+    const style = globalThis.getComputedStyle(content);
     const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
     expandedMaxWidth.value = content.scrollWidth + paddingX;
   }
