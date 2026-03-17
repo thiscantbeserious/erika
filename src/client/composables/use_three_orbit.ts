@@ -89,40 +89,25 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
 
   function createCentralStar(): void {
     if (!scene) return;
+    const loader = new THREE.TextureLoader();
 
-    // Glowing core sprite
-    const coreCanvas = document.createElement('canvas');
-    coreCanvas.width = 256;
-    coreCanvas.height = 256;
-    const ctx = coreCanvas.getContext('2d')!;
-    const cx = 128;
+    // Sun sprite — same approach as Asterank
+    const sunTex = loader.load('/textures/sunsprite.png');
+    disposables.push(sunTex);
 
-    // Nebula-like glow — multi-layer
-    const g1 = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
-    g1.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    g1.addColorStop(0.05, 'rgba(200, 240, 255, 0.8)');
-    g1.addColorStop(0.15, 'rgba(0, 212, 255, 0.3)');
-    g1.addColorStop(0.4, 'rgba(255, 77, 106, 0.08)');
-    g1.addColorStop(0.7, 'rgba(0, 100, 200, 0.03)');
-    g1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = g1;
-    ctx.fillRect(0, 0, 256, 256);
-
-    const coreTex = new THREE.CanvasTexture(coreCanvas);
-    disposables.push(coreTex);
-
-    const coreMat = new THREE.SpriteMaterial({
-      map: coreTex,
+    const sunMat = new THREE.SpriteMaterial({
+      map: sunTex,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
+      color: 0xccddff,
     });
-    disposables.push(coreMat);
+    disposables.push(sunMat);
 
-    const coreSprite = new THREE.Sprite(coreMat);
-    coreSprite.scale.set(3, 3, 1);
-    coreSprite.position.set(0, 0, 0);
-    scene.add(coreSprite);
+    const sunSprite = new THREE.Sprite(sunMat);
+    sunSprite.scale.set(1.5, 1.5, 1);
+    sunSprite.position.set(0, 0, 0);
+    scene.add(sunSprite);
 
     // Point light at center
     const pointLight = new THREE.PointLight(0xccddff, 1.5, 15);
@@ -221,7 +206,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
             vec3 viewDir = normalize(-vPositionW);
             float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
             rim = pow(rim, 2.5);
-            gl_FragColor = vec4(glowColor, rim * 0.3);
+            gl_FragColor = vec4(glowColor, rim * 0.45);
           }
         `,
       });
