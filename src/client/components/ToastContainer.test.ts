@@ -9,7 +9,7 @@
  *   119 — dismiss button @click handler: emits 'dismiss' with toast id
  *   All inline SVG icon branches (success, warning, error, info, custom icon)
  */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import ToastContainer from './ToastContainer.vue';
 import type { Toast } from '../composables/useToast.js';

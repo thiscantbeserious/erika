@@ -64,7 +64,7 @@ describe('useSSE() — stale session guard in syncStatusOnOpen (line 196)', () =
     let resolveSecondFetch: (value: Response) => void = () => {};
     let fetchCallCount = 0;
 
-    vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((_url: string) => {
       fetchCallCount++;
       if (fetchCallCount === 1) {
         // First fetch: returns a pending promise that we control
