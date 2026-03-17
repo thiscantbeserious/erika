@@ -83,7 +83,7 @@ describe('useSession — sseStatus watch: !next and !id guard branches (line 107
     vi.mocked(fetch).mockResolvedValue(makeOkResponse(makeSessionResponse()));
 
     const idRef = ref('sess-1');
-    const { } = useSession(idRef);
+    useSession(idRef);
 
     await nextTick();
     await nextTick();
