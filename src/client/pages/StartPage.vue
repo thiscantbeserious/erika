@@ -107,16 +107,14 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
       x - r * 0.3, y - r * 0.3, 0,
       x + r * 0.1, y + r * 0.1, r
     );
-    // Very subtle highlight — barely brighter than base
-    const hlR = Math.min(255, cr + 20);
-    const hlG = Math.min(255, cg + 20);
-    const hlB = Math.min(255, cb + 20);
+    const hlR = Math.min(255, cr + 30);
+    const hlG = Math.min(255, cg + 30);
+    const hlB = Math.min(255, cb + 30);
     base.addColorStop(0, `rgba(${hlR}, ${hlG}, ${hlB}, 1)`);
     base.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, 0.95)`);
-    // Shadow stays close to the base color — never dark, just slightly muted
-    base.addColorStop(0.6, `rgba(${Math.floor(cr * 0.8)}, ${Math.floor(cg * 0.8)}, ${Math.floor(cb * 0.8)}, 0.9)`);
-    base.addColorStop(0.85, `rgba(${Math.floor(cr * 0.6)}, ${Math.floor(cg * 0.6)}, ${Math.floor(cb * 0.65)}, 0.85)`);
-    base.addColorStop(1, `rgba(${Math.floor(cr * 0.45)}, ${Math.floor(cg * 0.45)}, ${Math.floor(cb * 0.5)}, 0.8)`);
+    base.addColorStop(0.55, `rgba(${Math.floor(cr * 0.75)}, ${Math.floor(cg * 0.75)}, ${Math.floor(cb * 0.75)}, 0.9)`);
+    base.addColorStop(0.8, `rgba(${Math.floor(cr * 0.45)}, ${Math.floor(cg * 0.45)}, ${Math.floor(cb * 0.5)}, 0.85)`);
+    base.addColorStop(1, `rgba(${Math.floor(cr * 0.3)}, ${Math.floor(cg * 0.3)}, ${Math.floor(cb * 0.35)}, 0.8)`);
     ctx.fillStyle = base;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
@@ -141,24 +139,7 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
     ctx.globalCompositeOperation = 'source-over';
     ctx.restore();
 
-    // --- Layer 4: Subtle rim light — very faint backlight ---
-    ctx.save();
-    ctx.globalAlpha = depthAlpha * 0.2;
-    ctx.globalCompositeOperation = 'lighter';
-    const rim = ctx.createRadialGradient(
-      x + r * 0.2, y + r * 0.2, r * 0.7,
-      x, y, r * 1.02
-    );
-    rim.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    rim.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
-    rim.addColorStop(0.95, `rgba(${cr}, ${cg}, ${cb}, 0.15)`);
-    rim.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0.05)`);
-    ctx.fillStyle = rim;
-    ctx.beginPath();
-    ctx.arc(x, y, r * 1.02, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
+    // (no rim light / outline — clean edges only)
 
     // --- Label — always 2D, HUD style ---
     ctx.save();
