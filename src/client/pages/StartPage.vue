@@ -130,151 +130,46 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
         stroke="#ff4d6a"
       />
 
-      <!-- Node 1: record (cyan) at grid intersection 280,120 -->
-      <g>
-        <circle
-          class="sp-node-fill sp-node-fill--cyan sp-node-fill--n1"
-          cx="280"
-          cy="120"
-          r="6"
-        />
-        <circle
-          class="sp-node-ring sp-node-ring--cyan sp-node-ring--n1"
-          cx="280"
-          cy="120"
-          r="10"
-        />
-        <circle
-          class="sp-node-outer sp-node-outer--n1"
-          cx="280"
-          cy="120"
-          r="16"
-          stroke="#00d4ff"
-          stroke-dasharray="4 4"
-        />
-        <text
-          class="sp-node-label sp-node-label--n1"
-          x="280"
-          y="160"
-        >record</text>
-      </g>
-
-      <!-- Node 2: validate (pink) at grid intersection 400,480 -->
-      <g>
-        <circle
-          class="sp-node-fill sp-node-fill--pink sp-node-fill--n2"
-          cx="400"
-          cy="480"
-          r="6"
-        />
-        <circle
-          class="sp-node-ring sp-node-ring--pink sp-node-ring--n2"
-          cx="400"
-          cy="480"
-          r="10"
-        />
-        <circle
-          class="sp-node-outer sp-node-outer--n2"
-          cx="400"
-          cy="480"
-          r="16"
-          stroke="#ff4d6a"
-          stroke-dasharray="4 4"
-        />
-        <text
-          class="sp-node-label sp-node-label--n2"
-          x="400"
-          y="520"
-        >validate</text>
-      </g>
-
-      <!-- Node 3: detect (cyan) at grid intersection 640,80 -->
-      <g>
-        <circle
-          class="sp-node-fill sp-node-fill--cyan sp-node-fill--n3"
-          cx="640"
-          cy="80"
-          r="6"
-        />
-        <circle
-          class="sp-node-ring sp-node-ring--cyan sp-node-ring--n3"
-          cx="640"
-          cy="80"
-          r="10"
-        />
-        <circle
-          class="sp-node-outer sp-node-outer--n3"
-          cx="640"
-          cy="80"
-          r="16"
-          stroke="#00d4ff"
-          stroke-dasharray="4 4"
-        />
-        <text
-          class="sp-node-label sp-node-label--n3"
-          x="640"
-          y="120"
-        >detect</text>
-      </g>
-
-      <!-- Node 4: replay (pink) at grid intersection 920,480 -->
-      <g>
-        <circle
-          class="sp-node-fill sp-node-fill--pink sp-node-fill--n4"
-          cx="920"
-          cy="480"
-          r="6"
-        />
-        <circle
-          class="sp-node-ring sp-node-ring--pink sp-node-ring--n4"
-          cx="920"
-          cy="480"
-          r="10"
-        />
-        <circle
-          class="sp-node-outer sp-node-outer--n4"
-          cx="920"
-          cy="480"
-          r="16"
-          stroke="#ff4d6a"
-          stroke-dasharray="4 4"
-        />
-        <text
-          class="sp-node-label sp-node-label--n4"
-          x="920"
-          y="520"
-        >replay</text>
-      </g>
-
-      <!-- Node 5: curate (cyan, final — stronger glow) at grid intersection 960,120 -->
-      <g>
-        <circle
-          class="sp-node-fill sp-node-fill--final sp-node-fill--n5"
-          cx="960"
-          cy="120"
-          r="8"
-        />
-        <circle
-          class="sp-node-ring sp-node-ring--final sp-node-ring--n5"
-          cx="960"
-          cy="120"
-          r="13"
-        />
-        <circle
-          class="sp-node-outer sp-node-outer--n5"
-          cx="960"
-          cy="120"
-          r="20"
-          stroke="#00d4ff"
-          stroke-dasharray="5 5"
-        />
-        <text
-          class="sp-node-label sp-node-label--n5"
-          x="960"
-          y="160"
-        >curate</text>
-      </g>
     </svg>
+
+    <!-- 3D orbiting pipeline nodes -->
+    <div
+      class="sp-orbit"
+      aria-hidden="true"
+    >
+      <div class="sp-orbit__ring">
+        <div class="sp-orbit__node sp-orbit__node--1">
+          <div class="sp-orbit__node-inner">
+            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
+            <span class="sp-orbit__node-label">record</span>
+          </div>
+        </div>
+        <div class="sp-orbit__node sp-orbit__node--2">
+          <div class="sp-orbit__node-inner">
+            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
+            <span class="sp-orbit__node-label">validate</span>
+          </div>
+        </div>
+        <div class="sp-orbit__node sp-orbit__node--3">
+          <div class="sp-orbit__node-inner">
+            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
+            <span class="sp-orbit__node-label">detect</span>
+          </div>
+        </div>
+        <div class="sp-orbit__node sp-orbit__node--4">
+          <div class="sp-orbit__node-inner">
+            <div class="sp-orbit__node-dot sp-orbit__node-dot--cyan" />
+            <span class="sp-orbit__node-label">replay</span>
+          </div>
+        </div>
+        <div class="sp-orbit__node sp-orbit__node--5">
+          <div class="sp-orbit__node-inner">
+            <div class="sp-orbit__node-dot sp-orbit__node-dot--pink" />
+            <span class="sp-orbit__node-label">curate</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Ambient particles (8 total — 6 cyan, 2 pink) -->
     <div
@@ -310,8 +205,9 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
       aria-hidden="true"
     />
 
-    <!-- Blinking cursor watermark -->
+    <!-- Blinking cursor watermark — hidden when sessions already exist -->
     <div
+      v-if="!hasSessions"
       class="start-page__cursor-prompt"
       aria-hidden="true"
     >
@@ -351,11 +247,15 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
         <div class="upload-zone__title">
           {{ hasSessions ? 'Add another session.' : 'No sessions yet. Fix that.' }}
         </div>
-        <div class="upload-zone__subtitle">
+        <div
+          v-if="!hasSessions"
+          class="upload-zone__subtitle"
+        >
           Drop a <code>.cast</code> file here or click to browse
           — watch it unfold into something you can actually read.
         </div>
         <span
+          v-if="!hasSessions"
           class="upload-zone__browse"
           aria-hidden="true"
         >Browse Files</span>
@@ -432,64 +332,77 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 }
 
 /* ============================================================
-   PIPELINE NODES — TRON identity disc style
+   3D ORBIT — pipeline nodes rotating around centre
    ============================================================ */
 
-.sp-node-ring {
-  fill: none;
-  stroke-width: 1;
-  opacity: 0;
+.sp-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  perspective: 800px;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.sp-node-ring--cyan {
-  stroke: var(--accent-primary);
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent))
-          drop-shadow(0 0 16px color-mix(in srgb, var(--accent-primary) 20%, transparent));
+.sp-orbit__ring {
+  width: 300px;
+  height: 300px;
+  transform-style: preserve-3d;
+  animation: orbit-rotate 20s linear infinite;
+  position: relative;
 }
 
-.sp-node-ring--pink {
-  stroke: var(--accent-secondary);
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-secondary) 35%, transparent))
-          drop-shadow(0 0 16px color-mix(in srgb, var(--accent-secondary) 20%, transparent));
+.sp-orbit__node {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
 }
 
-.sp-node-ring--final {
-  stroke: var(--accent-primary);
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-primary) 40%, transparent))
-          drop-shadow(0 0 30px color-mix(in srgb, var(--accent-primary) 25%, transparent));
+.sp-orbit__node--1 { transform: rotateZ(0deg) translateX(150px); }
+.sp-orbit__node--2 { transform: rotateZ(72deg) translateX(150px); }
+.sp-orbit__node--3 { transform: rotateZ(144deg) translateX(150px); }
+.sp-orbit__node--4 { transform: rotateZ(216deg) translateX(150px); }
+.sp-orbit__node--5 { transform: rotateZ(288deg) translateX(150px); }
+
+.sp-orbit__node-inner {
+  animation: orbit-counter-rotate 20s linear infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, -50%);
 }
 
-.sp-node-outer {
-  fill: none;
-  stroke-width: 0.5;
-  opacity: 0;
+.sp-orbit__node-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
 }
 
-.sp-node-fill {
-  opacity: 0;
+.sp-orbit__node-dot--cyan {
+  background: var(--accent-primary);
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--accent-primary) 60%, transparent),
+    0 0 20px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
-.sp-node-fill--cyan {
-  fill: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+.sp-orbit__node-dot--pink {
+  background: var(--accent-secondary);
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--accent-secondary) 60%, transparent),
+    0 0 20px color-mix(in srgb, var(--accent-secondary) 30%, transparent);
 }
 
-.sp-node-fill--pink {
-  fill: color-mix(in srgb, var(--accent-secondary) 12%, transparent);
-}
-
-.sp-node-fill--final {
-  fill: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-}
-
-.sp-node-label {
+.sp-orbit__node-label {
   font-family: var(--font-mono);
-  font-size: 14px;
-  letter-spacing: 0.2em;
-  fill: var(--text-muted);
-  text-anchor: middle;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
   text-transform: uppercase;
-  opacity: 0;
+  white-space: nowrap;
+  opacity: 0.6;
 }
 
 /* ============================================================
@@ -643,6 +556,16 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
    KEYFRAMES
    ============================================================ */
 
+@keyframes orbit-rotate {
+  from { transform: rotateX(60deg) rotateZ(0deg); }
+  to   { transform: rotateX(60deg) rotateZ(360deg); }
+}
+
+@keyframes orbit-counter-rotate {
+  from { transform: translate(-50%, -50%) rotateZ(0deg) rotateX(-60deg); }
+  to   { transform: translate(-50%, -50%) rotateZ(-360deg) rotateX(-60deg); }
+}
+
 @keyframes spGridFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -656,58 +579,6 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
 @keyframes spDecoFadeIn {
   from { visibility: visible; opacity: 0; }
   to   { visibility: visible; }
-}
-
-@keyframes spNodeAppear {
-  0%   { opacity: 0; transform: scale(0.4); }
-  60%  { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes spOuterRingAppear {
-  0%   { opacity: 0; transform: scale(0.6); }
-  100% { opacity: 0.3; transform: scale(1); }
-}
-
-@keyframes spFillAppear {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes spLabelReveal {
-  from { opacity: 0; }
-  to   { opacity: 0.3; }
-}
-
-@keyframes spNodePulseCyan {
-  0%, 100% { transform: scale(1);
-             filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-primary) 35%, transparent))
-                     drop-shadow(0 0 14px color-mix(in srgb, var(--accent-primary) 15%, transparent)); }
-  50%      { transform: scale(1.3);
-             filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-primary) 65%, transparent))
-                     drop-shadow(0 0 28px color-mix(in srgb, var(--accent-primary) 25%, transparent)); }
-}
-
-@keyframes spNodePulsePink {
-  0%, 100% { transform: scale(1);
-             filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-secondary) 35%, transparent))
-                     drop-shadow(0 0 14px color-mix(in srgb, var(--accent-secondary) 15%, transparent)); }
-  50%      { transform: scale(1.3);
-             filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-secondary) 65%, transparent))
-                     drop-shadow(0 0 28px color-mix(in srgb, var(--accent-secondary) 25%, transparent)); }
-}
-
-@keyframes spNodePulseFinal {
-  0%, 100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-primary) 40%, transparent))
-            drop-shadow(0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent));
-  }
-  50% {
-    transform: scale(1.4);
-    filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent-primary) 70%, transparent))
-            drop-shadow(0 0 40px color-mix(in srgb, var(--accent-primary) 30%, transparent));
-  }
 }
 
 @keyframes spParticleDrift1 {
@@ -782,11 +653,9 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   .sp-grid-dots { opacity: 1 !important; }
   .sp-particle { display: none !important; }
   .sp-deco-path { opacity: 0.06 !important; visibility: visible !important; }
-  .sp-node-ring { opacity: 1 !important; }
-  .sp-node-outer { opacity: 0.3 !important; }
-  .sp-node-fill { opacity: 1 !important; }
-  .sp-node-label { opacity: 0.3 !important; }
   .start-page__cursor-blink { animation: none !important; }
+  .sp-orbit__ring { animation-play-state: paused !important; }
+  .sp-orbit__node-inner { animation-play-state: paused !important; }
 }
 
 /* ============================================================
@@ -803,56 +672,6 @@ function handleDropZoneKeydown(event: KeyboardEvent): void {
   .sp-deco-path {
     animation: spDecoFadeIn 1s ease-out 0.5s forwards;
   }
-
-  /* Node 1: record (cyan) — grid intersection 280, 120 */
-  .sp-node-ring--n1 {
-    transform-origin: 280px 120px;
-    animation: spNodeAppear 0.5s ease-out 0.8s forwards,
-               spNodePulseCyan 4s ease-in-out 5.0s infinite;
-  }
-  .sp-node-outer--n1 { animation: spOuterRingAppear 0.6s ease-out 1.0s forwards; }
-  .sp-node-fill--n1  { animation: spFillAppear 0.3s ease-out 0.9s forwards; }
-  .sp-node-label--n1 { animation: spLabelReveal 0.4s ease-out 1.0s forwards; }
-
-  /* Node 2: validate (pink) — grid intersection 400, 480 */
-  .sp-node-ring--n2 {
-    transform-origin: 400px 480px;
-    animation: spNodeAppear 0.5s ease-out 1.7s forwards,
-               spNodePulsePink 4.5s ease-in-out 5.6s infinite;
-  }
-  .sp-node-outer--n2 { animation: spOuterRingAppear 0.6s ease-out 1.9s forwards; }
-  .sp-node-fill--n2  { animation: spFillAppear 0.3s ease-out 1.8s forwards; }
-  .sp-node-label--n2 { animation: spLabelReveal 0.4s ease-out 2.0s forwards; }
-
-  /* Node 3: detect (cyan) — grid intersection 640, 80 */
-  .sp-node-ring--n3 {
-    transform-origin: 640px 80px;
-    animation: spNodeAppear 0.5s ease-out 2.3s forwards,
-               spNodePulseCyan 4.2s ease-in-out 6.0s infinite;
-  }
-  .sp-node-outer--n3 { animation: spOuterRingAppear 0.6s ease-out 2.5s forwards; }
-  .sp-node-fill--n3  { animation: spFillAppear 0.3s ease-out 2.4s forwards; }
-  .sp-node-label--n3 { animation: spLabelReveal 0.4s ease-out 2.7s forwards; }
-
-  /* Node 4: replay (pink) — grid intersection 920, 480 */
-  .sp-node-ring--n4 {
-    transform-origin: 920px 480px;
-    animation: spNodeAppear 0.5s ease-out 3.0s forwards,
-               spNodePulsePink 4.8s ease-in-out 5.1s infinite;
-  }
-  .sp-node-outer--n4 { animation: spOuterRingAppear 0.6s ease-out 3.2s forwards; }
-  .sp-node-fill--n4  { animation: spFillAppear 0.3s ease-out 3.1s forwards; }
-  .sp-node-label--n4 { animation: spLabelReveal 0.4s ease-out 3.4s forwards; }
-
-  /* Node 5: curate (cyan, final) — grid intersection 960, 120 */
-  .sp-node-ring--n5 {
-    transform-origin: 960px 120px;
-    animation: spNodeAppear 0.7s ease-out 3.4s forwards,
-               spNodePulseFinal 3.5s ease-in-out 5.4s infinite;
-  }
-  .sp-node-outer--n5 { animation: spOuterRingAppear 0.8s ease-out 3.6s forwards; }
-  .sp-node-fill--n5  { animation: spFillAppear 0.4s ease-out 3.5s forwards; }
-  .sp-node-label--n5 { animation: spLabelReveal 0.5s ease-out 4.2s forwards; }
 
   /* Ambient particles */
   .sp-particle--1 { animation: spParticleDrift1 12s ease-in-out -3s infinite; }
