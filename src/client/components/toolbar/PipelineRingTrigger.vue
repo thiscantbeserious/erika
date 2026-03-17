@@ -144,10 +144,10 @@ onUnmounted(() => {
 }
 
 .pipeline-ring-trigger:hover {
-  background: rgba(0, 212, 255, 0.12);
-  border-color: rgba(0, 212, 255, 0.3);
+  background: var(--toolbar-btn-hover-bg);
+  border-color: var(--toolbar-btn-hover-border);
   color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+  box-shadow: 0 0 10px var(--toolbar-btn-hover-shadow);
 }
 
 .pipeline-ring-trigger:focus-visible {
@@ -165,7 +165,7 @@ onUnmounted(() => {
 
 .progress-ring__bg {
   fill: none;
-  stroke: rgba(0, 212, 255, 0.12);
+  stroke: var(--toolbar-ring-bg-stroke);
   stroke-width: 2.5;
 }
 
@@ -175,7 +175,7 @@ onUnmounted(() => {
   stroke-width: 2.5;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.5s ease;
-  filter: drop-shadow(0 0 3px rgba(0, 212, 255, 0.5));
+  filter: drop-shadow(0 0 3px var(--toolbar-ring-glow));
 }
 
 .ring-count {

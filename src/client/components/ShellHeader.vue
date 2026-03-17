@@ -267,7 +267,7 @@ defineExpose({ hamburgerRef });
 .toolbar-pill__separator {
   width: 1px;
   height: 18px;
-  background: rgba(0, 212, 255, 0.15);
+  background: var(--toolbar-separator);
   flex-shrink: 0;
 }
 </style>

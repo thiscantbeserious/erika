@@ -45,7 +45,7 @@ function handleClick(event: MouseEvent): void {
   height: 30px;
   border-radius: var(--radius-full);
   border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(255, 77, 106, 0.1));
+  background: linear-gradient(135deg, var(--toolbar-avatar-gradient-start), var(--toolbar-avatar-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,8 +60,8 @@ function handleClick(event: MouseEvent): void {
 }
 
 .toolbar-avatar:hover {
-  border-color: rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+  border-color: var(--toolbar-btn-hover-border);
+  box-shadow: 0 0 10px var(--toolbar-btn-hover-shadow);
 }
 
 .toolbar-avatar:focus-visible {

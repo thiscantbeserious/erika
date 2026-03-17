@@ -49,10 +49,10 @@ defineProps<{
 }
 
 .toolbar-btn:hover {
-  background: rgba(0, 212, 255, 0.12);
-  border-color: rgba(0, 212, 255, 0.3);
+  background: var(--toolbar-btn-hover-bg);
+  border-color: var(--toolbar-btn-hover-border);
   color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+  box-shadow: 0 0 10px var(--toolbar-btn-hover-shadow);
 }
 
 .toolbar-btn:focus-visible {
