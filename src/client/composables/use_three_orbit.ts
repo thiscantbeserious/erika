@@ -281,7 +281,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
         transparent: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        opacity: 0.45,
+        opacity: 0.35,
       });
       disposables.push(spriteMat);
       const sprite = new THREE.Sprite(spriteMat);
