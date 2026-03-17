@@ -90,11 +90,25 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
   function createCentralStar(): void {
     if (!scene) return;
 
-    // Bright core sphere — sized relative to smallest planet
-    const coreGeo = new THREE.SphereGeometry(0.06, 16, 16);
-    const coreMat = new THREE.MeshBasicMaterial({ color: 0xeef4ff });
+    // Textured star core — moon texture with bright emissive for a 3D sun shape
+    const loader = new THREE.TextureLoader();
+    const sunTex = loader.load('/textures/2k_moon.jpg');
+    disposables.push(sunTex);
+    const coreGeo = new THREE.SphereGeometry(0.08, 32, 32);
+    const coreMat = new THREE.MeshPhongMaterial({
+      map: sunTex,
+      emissive: new THREE.Color(0xddeeff),
+      emissiveIntensity: 0.8,
+      shininess: 5,
+    });
     disposables.push(coreGeo, coreMat);
-    scene.add(new THREE.Mesh(coreGeo, coreMat));
+    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+    if (!prefersReduced) {
+      // Slow self-rotation for the star
+      coreMesh.userData['isStar'] = true;
+    }
+    scene.add(coreMesh);
+    meshes.push(coreMesh);
 
     // Helper: create a canvas radial glow texture
     function makeGlowCanvas(): HTMLCanvasElement {
