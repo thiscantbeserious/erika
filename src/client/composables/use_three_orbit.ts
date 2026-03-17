@@ -221,7 +221,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
             vec3 viewDir = normalize(-vPositionW);
             float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
             rim = pow(rim, 2.5);
-            gl_FragColor = vec4(glowColor, rim * 0.6);
+            gl_FragColor = vec4(glowColor, rim * 0.3);
           }
         `,
       });
