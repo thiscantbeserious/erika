@@ -90,51 +90,43 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
   function createCentralStar(): void {
     if (!scene) return;
 
-    // Small glowing core sphere
-    const coreGeo = new THREE.SphereGeometry(0.08, 16, 16);
+    // Tiny bright core
+    const coreGeo = new THREE.SphereGeometry(0.03, 16, 16);
     const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     disposables.push(coreGeo, coreMat);
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    scene.add(coreMesh);
+    scene.add(new THREE.Mesh(coreGeo, coreMat));
 
-    // Outer glow — Fresnel shader sphere (same technique as planet atmo but bigger)
-    const glowGeo = new THREE.SphereGeometry(0.6, 32, 32);
-    disposables.push(glowGeo);
-    const glowMat = new THREE.ShaderMaterial({
+    // Soft glow sprite — canvas-generated radial gradient (transparent bg)
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    const cx = size / 2;
+    const grad = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
+    grad.addColorStop(0, 'rgba(220, 240, 255, 1)');
+    grad.addColorStop(0.08, 'rgba(180, 220, 255, 0.6)');
+    grad.addColorStop(0.25, 'rgba(0, 180, 255, 0.15)');
+    grad.addColorStop(0.5, 'rgba(0, 100, 200, 0.04)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    const glowTex = new THREE.CanvasTexture(canvas);
+    disposables.push(glowTex);
+    const glowMat = new THREE.SpriteMaterial({
+      map: glowTex,
       transparent: true,
-      depthWrite: false,
-      side: THREE.BackSide,
       blending: THREE.AdditiveBlending,
-      uniforms: {
-        glowColor: { value: new THREE.Vector3(0.8, 0.9, 1.0) },
-      },
-      vertexShader: `
-        varying vec3 vNormal;
-        varying vec3 vPositionW;
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          vPositionW = (modelViewMatrix * vec4(position, 1.0)).xyz;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 glowColor;
-        varying vec3 vNormal;
-        varying vec3 vPositionW;
-        void main() {
-          vec3 viewDir = normalize(-vPositionW);
-          float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
-          float intensity = pow(rim, 1.5) * 0.8;
-          gl_FragColor = vec4(glowColor, intensity);
-        }
-      `,
+      depthWrite: false,
     });
     disposables.push(glowMat);
-    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
-    scene.add(glowMesh);
+    const glow = new THREE.Sprite(glowMat);
+    glow.scale.set(1.2, 1.2, 1);
+    scene.add(glow);
 
-    // Point light at center
-    const pointLight = new THREE.PointLight(0xccddff, 1.5, 15);
+    // Point light
+    const pointLight = new THREE.PointLight(0xccddff, 1.2, 12);
     pointLight.position.set(0, 0, 0);
     scene.add(pointLight);
   }
