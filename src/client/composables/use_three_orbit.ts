@@ -128,7 +128,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     });
     disposables.push(glowMat);
     const glow = new THREE.Sprite(glowMat);
-    glow.scale.set(1.8, 1.8, 1);
+    glow.scale.set(3, 3, 1);
     scene.add(glow);
 
     // Horizontal flare streak
@@ -141,7 +141,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     });
     disposables.push(hFlareMat);
     const hFlare = new THREE.Sprite(hFlareMat);
-    hFlare.scale.set(4.5, 0.25, 1);
+    hFlare.scale.set(7, 0.35, 1);
     scene.add(hFlare);
 
     // Vertical flare streak
@@ -154,7 +154,7 @@ export function useThreeOrbit(externalContainerRef?: Ref<HTMLElement | null>) {
     });
     disposables.push(vFlareMat);
     const vFlare = new THREE.Sprite(vFlareMat);
-    vFlare.scale.set(0.2, 3.5, 1);
+    vFlare.scale.set(0.3, 5.5, 1);
     scene.add(vFlare);
 
     // Point light
