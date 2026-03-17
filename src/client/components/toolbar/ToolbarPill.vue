@@ -37,7 +37,7 @@ onMounted(async () => {
   /* istanbul ignore next -- happy-dom returns 0 for scrollWidth; real measurement only works in browser */
   if (content) {
     const style = globalThis.getComputedStyle(content);
-    const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const paddingX = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
     expandedMaxWidth.value = content.scrollWidth + paddingX;
   }
 });
