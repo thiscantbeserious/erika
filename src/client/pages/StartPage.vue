@@ -41,7 +41,7 @@ const NODES: OrbitalNode[] = [
   { label: 'curate',   angle: (8 * Math.PI) / 5,  color: [255, 77, 106], glowColor: 'rgba(255, 77, 106, 0.4)' },
 ];
 
-const ORBIT_TILT = 60 * (Math.PI / 180); // 60° tilt toward viewer
+const ORBIT_TILT = 25 * (Math.PI / 180); // 25° slight tilt — viewed from front/slightly above
 const ORBIT_SPEED = (2 * Math.PI) / 25;  // full rotation in 25s
 const PERSPECTIVE = 600;
 const BASE_SPHERE_RADIUS = 14; // base radius in px at z=0
@@ -85,46 +85,76 @@ function drawOrbit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, tim
   for (const { x, y, scale, node } of projected) {
     const r = sphereRadius * scale;
     const [cr, cg, cb] = node.color;
-    const depthAlpha = 0.4 + 0.6 * scale; // near = brighter, far = dimmer
+    const depthAlpha = 0.4 + 0.6 * scale;
 
-    // Wide soft glow halo
+    // Atmosphere glow — soft colored haze around the planet
     ctx.save();
-    ctx.globalAlpha = depthAlpha * 0.3;
-    const outerGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
-    outerGlow.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.3)`);
-    outerGlow.addColorStop(0.4, `rgba(${cr}, ${cg}, ${cb}, 0.1)`);
-    outerGlow.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
-    ctx.fillStyle = outerGlow;
+    ctx.globalAlpha = depthAlpha * 0.25;
+    const atmo = ctx.createRadialGradient(x, y, r * 0.8, x, y, r * 2.8);
+    atmo.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.35)`);
+    atmo.addColorStop(0.5, `rgba(${cr}, ${cg}, ${cb}, 0.08)`);
+    atmo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = atmo;
     ctx.beginPath();
-    ctx.arc(x, y, r * 3, 0, 2 * Math.PI);
+    ctx.arc(x, y, r * 2.8, 0, 2 * Math.PI);
     ctx.fill();
     ctx.restore();
 
-    // Inner bright glow
-    ctx.save();
-    ctx.globalAlpha = depthAlpha * 0.6;
-    const innerGlow = ctx.createRadialGradient(x, y, 0, x, y, r * 1.5);
-    innerGlow.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.6)`);
-    innerGlow.addColorStop(0.6, `rgba(${cr}, ${cg}, ${cb}, 0.15)`);
-    innerGlow.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
-    ctx.fillStyle = innerGlow;
-    ctx.beginPath();
-    ctx.arc(x, y, r * 1.5, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.restore();
-
-    // Solid core dot
+    // Planet body — dark base with lit hemisphere
     ctx.save();
     ctx.globalAlpha = depthAlpha;
-    ctx.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
-    ctx.shadowColor = `rgba(${cr}, ${cg}, ${cb}, 0.8)`;
-    ctx.shadowBlur = r * 0.8;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    // Gradient from highlight (top-left) to dark terminator (bottom-right)
+    const body = ctx.createRadialGradient(
+      x - r * 0.35, y - r * 0.35, r * 0.05,
+      x + r * 0.15, y + r * 0.15, r * 1.1
+    );
+    // Bright highlight — slightly desaturated lighter version
+    const hlR = Math.min(255, cr + 80);
+    const hlG = Math.min(255, cg + 80);
+    const hlB = Math.min(255, cb + 80);
+    body.addColorStop(0, `rgba(${hlR}, ${hlG}, ${hlB}, 1)`);
+    // Mid tone — the main color
+    body.addColorStop(0.35, `rgba(${cr}, ${cg}, ${cb}, 0.95)`);
+    // Terminator — darker, slightly blued shadow
+    const shR = Math.floor(cr * 0.15);
+    const shG = Math.floor(cg * 0.15);
+    const shB = Math.min(255, Math.floor(cb * 0.25) + 15);
+    body.addColorStop(0.75, `rgba(${shR}, ${shG}, ${shB}, 0.9)`);
+    // Dark side
+    body.addColorStop(1, `rgba(${Math.floor(cr * 0.05)}, ${Math.floor(cg * 0.05)}, ${Math.floor(cb * 0.1)}, 0.85)`);
+    ctx.fillStyle = body;
+    ctx.fill();
+    ctx.restore();
+
+    // Specular highlight — small bright spot for gloss
+    ctx.save();
+    ctx.globalAlpha = depthAlpha * 0.7;
+    const spec = ctx.createRadialGradient(
+      x - r * 0.3, y - r * 0.35, 0,
+      x - r * 0.3, y - r * 0.35, r * 0.4
+    );
+    spec.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+    spec.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+    spec.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = spec;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2 * Math.PI);
     ctx.fill();
     ctx.restore();
 
-    // Label — always 2D readable, HUD style
+    // Subtle rim light on the dark side — backlight effect
+    ctx.save();
+    ctx.globalAlpha = depthAlpha * 0.3;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, 0.4)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+
+    // Label — always 2D, HUD style
     ctx.save();
     ctx.globalAlpha = depthAlpha * 0.7;
     const fontSize = Math.max(9, 11 * scale);
