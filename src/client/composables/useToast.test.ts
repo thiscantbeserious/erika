@@ -1,8 +1,11 @@
 /**
- * Tests for useToast composable.
+ * Tests for useToast composable — core toast lifecycle.
  *
  * Covers: addToast (creates toast with correct fields, auto-dismiss, legacy numeric arg),
- * removeToast (removes toast, cancels timer), resetToastState (clears all state).
+ * removeToast (removes toast, cancels timer), resetToastState (clears all state),
+ * updateToast (in-place mutation, timer reset).
+ *
+ * Aggregation tests live in useToast.aggregation.test.ts.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useToast, resetToastState } from './useToast.js';
@@ -102,6 +105,19 @@ describe('useToast', () => {
       vi.advanceTimersByTime(60_000);
       expect(toasts.value).toHaveLength(1);
     });
+
+    it('returns the toast id', () => {
+      const { addToast } = useToast();
+      const id = addToast('Hello', 'info');
+      expect(typeof id).toBe('number');
+    });
+
+    it('returns incrementing ids for multiple toasts', () => {
+      const { addToast } = useToast();
+      const id1 = addToast('First', 'info');
+      const id2 = addToast('Second', 'info');
+      expect(id2).toBeGreaterThan(id1);
+    });
   });
 
   describe('removeToast', () => {
@@ -164,5 +180,79 @@ describe('useToast', () => {
       vi.advanceTimersByTime(10_000);
       expect(toasts.value).toHaveLength(0);
     });
+
+    it('clears the activeKeys aggregation map', async () => {
+      const { addToast, removeToast, toasts } = useToast();
+      // Add a titled toast to populate activeKeys
+      const id = addToast('Item uploaded', 'success', { title: 'Session uploaded' });
+      expect(toasts.value).toHaveLength(1);
+
+      resetToastState();
+
+      // After reset, a new titled toast should be a fresh entry (count=1, not aggregated)
+      addToast('Item uploaded', 'success', { title: 'Session uploaded' });
+      expect(toasts.value).toHaveLength(1);
+      expect(toasts.value[0]?.message).toBe('Item uploaded');
+
+      // Suppress unused variable warning
+      void id;
+      void removeToast;
+    });
   });
+
+  describe('updateToast', () => {
+    it('changes the message of an existing toast', () => {
+      const { toasts, addToast, updateToast } = useToast();
+      const id = addToast('Original', 'info');
+      updateToast(id, { message: 'Updated' });
+      expect(toasts.value[0]?.message).toBe('Updated');
+    });
+
+    it('changes the title of an existing toast', () => {
+      const { toasts, addToast, updateToast } = useToast();
+      const id = addToast('Msg', 'info', { title: 'Old Title' });
+      updateToast(id, { title: 'New Title' });
+      expect(toasts.value[0]?.title).toBe('New Title');
+    });
+
+    it('changes the icon of an existing toast', () => {
+      const { toasts, addToast, updateToast } = useToast();
+      const id = addToast('Msg', 'info', { icon: 'icon-old' });
+      updateToast(id, { icon: 'icon-new' });
+      expect(toasts.value[0]?.icon).toBe('icon-new');
+    });
+
+    it('returns true for an existing toast', () => {
+      const { addToast, updateToast } = useToast();
+      const id = addToast('Msg', 'info');
+      expect(updateToast(id, { message: 'Updated' })).toBe(true);
+    });
+
+    it('returns false for a non-existent id (no-op)', () => {
+      const { updateToast } = useToast();
+      expect(updateToast(999, { message: 'Does not exist' })).toBe(false);
+    });
+
+    it('resets the auto-dismiss timer on update', () => {
+      const { toasts, addToast, updateToast } = useToast();
+      const id = addToast('Msg', 'success'); // 5000ms default
+
+      // Advance most of the original window
+      vi.advanceTimersByTime(4000);
+      expect(toasts.value).toHaveLength(1);
+
+      // Update the toast — timer resets to full 5000ms
+      updateToast(id, { message: 'Updated' });
+
+      // Original window expired (was at 4000ms, only 1001ms remain on old timer)
+      vi.advanceTimersByTime(4500);
+      // Should still be visible (new 5000ms window has ~500ms left)
+      expect(toasts.value).toHaveLength(1);
+
+      // Advance past the new full window
+      vi.advanceTimersByTime(1000);
+      expect(toasts.value).toHaveLength(0);
+    });
+  });
+
 });

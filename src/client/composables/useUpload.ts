@@ -20,6 +20,11 @@ export interface OptimisticCallbacks {
 /** Monotonic counter to guarantee unique tempIds for concurrent optimistic uploads. */
 let optimisticSeq = 0;
 
+/** Shared summary template for error toasts — lists up to 3 filenames then "and N more". */
+const errorSummary = (n: number, labels: string[]) => labels.length > 0
+  ? `${n} uploads failed: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}`
+  : `${n} uploads failed`;
+
 export function useUpload(onSuccess?: () => void) {
   const uploading = ref(false);
   const error = ref<string | null>(null);
@@ -107,17 +112,34 @@ export function useUpload(onSuccess?: () => void) {
         const msg = data.error || `Upload failed (${res.status})`;
         error.value = data.details ? `${msg}: ${data.details}` : msg;
         await callbacks.onUploadComplete(tempId);
-        addToast(error.value ?? 'Upload failed', 'error', { title: 'Upload failed', icon: 'icon-error-circle' });
+        addToast(error.value ?? 'Upload failed', 'error', {
+          title: 'Upload failed',
+          icon: 'icon-error-circle',
+          itemLabel: file.name,
+          summaryTemplate: errorSummary,
+        });
         return;
       }
 
       await callbacks.onUploadComplete(tempId);
-      addToast(`${file.name} has been uploaded`, 'success', { title: 'Session uploaded', icon: 'icon-upload' });
+      addToast(`${file.name} has been uploaded`, 'success', {
+        title: 'Session uploaded',
+        icon: 'icon-upload',
+        itemLabel: file.name,
+        summaryTemplate: (n) => `${n} sessions uploaded`,
+      });
       onSuccess?.();
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Upload failed';
       await callbacks.onUploadComplete(tempId);
-      addToast(error.value ?? 'Upload failed', 'error', { title: 'Upload failed', icon: 'icon-error-circle' });
+      addToast(error.value ?? 'Upload failed', 'error', {
+        title: 'Upload failed',
+        icon: 'icon-error-circle',
+        itemLabel: file.name,
+        summaryTemplate: (n, labels) => labels.length > 0
+          ? `${n} uploads failed: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}`
+          : `${n} uploads failed`,
+      });
     } finally {
       uploading.value = false;
     }

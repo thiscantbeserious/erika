@@ -126,13 +126,25 @@ watch(liveStatus, (next, prev) => {
   if (next === 'completed' && !hasNotifiedTerminal.value) {
     hasNotifiedTerminal.value = true;
     justCompleted.value = true;
-    addToast(`${props.session.filename} is ready`, 'success', { title: 'Session ready', icon: 'icon-file-check' });
+    addToast(`${props.session.filename} is ready`, 'success', {
+      title: 'Session ready',
+      icon: 'icon-file-check',
+      itemLabel: props.session.filename,
+      summaryTemplate: (n) => `${n} sessions ready`,
+    });
     setTimeout(() => { justCompleted.value = false; }, 700);
     // Refresh sidebar list so section counts and status reflect server state
     sessionList?.refreshOnSessionComplete();
   } else if ((next === 'failed' || next === 'interrupted') && !hasNotifiedTerminal.value) {
     hasNotifiedTerminal.value = true;
-    addToast(`${props.session.filename} processing failed`, 'error', { title: 'Processing failed', icon: 'icon-error-circle' });
+    addToast(`${props.session.filename} processing failed`, 'error', {
+      title: 'Processing failed',
+      icon: 'icon-error-circle',
+      itemLabel: props.session.filename,
+      summaryTemplate: (n, labels) => labels.length > 0
+        ? `${n} sessions failed: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}`
+        : `${n} sessions failed processing`,
+    });
     sessionList?.refreshOnSessionComplete();
   }
 });
