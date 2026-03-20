@@ -150,7 +150,7 @@ function trackNewAggregation(
   activeKeys.set(key, {
     toastId: id,
     count: 1,
-    itemLabels: opts.itemLabel !== undefined ? [opts.itemLabel] : [],
+    itemLabels: opts.itemLabel === undefined ? [] : [opts.itemLabel],
     messages: [message],
     summaryNoun: opts.summaryNoun,
     showItemLabels: opts.showItemLabels,
