@@ -32,20 +32,19 @@ export function createScheduler(): Scheduler {
     after(delayMs, callback) {
       if (delayMs <= 0) return NOOP_HANDLE;
 
-      let timer: ReturnType<typeof setTimeout> | null = null;
-      timer = setTimeout(() => {
-        if (timer !== null) timers.delete(timer);
-        timer = null;
-        callback();
+      let cancelled = false;
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        if (!cancelled) callback();
       }, delayMs);
       timers.add(timer);
 
       return {
         cancel() {
-          if (timer !== null) {
+          if (!cancelled) {
+            cancelled = true;
             clearTimeout(timer);
             timers.delete(timer);
-            timer = null;
           }
         },
       };

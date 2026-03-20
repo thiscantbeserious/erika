@@ -246,7 +246,7 @@ describe('SessionCard — toast dedup (hasNotifiedTerminal guard)', () => {
 
     // Second completion after redetect — should notify again.
     // With aggregation active, both "Session ready" success toasts share the same
-    // title+type key and merge into one updated toast rather than stacking.
+    // category key and merge into one updated toast rather than stacking.
     // The user is still notified (toast is visible and updated), just deduplicated.
     mockSseStatus.value = 'completed';
     await nextTick();

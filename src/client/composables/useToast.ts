@@ -28,7 +28,7 @@ export interface Toast {
 }
 
 /** Options accepted by fireToast. The legacy numeric form is also supported for backward compat. */
-export interface AddToastOptions {
+export interface FireToastOptions {
   title?: string;
   durationMs?: number;
   icon?: string;
@@ -167,7 +167,7 @@ function buildSummary(state: AggregationState): string {
 
 /** Creates a fresh aggregation entry in activeKeys for the given key. */
 function trackNewAggregation(
-  key: string, id: number, message: string, opts: AddToastOptions,
+  key: string, id: number, message: string, opts: FireToastOptions,
 ): void {
   activeKeys.set(key, {
     toastId: id,
@@ -223,7 +223,7 @@ export function useToast() {
   function fireToast(
     message: string,
     type: Toast['type'] = 'info',
-    options?: AddToastOptions | number,
+    options?: FireToastOptions | number,
   ): number {
     const opts = typeof options === 'number' ? { durationMs: options } : (options ?? {});
 
@@ -238,7 +238,7 @@ export function useToast() {
   function createFreshToast(
     message: string,
     type: Toast['type'],
-    opts: AddToastOptions,
+    opts: FireToastOptions,
   ): number {
     const id = nextId++;
     const duration = opts.durationMs ?? DISMISS_DURATION[type];
@@ -256,7 +256,7 @@ export function useToast() {
   function addCategorizedToast(
     message: string,
     type: Toast['type'],
-    opts: AddToastOptions,
+    opts: FireToastOptions,
   ): number {
     const key = opts.category as string;
     const existing = activeKeys.get(key);
@@ -279,7 +279,7 @@ export function useToast() {
     key: string,
     message: string,
     type: Toast['type'],
-    opts: AddToastOptions,
+    opts: FireToastOptions,
   ): number {
     existing.count++;
     if (opts.itemLabel !== undefined) existing.itemLabels.push(opts.itemLabel);
