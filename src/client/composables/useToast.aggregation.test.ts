@@ -142,6 +142,71 @@ describe('useToast aggregation', () => {
     });
   });
 
+  describe('built-in formatting (summaryNoun + showItemLabels)', () => {
+    it('summaryNoun produces "{N} {noun}" on aggregation', () => {
+      const { toasts, addToast } = useToast();
+      addToast('f1', 'success', { title: 'Upload', summaryNoun: 'sessions uploaded' });
+      addToast('f2', 'success', { title: 'Upload', summaryNoun: 'sessions uploaded' });
+      expect(toasts.value[0]?.message).toBe('2 sessions uploaded');
+    });
+
+    it('showItemLabels appends truncated label list', () => {
+      const { toasts, addToast } = useToast();
+      addToast('f1', 'error', { title: 'Fail', summaryNoun: 'failed', showItemLabels: true, itemLabel: 'a.cast' });
+      addToast('f2', 'error', { title: 'Fail', summaryNoun: 'failed', showItemLabels: true, itemLabel: 'b.cast' });
+      expect(toasts.value[0]?.message).toBe('2 failed: a.cast, b.cast');
+    });
+
+    it('showItemLabels truncates at 3 labels with "and N more"', () => {
+      const { toasts, addToast } = useToast();
+      const opts = { title: 'Fail', summaryNoun: 'failed', showItemLabels: true };
+      addToast('f1', 'error', { ...opts, itemLabel: 'a.cast' });
+      addToast('f2', 'error', { ...opts, itemLabel: 'b.cast' });
+      addToast('f3', 'error', { ...opts, itemLabel: 'c.cast' });
+      addToast('f4', 'error', { ...opts, itemLabel: 'd.cast' });
+      addToast('f5', 'error', { ...opts, itemLabel: 'e.cast' });
+      expect(toasts.value[0]?.message).toBe('5 failed: a.cast, b.cast, c.cast and 2 more');
+    });
+
+    it('showItemLabels with exactly 3 labels shows all without "and N more"', () => {
+      const { toasts, addToast } = useToast();
+      const opts = { title: 'Fail', summaryNoun: 'failed', showItemLabels: true };
+      addToast('f1', 'error', { ...opts, itemLabel: 'a.cast' });
+      addToast('f2', 'error', { ...opts, itemLabel: 'b.cast' });
+      addToast('f3', 'error', { ...opts, itemLabel: 'c.cast' });
+      expect(toasts.value[0]?.message).toBe('3 failed: a.cast, b.cast, c.cast');
+    });
+
+    it('showItemLabels with no itemLabel values omits the label suffix', () => {
+      const { toasts, addToast } = useToast();
+      addToast('f1', 'error', { title: 'Fail', summaryNoun: 'failed', showItemLabels: true });
+      addToast('f2', 'error', { title: 'Fail', summaryNoun: 'failed', showItemLabels: true });
+      expect(toasts.value[0]?.message).toBe('2 failed');
+    });
+
+    it('summaryNoun without showItemLabels does not append labels', () => {
+      const { toasts, addToast } = useToast();
+      addToast('f1', 'success', { title: 'Up', summaryNoun: 'uploaded', itemLabel: 'a.cast' });
+      addToast('f2', 'success', { title: 'Up', summaryNoun: 'uploaded', itemLabel: 'b.cast' });
+      expect(toasts.value[0]?.message).toBe('2 uploaded');
+    });
+
+    it('summaryTemplate overrides summaryNoun when both provided', () => {
+      const { toasts, addToast } = useToast();
+      addToast('f1', 'success', {
+        title: 'Up',
+        summaryNoun: 'uploaded',
+        summaryTemplate: (n) => `custom: ${n}`,
+      });
+      addToast('f2', 'success', {
+        title: 'Up',
+        summaryNoun: 'uploaded',
+        summaryTemplate: (n) => `custom: ${n}`,
+      });
+      expect(toasts.value[0]?.message).toBe('custom: 2');
+    });
+  });
+
   describe('cleanup', () => {
     it('dismissed toast clears activeKeys; next toast of same kind starts fresh', async () => {
       const { toasts, addToast, removeToast } = useToast();

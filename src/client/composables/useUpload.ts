@@ -20,11 +20,6 @@ export interface OptimisticCallbacks {
 /** Monotonic counter to guarantee unique tempIds for concurrent optimistic uploads. */
 let optimisticSeq = 0;
 
-/** Shared summary template for error toasts — lists up to 3 filenames then "and N more". */
-const errorSummary = (n: number, labels: string[]) => labels.length > 0
-  ? `${n} uploads failed: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}`
-  : `${n} uploads failed`;
-
 export function useUpload(onSuccess?: () => void) {
   const uploading = ref(false);
   const error = ref<string | null>(null);
@@ -116,7 +111,8 @@ export function useUpload(onSuccess?: () => void) {
           title: 'Upload failed',
           icon: 'icon-error-circle',
           itemLabel: file.name,
-          summaryTemplate: errorSummary,
+          summaryNoun: 'uploads failed',
+          showItemLabels: true,
         });
         return;
       }
@@ -126,7 +122,7 @@ export function useUpload(onSuccess?: () => void) {
         title: 'Session uploaded',
         icon: 'icon-upload',
         itemLabel: file.name,
-        summaryTemplate: (n) => `${n} sessions uploaded`,
+        summaryNoun: 'sessions uploaded',
       });
       onSuccess?.();
     } catch (err) {
@@ -136,9 +132,8 @@ export function useUpload(onSuccess?: () => void) {
         title: 'Upload failed',
         icon: 'icon-error-circle',
         itemLabel: file.name,
-        summaryTemplate: (n, labels) => labels.length > 0
-          ? `${n} uploads failed: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}`
-          : `${n} uploads failed`,
+        summaryNoun: 'uploads failed',
+        showItemLabels: true,
       });
     } finally {
       uploading.value = false;

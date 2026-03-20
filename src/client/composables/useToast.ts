@@ -20,16 +20,17 @@ export interface AddToastOptions {
   title?: string;
   durationMs?: number;
   icon?: string;
-  /**
-   * Optional callback to produce the aggregated summary message.
-   * Called only when count > 1. First caller's template is used for the key's lifetime.
-   * @param count - Number of toasts merged so far.
-   * @param itemLabels - Collected itemLabel values from each addToast call.
-   * @param messages - Collected raw message strings from each addToast call.
-   */
-  summaryTemplate?: (count: number, itemLabels: string[], messages: string[]) => string;
   /** Domain-neutral label for this item (e.g., filename). Collected into itemLabels array. */
   itemLabel?: string;
+  /** Plural noun for built-in summary, e.g. "sessions uploaded" → "5 sessions uploaded". */
+  summaryNoun?: string;
+  /** When true, appends truncated item labels to the summary: "3 failed: a.cast, b.cast and 1 more". */
+  showItemLabels?: boolean;
+  /**
+   * Full override for summary formatting. When provided, `summaryNoun` and `showItemLabels` are ignored.
+   * Called only when count > 1. First caller's template is used for the key's lifetime.
+   */
+  summaryTemplate?: (count: number, itemLabels: string[], messages: string[]) => string;
 }
 
 /** Tracks state for an active aggregation key. */
@@ -38,7 +39,9 @@ interface AggregationState {
   count: number;
   itemLabels: string[];
   messages: string[];
-  /** Stored from the first toast so subsequent callers don't need to provide it. */
+  summaryNoun?: string;
+  showItemLabels?: boolean;
+  /** When set, overrides summaryNoun + showItemLabels entirely. */
   summaryTemplate?: (count: number, itemLabels: string[], messages: string[]) => string;
 }
 
@@ -123,6 +126,38 @@ export function resetToastState(): void {
   watchScope = null;
 }
 
+/** Builds a truncated label tail like "a.cast, b.cast and 3 more". */
+function formatLabelTail(labels: string[], max = 3): string {
+  const head = labels.slice(0, max).join(', ');
+  if (labels.length <= max) return head;
+  return `${head} and ${labels.length - max} more`;
+}
+
+/** Builds the aggregated summary using built-in options or summaryTemplate override. */
+function buildSummary(state: AggregationState): string {
+  if (state.summaryTemplate) {
+    return state.summaryTemplate(state.count, state.itemLabels, state.messages);
+  }
+  const base = `${state.count} ${state.summaryNoun ?? 'notifications'}`;
+  if (!state.showItemLabels || state.itemLabels.length === 0) return base;
+  return `${base}: ${formatLabelTail(state.itemLabels)}`;
+}
+
+/** Creates a fresh aggregation entry in activeKeys for the given key. */
+function trackNewAggregation(
+  key: string, id: number, message: string, opts: AddToastOptions,
+): void {
+  activeKeys.set(key, {
+    toastId: id,
+    count: 1,
+    itemLabels: opts.itemLabel !== undefined ? [opts.itemLabel] : [],
+    messages: [message],
+    summaryNoun: opts.summaryNoun,
+    showItemLabels: opts.showItemLabels,
+    summaryTemplate: opts.summaryTemplate,
+  });
+}
+
 /**
  * Provides access to the global toast list and helpers to add/update/remove toasts.
  * All callers share the same reactive state, so toasts added from upload or SSE
@@ -193,19 +228,6 @@ export function useToast() {
    * Handles addToast for titled toasts — checks activeKeys and either aggregates
    * into the existing toast or creates a fresh one.
    */
-  /** Creates a fresh aggregation entry in activeKeys for the given key. */
-  function trackNewAggregation(
-    key: string, id: number, message: string, opts: AddToastOptions,
-  ): void {
-    activeKeys.set(key, {
-      toastId: id,
-      count: 1,
-      itemLabels: opts.itemLabel !== undefined ? [opts.itemLabel] : [],
-      messages: [message],
-      summaryTemplate: opts.summaryTemplate,
-    });
-  }
-
   function addTitledToast(
     message: string,
     type: Toast['type'],
@@ -216,13 +238,13 @@ export function useToast() {
     const key = `${title}\0${type}`;
     const existing = activeKeys.get(key);
 
-    if (!existing) {
-      const id = createFreshToast(message, type, { ...opts, title, icon });
-      trackNewAggregation(key, id, message, opts);
-      return id;
+    if (existing) {
+      return mergeIntoExisting(existing, key, message, type, opts);
     }
 
-    return mergeIntoExisting(existing, key, message, type, opts);
+    const id = createFreshToast(message, type, { ...opts, title, icon });
+    trackNewAggregation(key, id, message, opts);
+    return id;
   }
 
   /**
@@ -240,15 +262,17 @@ export function useToast() {
     if (opts.itemLabel !== undefined) existing.itemLabels.push(opts.itemLabel);
     existing.messages.push(message);
 
-    const template = existing.summaryTemplate;
-    const summary = template
-      ? template(existing.count, existing.itemLabels, existing.messages)
-      : `${existing.count} notifications`;
+    const summary = buildSummary(existing);
 
     if (!updateToast(existing.toastId, { message: summary })) {
       activeKeys.delete(key);
       const id = createFreshToast(message, type, opts);
-      trackNewAggregation(key, id, message, { ...opts, summaryTemplate: existing.summaryTemplate });
+      trackNewAggregation(key, id, message, {
+        ...opts,
+        summaryTemplate: existing.summaryTemplate,
+        summaryNoun: existing.summaryNoun,
+        showItemLabels: existing.showItemLabels,
+      });
       return id;
     }
 

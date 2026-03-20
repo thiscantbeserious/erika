@@ -130,7 +130,7 @@ watch(liveStatus, (next, prev) => {
       title: 'Session ready',
       icon: 'icon-file-check',
       itemLabel: props.session.filename,
-      summaryTemplate: (n) => `${n} sessions ready`,
+      summaryNoun: 'sessions ready',
     });
     setTimeout(() => { justCompleted.value = false; }, 700);
     // Refresh sidebar list so section counts and status reflect server state
@@ -141,9 +141,8 @@ watch(liveStatus, (next, prev) => {
       title: 'Processing failed',
       icon: 'icon-error-circle',
       itemLabel: props.session.filename,
-      summaryTemplate: (n, labels) => labels.length > 0
-        ? `${n} sessions failed: ${labels.slice(0, 3).join(', ')}${labels.length > 3 ? ` and ${labels.length - 3} more` : ''}`
-        : `${n} sessions failed processing`,
+      summaryNoun: 'sessions failed',
+      showItemLabels: true,
     });
     sessionList?.refreshOnSessionComplete();
   }
