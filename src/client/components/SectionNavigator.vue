@@ -238,18 +238,28 @@ function onPillLeave(): void {
 function positionPopover(pillEl: HTMLElement): void {
   const rect = pillEl.getBoundingClientRect();
   const popoverWidth = 280;
-  const popoverHeight = 180; // approximate max popover height
+  const popoverHeight = 180;
   const gap = 12;
-  const margin = 8; // minimum distance from viewport edges
+  const margin = 8;
   const left = rect.left - popoverWidth - gap;
-  let top = rect.top + rect.height / 2 - popoverHeight / 2;
 
-  // Clamp to viewport — don't overflow bottom or top
-  top = Math.max(margin, Math.min(top, window.innerHeight - popoverHeight - margin));
+  // Default: center on the pill
+  const pillCenter = rect.top + rect.height / 2;
+  let top = pillCenter - popoverHeight / 2;
+
+  // Only clamp if it would overflow the viewport
+  const clampedTop = Math.max(margin, Math.min(top, window.innerHeight - popoverHeight - margin));
+  const offset = clampedTop - top;
+  top = clampedTop;
+
+  // Arrow offset: how far the arrow needs to shift from center to still point at the pill
+  // Default arrow is at 50% of popover height. Shift it by the clamping offset.
+  const arrowTop = popoverHeight / 2 - offset;
 
   popoverStyle.value = {
     left: `${left}px`,
     top: `${top}px`,
+    '--arrow-top': `${arrowTop}px`,
   };
 }
 </script>
@@ -454,11 +464,11 @@ function positionPopover(pillEl: HTMLElement): void {
   pointer-events: none;
 }
 
-/* Arrow pointing right toward the pill */
+/* Arrow pointing right toward the pill — uses --arrow-top from JS for clamped popovers */
 .section-popover::after {
   content: '';
   position: absolute;
-  top: 50%;
+  top: var(--arrow-top, 50%);
   right: -6px;
   transform: translateY(-50%) rotate(45deg);
   width: 10px;
