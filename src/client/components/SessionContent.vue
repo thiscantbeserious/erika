@@ -1,63 +1,92 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
-import type { TerminalSnapshot } from '#vt-wasm/types';
-import type { Section } from '../composables/useSession';
+import { ref, computed } from 'vue';
+import type { SectionMetadata, SectionContentPage } from '../../shared/types/api.js';
+import type { VirtualItem } from '@tanstack/vue-virtual';
 import type { DetectionStatus } from '../../shared/types/pipeline.js';
-import TerminalSnapshotComponent from './TerminalSnapshot.vue';
-import SectionHeader from './SectionHeader.vue';
+import SectionItem from './SectionItem.vue';
 import OverlayScrollbar from './OverlayScrollbar.vue';
 
+/**
+ * SessionContent renders the terminal content area for a session.
+ *
+ * Supports two rendering paths:
+ * - Small sessions (no virtualItems): renders all sections directly.
+ * - Large sessions (virtualItems provided): renders only virtual items in a
+ *   positioned container sized to totalHeight for smooth virtual scrolling.
+ *
+ * Section content is loaded lazily via fetchSectionContent.
+ * Exposes scrollViewport for parent virtualizer wiring.
+ */
+
 const props = withDefaults(defineProps<{
-  snapshot: TerminalSnapshot | null;
-  sections: Section[];
-  defaultCollapsed?: boolean;
-  /** Pipeline detection status — used in Stage 3 to render in-progress/empty states. */
+  /** Ordered list of section metadata — drives section rendering. */
+  sections: SectionMetadata[];
+  /** Callback to load terminal lines for a section by id (cache-backed). */
+  fetchSectionContent: (id: string) => Promise<SectionContentPage>;
+  /** Pipeline detection status — used to render in-progress/empty states. */
   detectionStatus?: DetectionStatus;
+  /**
+   * Virtual items from useSectionVirtualizer — when provided, enables virtual
+   * rendering. Only these items are rendered (large session path).
+   */
+  virtualItems?: VirtualItem[];
+  /**
+   * Total scrollable height in pixels from the virtualizer.
+   * Required when virtualItems is provided.
+   */
+  totalHeight?: number;
 }>(), {
-  defaultCollapsed: false,
   detectionStatus: 'completed',
+  virtualItems: undefined,
+  totalHeight: undefined,
 });
 
-const foldState = reactive<Record<string, boolean>>({});
+const emit = defineEmits<{
+  /** Fired when a section mounts, for scrollspy wiring in the parent. */
+  (e: 'register-section', id: string, el: Element): void;
+}>();
 
-function isCollapsed(sectionId: string): boolean {
-  return foldState[sectionId] ?? props.defaultCollapsed;
-}
+const overlayScrollbarRef = ref<InstanceType<typeof OverlayScrollbar> | null>(null);
 
-function toggleFold(sectionId: string) {
-  foldState[sectionId] = !isCollapsed(sectionId);
-}
-
-function getSectionLineCount(section: Section): number {
-  if (section.startLine != null && section.endLine != null) {
-    return section.endLine - section.startLine;
-  }
-  if (section.snapshot) {
-    return section.snapshot.lines.length;
-  }
-  return 0;
-}
-
-// Lines before the first section (if first section doesn't start at line 0)
-const preambleLines = computed(() => {
-  if (!props.snapshot || props.sections.length === 0) return [];
-  const firstSection = props.sections[0];
-  if (firstSection.startLine != null && firstSection.startLine > 0) {
-    return props.snapshot.lines.slice(0, firstSection.startLine);
-  }
-  return [];
-});
+/** True when large-session virtual mode is active. */
+const isVirtualized = computed(() => props.virtualItems !== undefined);
 
 /** True when status is a terminal error (failed or interrupted). */
 const isTerminalError = computed(() =>
   props.detectionStatus === 'failed' || props.detectionStatus === 'interrupted'
 );
+
+/** Sections to render in flat (non-virtualized) mode. */
+const sectionsToRender = computed((): SectionMetadata[] => {
+  if (!isVirtualized.value) return props.sections;
+  return [];
+});
+
+/** Sections to render in virtualized mode (mapped from virtualItems). */
+const virtualSections = computed((): Array<{ item: VirtualItem; section: SectionMetadata }> => {
+  if (!isVirtualized.value || !props.virtualItems) return [];
+  return props.virtualItems.flatMap((item) => {
+    const section = props.sections[item.index];
+    if (!section) return [];
+    return [{ item, section }];
+  });
+});
+
+function onSectionRegister(id: string, el: Element): void {
+  emit('register-section', id, el);
+}
+
+/** Expose the scroll viewport so SessionDetailView can wire useSectionVirtualizer. */
+defineExpose({
+  scrollViewport: computed(() => overlayScrollbarRef.value?.viewport ?? null),
+});
 </script>
 
 <template>
   <div class="terminal-chrome">
     <OverlayScrollbar
       v-if="sections.length > 0"
+      ref="overlayScrollbarRef"
       class="terminal-scroll"
     >
       <!-- Error banner for failed sessions that have partial sections -->
@@ -68,86 +97,57 @@ const isTerminalError = computed(() =>
         Session processing encountered an error. Showing available content.
       </div>
 
-      <!-- Lines before first section -->
-      <TerminalSnapshotComponent
-        v-if="preambleLines.length > 0"
-        :lines="preambleLines"
-        :start-line-number="1"
-      />
-
-      <!-- Each section: sticky header + content -->
-      <template
-        v-for="section in sections"
-        :key="section.id"
+      <!-- Virtual mode: absolutely positioned items within a sized container -->
+      <div
+        v-if="isVirtualized"
+        class="section-virtual-container"
+        :style="{ height: `${totalHeight}px`, position: 'relative' }"
       >
-        <SectionHeader
-          :section="section"
-          :collapsed="isCollapsed(section.id)"
-          :line-count="getSectionLineCount(section)"
-          @toggle="toggleFold(section.id)"
-        />
         <div
-          v-if="!isCollapsed(section.id)"
-          class="section-content"
+          v-for="{ item, section } in virtualSections"
+          :key="section.id"
+          class="section-virtual-item"
+          :style="{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            transform: `translateY(${item.start}px)`,
+          }"
+          :data-index="item.index"
         >
-          <!-- CLI section: slice from session snapshot -->
-          <TerminalSnapshotComponent
-            v-if="section.startLine != null && section.endLine != null && snapshot"
-            :lines="snapshot.lines.slice(section.startLine, section.endLine)"
-            :start-line-number="section.startLine + 1"
+          <SectionItem
+            :section="section"
+            :fetch-content="fetchSectionContent"
+            @register="onSectionRegister"
           />
-          <!-- TUI/overflow section: inline viewport snapshot -->
-          <TerminalSnapshotComponent
-            v-else-if="section.snapshot"
-            :lines="section.snapshot.lines"
-            :start-line-number="1"
-          />
-          <!-- Empty section -->
-          <div
-            v-else
-            class="section-empty"
-          >
-            No content captured
-          </div>
         </div>
+      </div>
+
+      <!-- Flat mode: render all sections directly -->
+      <template v-else>
+        <SectionItem
+          v-for="section in sectionsToRender"
+          :key="section.id"
+          :section="section"
+          :fetch-content="fetchSectionContent"
+          @register="onSectionRegister"
+        />
       </template>
     </OverlayScrollbar>
 
-    <!-- State A: completed + 0 sections + snapshot exists → full snapshot with info banner -->
-    <template v-else-if="detectionStatus === 'completed' && snapshot">
-      <div class="session-content-banner session-content-banner--info">
-        Section boundaries were not detected for this session.
-      </div>
-      <OverlayScrollbar class="terminal-scroll">
-        <TerminalSnapshotComponent
-          :lines="snapshot.lines"
-          :start-line-number="1"
-        />
-      </OverlayScrollbar>
-    </template>
-
-    <!-- State A (no snapshot): completed + 0 sections + no snapshot -->
+    <!-- State A: completed + 0 sections → info banner -->
     <div
       v-else-if="detectionStatus === 'completed'"
       class="terminal-empty"
     >
+      <div class="session-content-banner session-content-banner--info">
+        Section boundaries were not detected for this session.
+      </div>
       No content available for this session.
     </div>
 
-    <!-- State B (failed/interrupted + snapshot): show error banner + full snapshot -->
-    <template v-else-if="isTerminalError && snapshot">
-      <div class="session-content-banner session-content-banner--error">
-        Session processing encountered an error. Showing available content.
-      </div>
-      <OverlayScrollbar class="terminal-scroll">
-        <TerminalSnapshotComponent
-          :lines="snapshot.lines"
-          :start-line-number="1"
-        />
-      </OverlayScrollbar>
-    </template>
-
-    <!-- State B (failed/interrupted + no snapshot): error-only state -->
+    <!-- State B (failed/interrupted + 0 sections): error-only state -->
     <div
       v-else-if="isTerminalError"
       class="terminal-empty terminal-empty--error"
@@ -160,7 +160,7 @@ const isTerminalError = computed(() =>
       v-else
       class="terminal-empty"
     >
-      Session is being processed…
+      Session is being processed&hellip;
     </div>
   </div>
 </template>
@@ -182,15 +182,12 @@ const isTerminalError = computed(() =>
   min-height: 0;
 }
 
-.section-content {
-  /* No extra padding — TerminalSnapshot handles its own */
+.section-virtual-container {
+  position: relative;
 }
 
-.section-empty {
-  padding: var(--space-4);
-  color: var(--text-muted);
-  font-style: italic;
-  font-size: var(--text-sm);
+.section-virtual-item {
+  /* Each virtual item is absolutely placed by the virtualizer */
 }
 
 .terminal-empty {
