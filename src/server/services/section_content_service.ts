@@ -77,11 +77,14 @@ export class SectionContentService {
   }
 }
 
-/** Parse snapshot JSON into SnapshotLine array; returns empty array on null or error. */
+/** Parse snapshot JSON into SnapshotLine array; handles both TerminalSnapshot and raw array formats. */
 function parseSnapshotLines(snapshot: string | null): SnapshotLine[] {
   if (!snapshot) return [];
   try {
-    return JSON.parse(snapshot) as SnapshotLine[];
+    const parsed = JSON.parse(snapshot);
+    if (Array.isArray(parsed)) return parsed as SnapshotLine[];
+    if (parsed && Array.isArray(parsed.lines)) return parsed.lines as SnapshotLine[];
+    return [];
   } catch {
     return [];
   }
