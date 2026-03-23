@@ -144,17 +144,18 @@ function onHoverSection(id: string): void {
       {{ error }}
     </div>
     <template v-else>
-      <SessionContent
-        ref="sessionContentRef"
-        class="session-detail-view__content"
-        :sections="sections"
-        :fetch-section-content="fetchSectionContent"
-        :detection-status="detectionStatus"
-        :virtual-items="isLargeSession ? virtualItems : undefined"
-        :total-height="isLargeSession ? totalHeight : undefined"
-        :measure-element="measureElement"
-        @register-section="onRegisterSection"
-      />
+      <div class="session-detail-view__content">
+        <SessionContent
+          ref="sessionContentRef"
+          :sections="sections"
+          :fetch-section-content="fetchSectionContent"
+          :detection-status="detectionStatus"
+          :virtual-items="isLargeSession ? virtualItems : undefined"
+          :total-height="isLargeSession ? totalHeight : undefined"
+          :measure-element="measureElement"
+          @register-section="onRegisterSection"
+        />
+      </div>
       <SectionNavigator
         v-if="isLargeSession"
         class="session-detail-view__nav"
@@ -200,9 +201,11 @@ function onHoverSection(id: string): void {
   flex: 1;
   min-width: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Content gets full padding; navigator is outside this and fills flush. */
+/* Content wrapper gets full padding; navigator sits flush outside it. */
 .session-detail-view--with-nav .session-detail-view__content {
   padding: var(--space-6);
   padding-left: 0;
