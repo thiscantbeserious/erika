@@ -108,6 +108,15 @@ export class SqliteSectionImpl implements SectionAdapter {
   }
 
   /**
+   * Find a single section by its unique ID.
+   * Returns null if no matching section exists.
+   */
+  async findById(id: string): Promise<SectionRow | null> {
+    const row = this.findByIdStmt.get(id) as SectionRow | undefined;
+    return row ?? null;
+  }
+
+  /**
    * Delete a section by ID.
    * Returns true if a section was deleted, false otherwise.
    */

@@ -24,6 +24,7 @@ import {
   RetryService,
   EventLogService,
 } from './services/index.js';
+import { SectionContentService } from './services/section_content_service.js';
 import { PipelineStatusService } from './services/pipeline_status_service.js';
 import { handleUpload } from './routes/upload.js';
 import {
@@ -32,6 +33,7 @@ import {
   handleDeleteSession,
   handleRedetect,
 } from './routes/sessions.js';
+import { handleGetSectionContent } from './routes/section_content.js';
 import { handleSseEvents } from './routes/sse.js';
 import { handlePipelineStatus } from './routes/pipeline_status.js';
 import { handleGetStatus } from './routes/status.js';
@@ -77,8 +79,8 @@ export function createApp(deps: AppDeps): Hono {
   app.use(cors({
     origin: config.corsOrigin ?? '*',
     allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Last-Event-ID'],
-    exposeHeaders: ['Content-Type'],
+    allowHeaders: ['Content-Type', 'Last-Event-ID', 'If-None-Match'],
+    exposeHeaders: ['Content-Type', 'ETag'],
     maxAge: 86400,
   }));
 
@@ -101,6 +103,7 @@ export function createApp(deps: AppDeps): Hono {
   const statusService = new StatusService({ sessionRepository, jobQueue });
   const retryService = new RetryService({ sessionRepository, jobQueue, eventBus });
   const eventLogService = new EventLogService({ sessionRepository, eventLog });
+  const sectionContentService = new SectionContentService({ sessionRepository, sectionRepository });
 
   const pipelineStatusService = new PipelineStatusService({
     eventBus,
@@ -124,6 +127,9 @@ export function createApp(deps: AppDeps): Hono {
   app.get('/api/sessions/:id', (c) => handleGetSession(c, sessionService));
   app.delete('/api/sessions/:id', (c) => handleDeleteSession(c, sessionService));
   app.post('/api/sessions/:id/redetect', (c) => handleRedetect(c, sessionService));
+  app.get('/api/sessions/:id/sections/:sectionId/content', (c) =>
+    handleGetSectionContent(c, sectionContentService)
+  );
 
   app.get('/api/sessions/:id/events', (c) =>
     handleSseEvents(c, sessionRepository, eventBus, eventLog)

@@ -70,6 +70,12 @@ export interface SectionAdapter {
   findBySessionId(sessionId: string): Promise<SectionRow[]>;
 
   /**
+   * Find a single section by its unique ID.
+   * Returns null if no matching section exists.
+   */
+  findById(id: string): Promise<SectionRow | null>;
+
+  /**
    * Delete sections by session ID.
    * Optionally filter by type (marker or detected).
    * Returns count of deleted sections.
