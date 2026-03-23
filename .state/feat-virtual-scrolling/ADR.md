@@ -123,26 +123,25 @@ CSS `content-visibility: auto` is applied as layer 1 to section content containe
 
 **Sticky header strategy:** Each virtual item includes both header and content. Headers use `position: sticky` within the virtual item wrapper. TanStack Virtual's absolute positioning of items requires z-index management: ensure headers have `z-index` above adjacent items' content.
 
-### Decision 4: Section Navigator Aside -- Component Architecture
+### Decision 4: Section Navigator -- Component Architecture
 
-#### Option A: Monolithic aside component
+The approved visual design is defined in `.state/feat-virtual-scrolling/references/approved-design.html`. Engineers extract all styles, DOM structure, and visual behavior directly from that file. This ADR does not describe visual design in text.
 
-A single `SectionNavigator.vue` component handles the pill grid, expand panel, scrollspy consumption, and click navigation. The shared `useActiveSection` composable lives outside the component for VISIONBOOK compatibility.
+#### Option A: Monolithic component
+
+A single `SectionNavigator.vue` component handles all navigator rendering and interaction. The shared `useActiveSection` composable lives outside the component for VISIONBOOK compatibility.
 
 - Pros: Simple component tree. All navigator rendering state is local. One file to read and understand. Easier to refactor later if the design evolves.
-- Cons: Large component file. Harder to test pill grid layout separately from expand panel animation.
+- Cons: Large component file. Harder to test sub-features in isolation.
 
 #### Option B: Composed components with shared composable
 
-- `SectionNavigatorAside.vue` -- layout shell (aside element, responsive show/hide)
-- `SectionPillGrid.vue` -- renders the compact pill grid
-- `SectionExpandPanel.vue` -- the expanded panel with full labels
-- `useActiveSection.ts` -- composable that owns scrollspy state
+Multiple sub-components + shared composable.
 
-- Pros: Each component is testable in isolation. Expand panel can be lazy-loaded.
+- Pros: Each component is testable in isolation.
 - Cons: More files. Over-engineered for a feature whose design may evolve. Component boundaries are premature until the design stabilizes.
 
-**Chosen: Option A -- monolithic `SectionNavigator.vue` + shared `useActiveSection` composable.** The navigator is a single cohesive UI surface. Splitting it into sub-components before the design stabilizes adds file overhead without proportionate benefit. The `useActiveSection` composable remains a separate file because it is shared state consumed by both `SessionContent.vue` and `SectionNavigator.vue` -- this is a VISIONBOOK hard requirement (items 1, 3).
+**Chosen: Option A -- monolithic `SectionNavigator.vue` + shared `useActiveSection` composable.** The navigator is a single cohesive UI surface. The `useActiveSection` composable remains a separate file because it is shared state consumed by both `SessionContent.vue` and `SectionNavigator.vue` -- this is a VISIONBOOK hard requirement (items 1, 3).
 
 **Extraction trigger:** If `SectionNavigator.vue` exceeds 300 lines of `<script>` (not counting `<template>` and `<style>`), sub-components must be extracted before the stage is marked complete. This is a hard rule, not a suggestion.
 
@@ -186,7 +185,7 @@ Section-level virtualization removes DOM nodes for sections outside the active w
 
 Sessions with `sectionCount` below a threshold (default: 5 sections) skip the heavyweight layers:
 - The metadata endpoint still returns the same shape (for consistency), but the client detects `sectionCount <= threshold` and uses the bulk GET endpoint to fetch all content in one request.
-- No section navigator aside is rendered.
+- No section navigator is rendered.
 - TanStack Virtual is not activated (sections render in normal document flow).
 - CSS `content-visibility: auto` is still applied (harmless, zero-cost for small sessions).
 - The experience is identical to today: one fast load, all content visible, no skeleton states.
@@ -214,7 +213,7 @@ Adopt all eight decisions:
 1. **API: Three endpoints** -- metadata-only `GET /api/sessions/:id` (breaking change) + bulk content `GET /api/sessions/:id/sections/content` + per-section content `GET /api/sessions/:id/sections/:sectionId/content`. Bulk route registered before per-section route in Hono.
 2. **Section content: Server-side pagination** -- `?offset=0&limit=500` for large sections. `limit=all` for full content. Out-of-range offsets return empty lines, not errors.
 3. **Virtualization: TanStack Virtual + CSS containment** -- `@tanstack/vue-virtual` at section level with CSS `content-visibility: auto` as layer 1 within rendered sections.
-4. **Navigator: Monolithic `SectionNavigator.vue` + shared `useActiveSection` composable** -- single component for the navigator surface; shared composable for scrollspy state. Extract sub-components if script exceeds 300 lines.
+4. **Navigator: Monolithic `SectionNavigator.vue` + shared `useActiveSection` composable.** Approved visual design: `.state/feat-virtual-scrolling/references/approved-design.html`. Extract sub-components if script exceeds 300 lines.
 5. **Cache: Pluggable in-memory LRU Map + HTTP ETag headers** -- `SectionCache` interface with replaceable implementation. Default: in-memory LRU with configurable ceiling.
 6. **Cmd+F: Accepted tradeoff** -- works within loaded sections; full-session search is a future feature.
 7. **Small sessions: Client-side threshold** -- sessions below 5 sections use bulk GET and skip virtualization/navigator.
@@ -237,7 +236,7 @@ How each of the 9 deferred items is accommodated by this design:
 
 ### 1. Section-Level Deep Linking (`#section-12`)
 
-**Accommodated.** Section IDs are nanoid strings (already URL-safe). The `useActiveSection` composable tracks the active section by ID. A future `onMounted` hook can parse `window.location.hash`, resolve it to a section ID, and call `scrollToSection(id)` -- the same function the navigator's pill click uses. TanStack Virtual's `scrollToIndex` API supports programmatic scrolling to any virtual item. No architectural change needed.
+**Accommodated.** Section IDs are nanoid strings (already URL-safe). The `useActiveSection` composable tracks the active section by ID. A future `onMounted` hook can parse `window.location.hash`, resolve it to a section ID, and call `scrollToSection(id)` -- the same function the navigator uses on click. TanStack Virtual's `scrollToIndex` API supports programmatic scrolling to any virtual item. No architectural change needed.
 
 ### 2. Custom In-App Search
 
@@ -253,11 +252,11 @@ How each of the 9 deferred items is accommodated by this design:
 
 ### 5. Progressive Section Summaries (Preview Field)
 
-**Accommodated.** The `preview` nullable TEXT column is added to the `sections` table in the migration stage (005). It is nullable and initially empty, costing nothing. A future pipeline step can populate it with the first non-empty line or marker text. The metadata endpoint includes `preview` in `SectionMetadata` when present. The navigator component receives section metadata as props, so displaying a preview tooltip requires no component refactoring.
+**Accommodated.** The `preview` nullable TEXT column is added to the `sections` table in the migration stage (005). It is nullable and initially empty, costing nothing. A future pipeline step can populate it with the first non-empty line or marker text. The metadata endpoint includes `preview` in `SectionMetadata` when present. The approved navigator design includes a popover card with a terminal preview area -- this slot is ready to display the `preview` field when populated.
 
 ### 6. Section Density Encoding in Pills
 
-**Accommodated.** Pills receive section metadata as props (`type`, `lineCount`, `label`). Pill appearance is data-driven by design -- the component renders based on these props. A future enhancement can compute relative weight (line count / max section line count) and map it to visual encoding (brightness, size) without refactoring the component structure.
+**Accommodated.** Pills receive section metadata as props (`type`, `lineCount`, `label`). Pill appearance is data-driven by design -- the component renders based on these props. The approved design differentiates pill styling by section type (marker vs detected). A future enhancement can further encode line count into visual weight without refactoring the component structure.
 
 ### 7. Streaming / Real-Time Session Support
 
@@ -277,7 +276,7 @@ How each of the 9 deferred items is accommodated by this design:
 
 ### What becomes easier
 - Opening large sessions -- sub-second structure visibility, bounded DOM, bounded payload
-- Navigating sessions -- one-click jump to any section via aside
+- Navigating sessions -- one-click jump to any section via navigator
 - Re-visiting sessions -- cached section content avoids redundant fetches
 - Initial load optimization -- bulk GET eliminates N+1 for the common case
 - Per-section content serving -- denormalized snapshots mean O(1) DB read per section, no session-level JSON parsing

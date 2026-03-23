@@ -290,35 +290,38 @@ Considerations:
 
 ### Stage 9: Client -- Section Navigator Component
 
-Goal: Build the `SectionNavigator.vue` component with pill grid, expand panel, and scrollspy integration.
+Goal: Build the `SectionNavigator.vue` component implementing the approved design with scrollspy integration.
 
 Owner: frontend-engineer
 
-- [ ] Create `SectionNavigator.vue` -- monolithic component containing:
-  - Pill grid (CSS Grid, `auto-fill` columns, adapts to aside width)
-  - Expand panel (triggered by pill click, shows full section labels)
-  - Scroll-to-section on label click
-  - Active pill highlighting via `useActiveSection.activeSectionId`
+**Visual design reference:** Extract all styles, DOM structure, and visual behavior from `.state/feat-virtual-scrolling/references/approved-design.html`. The approved design defines the navigator's layout, pill styling, popover cards, trace line, active pointer, and scroll behavior. Do not invent visual design -- implement what the file specifies.
+
+- [ ] Create `SectionNavigator.vue` -- monolithic component implementing the approved design:
+  - Section count header
+  - Vertical pill list with numbered pills (one per section)
+  - Vertical trace line connecting pill centers
+  - Active pill pointer (tracks `useActiveSection.activeSectionId`)
+  - Popover card on pill hover showing section title, type badge, metadata, terminal preview area, and extensibility slots
+  - Its own `<OverlayScrollbar>` instance wrapping the pill list
+- [ ] Click pill: scroll content view to that section via `useActiveSection.scrollToSection()`
 - [ ] Prefetch on pill hover: trigger `useSession.fetchSectionContent` via `useScheduler.after(150ms)` debounce
-- [ ] Keyboard navigation: arrow keys within pill grid, Enter to navigate
+- [ ] Keyboard navigation: arrow keys to move between pills, Enter to navigate to section
 - [ ] ARIA: `role="navigation"`, `aria-label="Section navigator"`, `aria-current` on active pill
 - [ ] `prefers-reduced-motion` check for scroll animation
-- [ ] Responsive: hidden below 1024px width (use `useLayout` breakpoints)
+- [ ] Responsive: hidden when the approved design's aside column is collapsed (follows shell layout breakpoints)
 - [ ] Pills are data-driven: receive `SectionMetadata` (type, label, lineCount) to support future density encoding (VISIONBOOK item 6)
-- [ ] **Extraction trigger:** If `<script>` section exceeds 300 lines, extract `SectionPillGrid.vue` and `SectionExpandPanel.vue` before marking stage complete.
-- [ ] Write component tests: pill rendering, active state, click navigation, keyboard nav, ARIA attributes, hover prefetch
+- [ ] **Extraction trigger:** If `<script>` section exceeds 300 lines, extract sub-components before marking stage complete.
+- [ ] Write component tests: pill rendering, active state tracking, click-to-navigate, keyboard nav, ARIA attributes, hover prefetch, popover display
 
 Files:
 - `src/client/components/SectionNavigator.vue` (new)
-- `src/client/components/SectionPillGrid.vue` (new, only if extraction triggered)
-- `src/client/components/SectionExpandPanel.vue` (new, only if extraction triggered)
 
 Depends on: Stage 8
 
 Considerations:
-- Pill grid layout: target 4-6 columns for a ~200px aside. Each pill shows truncated label or section number.
-- Expand panel animates leftward from the aside. Use CSS transform for animation. Panel overlaps main content (absolute positioned).
-- The aside consumes screen width. Consider the layout impact on the terminal content area.
+- The approved design places the navigator in the shell's aside column. Coordinate with the existing `spatial-shell` layout classes.
+- The popover card appears to the left of the hovered pill. It must not clip against the viewport edge. Position logic may need to account for pills near the top or bottom of the list.
+- The approved design includes a custom OverlayScrollbar theme for the navigator (narrower track, left-aligned). Extract these overrides from the design file.
 - Component receives sections metadata array + `useActiveSection` composable state as props/inject.
 
 ---
@@ -379,12 +382,11 @@ Owner: frontend-engineer
 - [ ] For large sections with pagination: render loaded lines, show "loading more..." indicator at bottom when `hasMore`
 - [ ] Trigger `fetchNextPage(sectionId)` when user scrolls near bottom of a paginated section
 - [ ] Show skeleton/shimmer placeholder for sections that are loading initial content
-- [ ] Add `<SectionNavigator>` adjacent to the scroll container for large sessions
-- [ ] Layout: flexbox row with content area + aside. Aside only rendered when sectionCount > threshold.
+- [ ] Add `<SectionNavigator>` in the shell's aside column for large sessions
 - [ ] Wire `useActiveSection` to both content sections and navigator
-- [ ] Wire prefetch on pill hover to `useSession.fetchSectionContent`
+- [ ] Wire prefetch on navigator pill hover to `useSession.fetchSectionContent`
 - [ ] Preserve all existing behavior: fold state, preamble lines, error banners, empty states
-- [ ] Preserve small session passthrough: below threshold, render exactly as today (no aside, no skeletons, no virtualizer)
+- [ ] Preserve small session passthrough: below threshold, render exactly as today (no navigator, no skeletons, no virtualizer)
 - [ ] Update snapshot tests
 - [ ] Manual testing: 3-section session (unchanged), 50-section session (virtualized + navigator)
 
@@ -400,6 +402,7 @@ Considerations:
 - The `foldState` (collapse/expand) must interact with TanStack Virtual: collapsed sections have fixed height. Notify the virtualizer to re-measure when fold state changes (`virtualizer.measure()`).
 - Test the interaction between collapse and virtualization: collapsing/expanding a section should trigger height re-measurement.
 - Progressive rendering within large sections: when a section has `hasMore`, show the loaded lines immediately and append new pages as they load. Use an IntersectionObserver sentinel element near the bottom of the section to trigger next-page fetch.
+- The navigator occupies the shell aside column. Activation/deactivation of the aside column must coordinate with the shell layout (the approved design overrides the aside column width from `0fr` to `48px`).
 
 ---
 
@@ -416,9 +419,9 @@ Owner: both (backend-engineer + frontend-engineer)
 - [ ] Measure: client memory usage (target: < 150 MB)
 - [ ] Measure: 304 Not Modified on second section content fetch
 - [ ] Test: 3-section session shows no navigator, no skeletons
-- [ ] Test: pill click navigates to correct section, content appears within 500ms
+- [ ] Test: clicking a navigator pill scrolls to the correct section, content appears within 500ms
 - [ ] Test: hover prefetch works (content appears instantly after click)
-- [ ] Test: keyboard navigation of pill grid
+- [ ] Test: keyboard navigation within navigator pills
 - [ ] Test: `prefers-reduced-motion` respected in scroll animation
 - [ ] Test: pagination -- scrolling into a 5000-line section progressively loads pages
 - [ ] Test: bulk endpoint returns first page per section, respects hard cap
