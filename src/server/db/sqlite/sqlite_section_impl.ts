@@ -25,8 +25,8 @@ export class SqliteSectionImpl implements SectionAdapter {
   constructor(db: Database.Database) {
     // Prepare statements once at construction
     this.insertStmt = db.prepare(`
-      INSERT INTO sections (id, session_id, type, start_event, end_event, label, snapshot, start_line, end_line)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sections (id, session_id, type, start_event, end_event, label, snapshot, start_line, end_line, line_count, content_hash, preview)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     this.findBySessionIdStmt = db.prepare(`
@@ -72,7 +72,10 @@ export class SqliteSectionImpl implements SectionAdapter {
       input.label,
       input.snapshot,
       input.startLine,
-      input.endLine
+      input.endLine,
+      input.lineCount ?? null,
+      input.contentHash ?? null,
+      input.preview ?? null
     );
 
     // Retrieve the created section to get generated created_at
