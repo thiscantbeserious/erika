@@ -49,7 +49,7 @@
       <div
         v-if="hoveredSection !== null"
         class="section-popover"
-        :class="`section-popover--${hoveredSection.type}`"
+        :class="[`section-popover--${hoveredSection.type}`, { 'section-popover--no-arrow': popoverClamped }]"
         :style="popoverStyle"
         aria-hidden="true"
       >
@@ -209,6 +209,7 @@ function focusPill(index: number): void {
 
 const hoveredSection = ref<SectionMetadata | null>(null);
 const popoverStyle = ref<Record<string, string>>({});
+const popoverClamped = ref(false);
 
 /** Current prefetch cancel handle. */
 let prefetchHandle = scheduler.after(0, () => {});
@@ -244,6 +245,7 @@ function positionPopover(pillEl: HTMLElement): void {
   const pillCenter = rect.top + rect.height / 2;
 
   // Default: vertically centered on the pill
+  popoverClamped.value = false;
   popoverStyle.value = {
     left: `${left}px`,
     top: `${pillCenter}px`,
@@ -259,24 +261,19 @@ function positionPopover(pillEl: HTMLElement): void {
     const popoverRect = popoverEl.getBoundingClientRect();
 
     if (popoverRect.bottom > window.innerHeight - margin) {
-      // Overflows bottom — shift up, move arrow down to still point at pill
+      popoverClamped.value = true;
       const top = window.innerHeight - popoverRect.height - margin;
-      const arrowTop = pillCenter - top;
       popoverStyle.value = {
         left: `${left}px`,
         top: `${top}px`,
         transform: 'none',
-        '--arrow-top': `${arrowTop}px`,
       };
     } else if (popoverRect.top < margin) {
-      // Overflows top — shift down, move arrow up
-      const top = margin;
-      const arrowTop = pillCenter - top;
+      popoverClamped.value = true;
       popoverStyle.value = {
         left: `${left}px`,
-        top: `${top}px`,
+        top: `${margin}px`,
         transform: 'none',
-        '--arrow-top': `${arrowTop}px`,
       };
     }
   });
@@ -495,6 +492,10 @@ function positionPopover(pillEl: HTMLElement): void {
   background: var(--bg-elevated);
   border-right: 1px solid var(--border-strong);
   border-top: 1px solid var(--border-strong);
+}
+
+.section-popover--no-arrow::after {
+  display: none;
 }
 
 .section-popover__header {
