@@ -238,29 +238,48 @@ function onPillLeave(): void {
 function positionPopover(pillEl: HTMLElement): void {
   const rect = pillEl.getBoundingClientRect();
   const popoverWidth = 280;
-  const popoverHeight = 180;
   const gap = 12;
   const margin = 8;
   const left = rect.left - popoverWidth - gap;
-
-  // Default: center on the pill
   const pillCenter = rect.top + rect.height / 2;
-  let top = pillCenter - popoverHeight / 2;
 
-  // Only clamp if it would overflow the viewport
-  const clampedTop = Math.max(margin, Math.min(top, window.innerHeight - popoverHeight - margin));
-  const offset = clampedTop - top;
-  top = clampedTop;
-
-  // Arrow offset: how far the arrow needs to shift from center to still point at the pill
-  // Default arrow is at 50% of popover height. Shift it by the clamping offset.
-  const arrowTop = popoverHeight / 2 - offset;
-
+  // Default: vertically centered on the pill
   popoverStyle.value = {
     left: `${left}px`,
-    top: `${top}px`,
-    '--arrow-top': `${arrowTop}px`,
+    top: `${pillCenter}px`,
+    transform: 'translateY(-50%)',
+    '--arrow-top': '50%',
   };
+
+  // After next frame, check if popover overflows viewport and clamp if needed
+  requestAnimationFrame(() => {
+    const popoverEl = document.querySelector('.section-popover') as HTMLElement | null;
+    if (!popoverEl) return;
+
+    const popoverRect = popoverEl.getBoundingClientRect();
+
+    if (popoverRect.bottom > window.innerHeight - margin) {
+      // Overflows bottom — shift up, move arrow down to still point at pill
+      const top = window.innerHeight - popoverRect.height - margin;
+      const arrowTop = pillCenter - top;
+      popoverStyle.value = {
+        left: `${left}px`,
+        top: `${top}px`,
+        transform: 'none',
+        '--arrow-top': `${arrowTop}px`,
+      };
+    } else if (popoverRect.top < margin) {
+      // Overflows top — shift down, move arrow up
+      const top = margin;
+      const arrowTop = pillCenter - top;
+      popoverStyle.value = {
+        left: `${left}px`,
+        top: `${top}px`,
+        transform: 'none',
+        '--arrow-top': `${arrowTop}px`,
+      };
+    }
+  });
 }
 </script>
 
