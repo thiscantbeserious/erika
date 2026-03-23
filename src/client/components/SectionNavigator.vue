@@ -238,14 +238,18 @@ function onPillLeave(): void {
 function positionPopover(pillEl: HTMLElement): void {
   const rect = pillEl.getBoundingClientRect();
   const popoverWidth = 280;
+  const popoverHeight = 180; // approximate max popover height
   const gap = 12;
+  const margin = 8; // minimum distance from viewport edges
   const left = rect.left - popoverWidth - gap;
-  const top = rect.top + rect.height / 2;
+  let top = rect.top + rect.height / 2 - popoverHeight / 2;
+
+  // Clamp to viewport — don't overflow bottom or top
+  top = Math.max(margin, Math.min(top, window.innerHeight - popoverHeight - margin));
 
   popoverStyle.value = {
     left: `${left}px`,
     top: `${top}px`,
-    transform: 'translateY(-50%)',
   };
 }
 </script>
