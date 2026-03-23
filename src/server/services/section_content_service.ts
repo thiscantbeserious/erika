@@ -12,6 +12,7 @@ import type { SessionAdapter } from '../db/session_adapter.js';
 import type { SectionContentPage } from '../../shared/types/api.js';
 import type { SnapshotLine } from '#vt-wasm/types';
 import { DEFAULT_SECTION_PAGE_LIMIT } from '../../shared/constants.js';
+import { parseSnapshotLines } from '../utils/snapshot_lines.js';
 
 export interface SectionContentServiceDeps {
   sessionRepository: SessionAdapter;
@@ -77,18 +78,6 @@ export class SectionContentService {
   }
 }
 
-/** Parse snapshot JSON into SnapshotLine array; handles both TerminalSnapshot and raw array formats. */
-function parseSnapshotLines(snapshot: string | null): SnapshotLine[] {
-  if (!snapshot) return [];
-  try {
-    const parsed = JSON.parse(snapshot);
-    if (Array.isArray(parsed)) return parsed as SnapshotLine[];
-    if (parsed && Array.isArray(parsed.lines)) return parsed.lines as SnapshotLine[];
-    return [];
-  } catch {
-    return [];
-  }
-}
 
 /** Build a SectionContentPage from parsed lines and query params. */
 function buildPage(

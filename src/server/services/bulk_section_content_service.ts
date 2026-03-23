@@ -13,6 +13,7 @@ import type { SessionAdapter } from '../db/session_adapter.js';
 import type { BulkSectionContentResponse, SectionContentPage } from '../../shared/types/api.js';
 import type { SnapshotLine } from '#vt-wasm/types';
 import { BULK_MAX_SECTIONS } from '../../shared/constants.js';
+import { parseSnapshotLines } from '../utils/snapshot_lines.js';
 
 export interface BulkSectionContentServiceDeps {
   sessionRepository: SessionAdapter;
@@ -66,18 +67,6 @@ export class BulkSectionContentService {
   }
 }
 
-/** Parse snapshot JSON into SnapshotLine array; handles both TerminalSnapshot and raw array formats. */
-function parseSnapshotLines(snapshot: string | null): SnapshotLine[] {
-  if (!snapshot) return [];
-  try {
-    const parsed = JSON.parse(snapshot);
-    if (Array.isArray(parsed)) return parsed as SnapshotLine[];
-    if (parsed && Array.isArray(parsed.lines)) return parsed.lines as SnapshotLine[];
-    return [];
-  } catch {
-    return [];
-  }
-}
 
 /** Build a full-content SectionContentPage (limit="all") for a single section. */
 function buildFullPage(

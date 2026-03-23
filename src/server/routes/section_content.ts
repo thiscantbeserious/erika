@@ -63,7 +63,7 @@ function parseQueryParams(c: Context): { offset?: number; limit?: number | 'all'
   const limit = parseLimitParam(limitStr);
 
   return {
-    offset: Number.isFinite(offset) ? offset : undefined,
+    offset: Number.isFinite(offset) && offset! >= 0 ? offset : undefined,
     limit,
   };
 }
