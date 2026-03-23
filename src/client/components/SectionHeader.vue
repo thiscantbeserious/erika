@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Section } from '../composables/useSession';
+import type { SectionMetadata } from '../../shared/types/api.js';
 
 defineProps<{
-  section: Section;
+  section: SectionMetadata;
   collapsed: boolean;
   lineCount: number;
 }>();
