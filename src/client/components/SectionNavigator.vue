@@ -4,13 +4,6 @@
     role="navigation"
     aria-label="Section navigator"
   >
-    <!-- Active pill pointer — triangle on left edge, tracks active section -->
-    <div
-      class="section-nav__pointer"
-      :class="{ 'section-nav__pointer--marker': activeSection?.type === 'marker' }"
-      :style="pointerStyle"
-    />
-
     <!-- Section count header -->
     <div class="section-nav__header">
       <span class="section-nav__count">{{ sections.length }}</span>
@@ -20,6 +13,13 @@
     <OverlayScrollbar class="section-nav__scrollbar">
       <div class="section-nav__list">
         <div class="section-nav__trace" />
+
+        <!-- Active pill pointer — inside scroll container so it moves with pills -->
+        <div
+          class="section-nav__pointer"
+          :class="{ 'section-nav__pointer--marker': activeSection?.type === 'marker' }"
+          :style="pointerStyle"
+        />
 
         <button
           v-for="(section, index) in sections"
@@ -164,11 +164,13 @@ function updatePointerPosition(): void {
   }
   const pill = pillRefs.value[idx];
   if (!pill) return;
-  const pillRect = pill.getBoundingClientRect();
-  const asideEl = pill.closest('.section-nav');
-  if (!asideEl) return;
-  const asideRect = asideEl.getBoundingClientRect();
-  pointerTop.value = pillRect.top - asideRect.top + pillRect.height / 2;
+
+  // Position relative to the pill list (pointer is inside the scroll container)
+  // offsetTop gives position within the list, independent of scroll position
+  pointerTop.value = pill.offsetTop + pill.offsetHeight / 2;
+
+  // Auto-scroll the pill list to keep active pill visible
+  pill.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 const pointerStyle = computed(() => {
